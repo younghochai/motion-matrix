@@ -9,12 +9,8 @@ This is a Source for the OpenGL robot 3D model
 #include <stdio.h>
 #include <GL/glut.h>
 #include <stdlib.h>
-
-
 #include <vtkQuaternion.h>
 using namespace std;
-
-
 #define STEP 0.1
 #define TORSO_HEIGHT 6.0
 #define TORSO_RADIUS 2.0
