@@ -1,5 +1,8 @@
 // RobotMotion.cpp : OpenGL application.
-
+/*
+Comment Author: Bharatesh C
+This is a Source for the OpenGL robot 3D model
+*/
 #include"XsensConnection.h"
 
 #include <math.h>
