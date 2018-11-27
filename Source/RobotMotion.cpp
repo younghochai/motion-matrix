@@ -1,5 +1,7 @@
 // RobotMotion.cpp : OpenGL application.
-
+/**
+The code is a openGL code that renders a 3D robot based on the input from the Xsens IMU sensors attached to the users body
+**/
 #include"XsensConnection.h"
 
 #include <math.h>
