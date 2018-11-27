@@ -10,8 +10,6 @@ The code is a openGL code that renders a 3D robot based on the input from the Xs
 #include <stdio.h>
 #include <GL/glut.h>
 #include <stdlib.h>
-
-
 #include <vtkQuaternion.h>
 using namespace std;
 
