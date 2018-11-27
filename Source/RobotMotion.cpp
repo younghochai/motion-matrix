@@ -1,5 +1,9 @@
 // RobotMotion.cpp : OpenGL application.
 
+/**
+The code is a openGL code that renders a 3D robot based on the input from the Xsens IMU sensors attached to the users body
+**/
+
 #include"XsensConnection.h"
 
 #include <math.h>
@@ -656,27 +660,6 @@ void idle()
 		break;
 	case 2:
 		inverseKinematics();
-		break;
-
-	case 7:
-		if (animation != option) inverseKinematics();
-		else
-		{
-			if (theta[9] > 130.0)
-			{
-				theta[9] -= STEP;
-				theta[10] += STEP;
-				theta[7] -= STEP;
-				theta[8] += STEP;
-				theta[5] += STEP;
-				theta[6] -= STEP;
-				theta[3] -= STEP;
-				theta[4] += STEP;
-				horizontal += 0.03*STEP;
-			}
-			
-						
-		}
 		break;
 
 	case 6:
