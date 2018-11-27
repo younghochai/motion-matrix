@@ -1,8 +1,9 @@
 // RobotMotion.cpp : OpenGL application.
-/*
-Comment Author: Bharatesh C
-This is a Source for the OpenGL robot 3D model
-*/
+
+/**
+The code is a openGL code that renders a 3D robot based on the input from the Xsens IMU sensors attached to the users body
+**/
+
 #include"XsensConnection.h"
 
 #include <math.h>
