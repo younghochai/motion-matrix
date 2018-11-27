@@ -93,7 +93,6 @@ private:
 	mutable XsMutex m_mutex;
 	XsDeviceSet m_connectedMTWs;
 };
-
 //----------------------------------------------------------------------
 // Callback handler for MTw
 // Handles onDataAvailable callbacks for MTW devices
