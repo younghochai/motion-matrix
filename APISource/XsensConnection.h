@@ -1,9 +1,9 @@
 #pragma once
 
 //XSens Header Include
-#include <xsens/xsmutex.h>
+#include <xsmutex.h>
 #include <xsensdeviceapi.h> 
-
+#include <xstypes/xstime.h>
 #include "conio.h"			
 #include <string>
 #include <stdexcept>
@@ -35,6 +35,8 @@ public:
 	bool waitForConnections = true;
 	bool newDataAvailable = false;
 	bool closeMtW_Succes = false;
+
+	XsDevicePtrArray mtwDevices;
 
 public:
 	void Intialize();
