@@ -10,6 +10,8 @@ float Qut_x = 0; float Qut_y = 0; float Qut_z = 0; float Qut_w = 0;
 
 //XSens handle
 XsDevicePtr wirelessMasterDevice;
+XsDevicePtr mtwDevice;
+
 
 void XsensConnection::Intialize()
 {
@@ -93,6 +95,7 @@ private:
 	mutable XsMutex m_mutex;
 	XsDeviceSet m_connectedMTWs;
 };
+
 //----------------------------------------------------------------------
 // Callback handler for MTw
 // Handles onDataAvailable callbacks for MTW devices
@@ -206,7 +209,7 @@ std::vector<MtwCallback*> mtwCallbacks; // Callbacks for mtw devices
 
 bool XsensConnection::xmtConnect()
 {
-	const int desiredUpdateRate = 80;	// Use 120 Hz update rate for 1-5 MTWs
+	const int desiredUpdateRate = 60;	// Use 120 Hz update rate for 1-5 MTWs
 	const int desiredRadioChannel = 19;	// Use radio channel 19 for wireless master. Available [11...25] and -1 for disable
 
 	WirelessMasterCallback wirelessMasterCallback; // Callback for wireless master
@@ -261,7 +264,7 @@ bool XsensConnection::xmtConnect()
 			throw std::runtime_error(error.str());
 		}
 
-
+		
 		wirelessMasterDevice->addCallbackHandler(&wirelessMasterCallback);
 
 		if (!wirelessMasterDevice->setUpdateRate(desiredUpdateRate))
@@ -319,6 +322,8 @@ bool XsensConnection::xmtConnect()
 				{
 					if (i->isMtw())
 					{
+						/*XsDevicePtr mtwDevice = control->device(*i);
+						std::cout<<"reset:" <<mtwDevice->resetOrientation(XRM_Alignment) << std::endl;*/
 
 						std::cout << "Device: " << *i << " connected." << std::endl;
 					}
@@ -345,17 +350,49 @@ bool XsensConnection::xmtConnect()
 		{
 			if (i->isMtw())
 			{
+				
 				mtwDeviceIds.push_back(*i);
-				std::cout << "Device: " << *i << " Connected." << std::endl;
+				//std::cout << "Device: " << *i << " Connected." << std::endl;
 			}
 		}
-		XsDevicePtrArray mtwDevices;
+		
 		for (XsDeviceIdArray::const_iterator i = mtwDeviceIds.begin(); i != mtwDeviceIds.end(); ++i)
 		{
 			XsDevicePtr mtwDevice = control->device(*i);
 			if (mtwDevice != 0)
 			{
-				mtwDevices.push_back(mtwDevice);
+				
+				
+				//mtwDevice->resetOrientation(XRM_Global);
+				//mtwDevice->resetOrientation(XRM_Heading);
+				std::string mtw_id = mtwDevice->deviceId().toString().toStdString();
+
+				if (mtw_id == "00B438C7" || mtw_id == "00B4391F" || mtw_id == "00B43808")//00B438AE & 00B43926
+				{
+					mtwDevices.push_back(mtwDevice);
+					XsFilterProfileArray filters;
+					
+					filters = mtwDevice->availableOnboardFilterProfiles();
+
+					for (XsFilterProfileArray::const_iterator i = filters.begin(); i != filters.end(); ++i)
+					{
+						std::cout << "Filter Profile: " << filters.indexOf(i)<< std::endl;
+						
+					}
+					
+					//std::cout << "AHS:" << mtwDevice->setDeviceOptionFlags(XDOF_EnableAhs, XDOF_None) << std::endl;
+					//std::cout << "reset:" << mtwDevice->resetOrientation(XRM_Alignment) << std::endl
+					
+					std::cout << "\n reset:" << mtwDevice->resetOrientation(XRM_Alignment) << std::endl;
+					std::cout << "\n switch to Config:" << wirelessMasterDevice->gotoConfig() << std::endl;
+					std::cout << "\n switch to Config:" << mtwDevice->gotoConfig() << std::endl;
+					std::cout << "\n Store Alignment Matrix:" << mtwDevice->resetOrientation(XRM_StoreAlignmentMatrix) << std::endl;
+					std::cout << "\n Enable AHS:" << wirelessMasterDevice->setDeviceOptionFlags(XDOF_EnableAhs, XDOF_None) << std::endl;
+					
+					std::cout << "\n switch to Measurement:" <<wirelessMasterDevice->gotoMeasurement() << std::endl;
+					std::cout << "\n switch to Config:" << mtwDevice->gotoMeasurement() << std::endl;
+				}
+								
 			}
 			else
 			{
@@ -366,14 +403,19 @@ bool XsensConnection::xmtConnect()
 		mtwCallbacks.resize(mtwDevices.size());
 		for (int i = 0; i < (int)mtwDevices.size(); ++i)
 		{
+			
 			mtwCallbacks[i] = new MtwCallback(i, mtwDevices[i]);
 			mtwDevices[i]->addCallbackHandler(mtwCallbacks[i]);
+			//mtwDevices[i]->resetOrientation(XRM_Alignment);
 		}
 
 		unsigned int printCounter = 0;
 		std::vector<XsQuaternion> quaterdata(mtwCallbacks.size());
 
+		std::cout << "Xsens ready! Stand in attention pose for calibration- Press 'v'" << std::endl;
+
 		int mtw_count = 0;
+		bool onetime = true;
 		while (isRunning)
 		{
 			XsTime::msleep(0);
@@ -387,12 +429,21 @@ bool XsensConnection::xmtConnect()
 					XsDataPacket const * packet = mtwCallbacks[i]->getOldestPacket();
 					quaterdata[i] = packet->orientationQuaternion();
 					mtwCallbacks[i]->deleteOldestPacket();
+					/*if (i==0 && onetime) {
+						std::cout << "Id:" << i << "Xsens : W:" << quaterdata[i].w() << "X:" << quaterdata[i].x() << "Y:" << quaterdata[i].y() << "Z:" << quaterdata[i].z() << std::endl;
+						onetime = false;
+					}
+					if (i == 0 && onetime) {
+						std::cout << "Id:" << i << "Xsens : W:" << quaterdata[i].w() << "X:" << quaterdata[i].x() << "Y:" << quaterdata[i].y() << "Z:" << quaterdata[i].z() << std::endl;
+						onetime = false;
+					}*/
 				}
 			}
 
 
 			if (newDataAvailable)
 			{
+				
 				for (size_t i = 0; i < mtwCallbacks.size(); ++i)
 				{
 					Qut_x = quaterdata[i].x();
@@ -400,23 +451,23 @@ bool XsensConnection::xmtConnect()
 					Qut_z = quaterdata[i].z();
 					Qut_w = quaterdata[i].w();
 
-					//std::cout << "Xsens : W" << Qut_w << "X:" << Qut_x << "Y:" << Qut_y << "Z:" << Qut_z << std::endl;
-
+					
+					
 					Quat = quaternion(Qut_x, Qut_y, Qut_z, Qut_w);
 
-					if (calibrate  /*&& i == mtw_count*/) {
-						InvQuat = Quat.Inverse();
-						calibrate = false;
-						//++mtw_count;
-					}
+					//if (calibrate  /*&& i == mtw_count*/) {
+					//	InvQuat = Quat.Inverse();
+					//	calibrate = false;
+					//	//++mtw_count;
+					//}
 
-					quaternion reset = InvQuat.mutiplication(Quat);
+					//quaternion reset = InvQuat.mutiplication(Quat);
 
-					if (std::isnan(reset.mData[0]))
+					/*if (std::isnan(reset.mData[0]))
 					{
 						calibrate = true;
-					}
-					//quaternion reset = (Quat);
+					}*/
+					quaternion reset = (Quat);
 
 					/*std::cout << "Id :"<< std::setw(2) << std::fixed << std::setprecision(2) <<i
 					<< ", Roll: " << std::setw(7) << std::fixed << std::setprecision(2) << reset.mData[0]
@@ -424,6 +475,7 @@ bool XsensConnection::xmtConnect()
 					<< ", Yaw: " << std::setw(7) << std::fixed << std::setprecision(2) << reset.mData[2]
 					<< "  W: " << std::setw(7) << std::fixed << std::setprecision(2) << reset.mData[3]
 					<< "\n";*/
+					
 					if (i == 0) {
 
 						/*double axis[3];
@@ -435,21 +487,23 @@ bool XsensConnection::xmtConnect()
 						ax[2] = reset.mData[2];
 						ax[3] = reset.mData[3];
 					}
-
+				
 					if (i == 1) {
 						ax2[0] = reset.mData[0];
 						ax2[1] = reset.mData[1];
 						ax2[2] = reset.mData[2];
 						ax2[3] = reset.mData[3];
+
+						//std::cout << "Xsens : W" << ax2[3] << "X:" << ax2[0] << "Y:" << ax2[1] << "Z:" << ax2[2] << std::endl;
 					}
 
-					/*if (i == 3) {
+					if (i == 2) {
 					r_ax3[0] = reset.mData[0];
 					r_ax3[1] = reset.mData[1];
 					r_ax3[2] = reset.mData[2];
-					r_ax3[3] = reset.mData[3];}*/
+					r_ax3[3] = reset.mData[3];}
 
-					if (i == 2) {
+					/*if (i == 2) {
 						r_ax[0] = reset.mData[0];
 						r_ax[1] = reset.mData[1];
 						r_ax[2] = reset.mData[2];
@@ -460,7 +514,7 @@ bool XsensConnection::xmtConnect()
 						r_ax2[1] = reset.mData[1];
 						r_ax2[2] = reset.mData[2];
 						r_ax2[3] = reset.mData[3];
-					}
+					}*/
 
 					/*if (i == 2) {
 					r_ax3[0] = reset.mData[0];
