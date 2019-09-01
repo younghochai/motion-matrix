@@ -2474,7 +2474,7 @@ void myinit()
 	glEnable(GL_BLEND);							// Enable Blending       (disable alpha testing)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	tgaLoad("..//worldmgrs.tga", &temp_image, TGA_FREE | TGA_LOW_QUALITY);
+	tgaLoad("worldmgrs.tga", &temp_image, TGA_FREE | TGA_LOW_QUALITY);
 
 	//glEnable(GL_CULL_FACE);
 
