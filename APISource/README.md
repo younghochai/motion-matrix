@@ -1,3 +1,6 @@
-Robot motion controlled using Quaternions.
+Instruction for Building the Project.
 
-This project developed for serial motion recognition, using C++ with OpenGL and Xsens 3D wireless Motion Tracker.This is an open source SW R & D project.
+- Create Solution File using Cmake
+- Build the Project
+- Copy dll files from bin folder to the folder where executable is generated
+- Copy "worldmgrs.tga" to the solution file folder
