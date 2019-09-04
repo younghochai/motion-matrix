@@ -18,6 +18,7 @@ SET  (project_SOURCES Robot_Xsens.cpp XsensConnection.cpp quaternion.cpp Compari
 SET  (project_HEADERS XsensConnection.h quaternion.h Comparision.h tgaload.h)
 
 add_executable(motion-matrix ${project_SOURCES} ${project_HEADERS} )
+set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT motion-matrix)
 
 target_link_libraries(motion-matrix freeglut.lib )
 target_link_libraries(motion-matrix xsensdeviceapi64.lib )
@@ -25,7 +26,7 @@ target_link_libraries(motion-matrix xstypes64.lib)
 
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/Debug")
-set(DLLDIRECTORY "${CMAKE_SOURCE_DIR}/bin")
+set(DLLDIRECTORY "${CMAKE_SOURCE_DIR}/bin") 
 set(FILENAME "${CMAKE_CURRENT_BINARY_DIR}/Load" 
 			 "${CMAKE_CURRENT_BINARY_DIR}/Load/Standard"
 			 "${CMAKE_CURRENT_BINARY_DIR}/Load/Close"
