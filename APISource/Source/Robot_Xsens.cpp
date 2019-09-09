@@ -761,7 +761,7 @@ void InitializeLight()
 	GLfloat mat_ambient_0[] = { 0.2f, 0.2f, 0.2f, 1.0f };
 	GLfloat mat_diffuse_0[] = { 1.0f, 1.0f, 1.0f, 1.0f };
 	GLfloat mat_specular_0[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-	GLfloat mat_position_0[] = { -8.5f, -8.5f, 10.8f, 1.0f };
+	GLfloat mat_position_0[] = { 0.0f, 0.0f, -5.0f, 0.0f };
 	//GLfloat mat_position_0[] = { 0.5f, 0.5f, 0.8f, 0.0f};	
 	GLfloat mat_shininess[] = { 128.0f };
 
@@ -778,8 +778,8 @@ void InitializeLight()
 	GLfloat mat_ambient_1[] = { 0.1f, 0.1f, 0.1f, 1.0f };
 	GLfloat mat_diffuse_1[] = { 1.0f, 1.0f, 1.0f, 1.0f };
 	GLfloat mat_specular_1[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-	GLfloat mat_position_1[] = { 9.5f, 9.5f, 10.0f, 1.0f };
-	GLfloat mat_spotdir_1[] = { 15.0f, 10.0f, 10.0f };
+	GLfloat mat_position_1[] = { -8.5f, -8.5f, 3.0f, 1.0f };
+	GLfloat mat_spotdir_1[] = { -10.0f, 0.0f, 0.0f };
 
 	glLightfv(GL_LIGHT1, GL_SPECULAR, mat_specular_1);
 	glLightfv(GL_LIGHT1, GL_POSITION, mat_position_1);
@@ -790,7 +790,7 @@ void InitializeLight()
 	glLightf(GL_LIGHT1, GL_LINEAR_ATTENUATION, 0.5f);
 	glLightf(GL_LIGHT1, GL_QUADRATIC_ATTENUATION, 0.2f);*/
 
-	glLightf(GL_LIGHT1, GL_SPOT_CUTOFF, 120.0f);
+	glLightf(GL_LIGHT1, GL_SPOT_CUTOFF, 50.0f);
 	glLightfv(GL_LIGHT1, GL_SPOT_DIRECTION, mat_spotdir_1);
 	glLightf(GL_LIGHT1, GL_SPOT_EXPONENT, 2.0f);
 
@@ -799,7 +799,7 @@ void InitializeLight()
 	GLfloat mat_specular_2[] = { 1.0f, 1.0f, 1.0f, 1.0f };
 	//GLfloat mat_position_2[] = { 0.9f, -0.5f, 0.6f, 1.0f};	
 	//GLfloat mat_position_2[] = { -0.5f, 0.5f, 0.6f, 1.0f};	
-	GLfloat mat_position_2[] = { -8.5f, 9.0f, 8.6f, 1.0f };
+	GLfloat mat_position_2[] = { -8.5f, 9.0f, 3.0f, 1.0f };
 
 	glLightfv(GL_LIGHT2, GL_SPECULAR, mat_specular_2);
 	glLightfv(GL_LIGHT2, GL_POSITION, mat_position_2);
@@ -809,13 +809,13 @@ void InitializeLight()
 
 	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT0);
-	glEnable(GL_LIGHT1);
-	glEnable(GL_LIGHT2);
+	//glEnable(GL_LIGHT1);
+	//glEnable(GL_LIGHT2);
 
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
 
-	::glClearColor(0.5f, 0.5f, 0.5f, 0.0f);
+	::glClearColor(0.984f, 0.76f, 0.6f, 0.0f);
 	//::glClearColor(0.0f, 0.0f, 0.0f, 0.0f);	
 	::glShadeModel(GL_SMOOTH);
 	//::glShadeModel(GL_FLAT);	
@@ -1042,17 +1042,25 @@ void Robotdisplay(void)
 void PrincipalAxis(void)
 {
 	
+	//glDisable(GL_SMOOTH);
+	//glDisable(GL_LIGHTING);
+	//glDisable(GL_LIGHT0);
+	//glDisable(GL_DEPTH_TEST);
+	//glDisable(GL_LIGHTING);
 	InitializeLight();
-	
+
+	//::glClearColor(0.5f, 0.5f, 0.5f, 0.0f);
+	//initLightAndMaterial();
 	glViewport(width / 2, 0, width / 2, height);
 	glScissor(width / 2, 0, width / 2, height);
-	
+	/*glMatrixMode(GL_MODELVIEW);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);*/
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glOrtho(-2, 2, -2, 2, -1, 10);
 
 	glMatrixMode(GL_MODELVIEW);
-	
+	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glPushMatrix();
 	glLoadIdentity();
 	gluLookAt(
@@ -1062,24 +1070,28 @@ void PrincipalAxis(void)
 	);
 
 	glScalef(zval - 2.5, zval - 2.5, zval - 2.5);
-	
-	glDisable(GL_COLOR_MATERIAL);
-	
-	glDisable(GL_LIGHTING);
+	//glPushMatrix();
+
+	//glDisable(GL_CULL_FACE);
+	//glDisable(GL_COLOR_MATERIAL);
+	//glDisable(GL_SPOT_CUTOFF);
+	//glDisable(GL_LIGHTING);
 	glLineWidth(2.0);
 	glColor3f(1.0, 1.0, 1.0);
 	glBindTexture(GL_TEXTURE_2D, texture_id[0]);
 	glRotatef(-180, 0, 1, 0);
 	glRotatef(-90, 1, 0, 0);
 	gluSphere(sphere, 1.0, 50, 50);
-	
-	glEnable(GL_COLOR_MATERIAL);
-	glEnable(GL_LIGHTING);
+	//glutSolidSphere(1.0, 50, 50);
+	//glutWireSphere(1.0, 20, 20);
+	//glPopMatrix();
+	//glEnable(GL_COLOR_MATERIAL);
+	//glEnable(GL_LIGHTING);
 
-	
+
 	drawcenterCoordinate();
 	float r = 1, g = 0, b = 0;
-	
+	/*if (!fileClose && indexP > 0) {*/
 	int j = 0;
 	for (int i = 1; i < indexP; i++)
 	{
@@ -1133,11 +1145,11 @@ void PrincipalAxis(void)
 	for (int i = 0; i < dbCount; i++)
 	{
 		/*if (PA_data[i][0] == 0)
-			continue;*/
+		continue;*/
 
 		glColor3f(1, 0, 1);
 
-		
+
 		float fnorm = sqrt(uDB_data[i][1] * uDB_data[i][1] + uDB_data[i][2] * uDB_data[i][2] + uDB_data[i][3] * uDB_data[i][3]);
 		glPushMatrix();
 		glTranslatef(1.011*uDB_data[i][1] / fnorm, 1.011*uDB_data[i][2] / fnorm, 1.011*uDB_data[i][3] / fnorm);
@@ -1146,73 +1158,74 @@ void PrincipalAxis(void)
 		drawCoordinate(0.1);*/
 		glPopMatrix();
 
+		glPushMatrix();
 		glColor3f(1, 0.4, 0);
 
 		fnorm = sqrt(lDB_data[i][1] * lDB_data[i][1] + lDB_data[i][2] * lDB_data[i][2] + lDB_data[i][3] * lDB_data[i][3]);
-		glPushMatrix();
 		glTranslatef(1.011*lDB_data[i][1] / fnorm, 1.011*lDB_data[i][2] / fnorm, 1.011*lDB_data[i][3] / fnorm);
 		glutSolidSphere(0.009, 30, 30);
+
 		/*glRotatef(PA_data[i][0],PA_data[i][1], PA_data[i][2], PA_data[i][3]);
 		drawCoordinate(0.1);*/
 		glPopMatrix();
-		// draw quads
-		if (!fileClose) 
+	}
+	for (int i = 0; i < dbCount; i++)
+	{
+
+		glDisable(GL_LIGHTING);
+
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		/*glAlphaFunc(GL_GREATER, 0.01);
+		glEnable(GL_ALPHA_TEST);*/
+		glEnable(GL_CULL_FACE);
+		//glCullFace(GL_BACK);
+		//glDepthFunc(GL_ALWAYS);
+		glColor4f(0.13, 0.54, 0.13, 0.3);
+		glPushMatrix();
+		float fnorm = sqrt(lDB_data[i][1] * lDB_data[i][1] + lDB_data[i][2] * lDB_data[i][2] + lDB_data[i][3] * lDB_data[i][3]);
+		if (i != 0 && i <= 49)
+			renderCylinder_convenient(lDB_data[i - 1][1] / fnorm, lDB_data[i - 1][2] / fnorm, lDB_data[i - 1][3] / fnorm, lDB_data[i][1] / fnorm, lDB_data[i][2] / fnorm, lDB_data[i][3] / fnorm, 0.15, 30);
+
+		if (i == 0 || i == 50)
 		{
-			glColor3f(0, 0, 0);
-			glPushMatrix();
-			//drawQuads(drawGrid[0][1], drawGrid[0][2], drawGrid[0][3]);
-			glTranslatef(drawGrid[0][1], drawGrid[0][2], drawGrid[0][3]);
-			glutSolidSphere(0.025, 30, 30);
-			glPopMatrix();
+			glTranslatef(1.011*lDB_data[i][1] / fnorm, 1.011*lDB_data[i][2] / fnorm, 1.011*lDB_data[i][3] / fnorm);
+			glutSolidSphere(0.15, 30, 30);
 		}
-		
-		//draw quads end
+		//glDepthFunc(GL_LEQUAL);
+		glPopMatrix();
+
+		/*glPushMatrix();
+		fnorm = sqrt(uDB_data[i][1] * uDB_data[i][1] + uDB_data[i][2] * uDB_data[i][2] + uDB_data[i][3] * uDB_data[i][3]);
+		if (i != 0 && i <= 49)
+		renderCylinder_convenient(uDB_data[i - 1][1] / fnorm, uDB_data[i - 1][2] / fnorm, uDB_data[i - 1][3] / fnorm, uDB_data[i][1] / fnorm, uDB_data[i][2] / fnorm, uDB_data[i][3] / fnorm, 0.15, 30);
+
+		if (i == 0 || i == 50)
+		{
+		glTranslatef(1.011*uDB_data[i][1] / fnorm, 1.011*uDB_data[i][2] / fnorm, 1.011*uDB_data[i][3] / fnorm);
+		glutSolidSphere(0.15, 30, 30);
+		}*/
+		//glDepthFunc(GL_LEQUAL);
+		//glPopMatrix();
+
+		glDisable(GL_BLEND);
+		glDisable(GL_CULL_FACE);
+		glEnable(GL_LIGHTING);
 
 	}
 
-
-	//for (int i = 0; i < indexP; i++)
-	//{
-	//	
-	//	glColor3f(1.0, 0.0, 0.0);
-	//	double ytk_out_Norm = sqrt(y_tk_out[i][0] * y_tk_out[i][0] + y_tk_out[i][1] * y_tk_out[i][1] + y_tk_out[i][2] * y_tk_out[i][2]);
-	//	glPushMatrix();
-	//	glTranslatef(y_tk_out[i][0]/ ytk_out_Norm, y_tk_out[i][1]/ ytk_out_Norm, y_tk_out[i][2]/ ytk_out_Norm);
-	//	glutSolidSphere(0.005, 30, 30);
-	//	/*glRotatef(PA_data[i][0],PA_data[i][1], PA_data[i][2], PA_data[i][3]);
-	//	drawCoordinate(0.1);*/
-	//	glPopMatrix();
-
-	//}
-
-	/*for (int i = 0; i < averageIndexP; i++)
+	// draw quads
+	if (!fileClose)
 	{
-	if (PA_data[i][0] == 0)
-	continue;
-	float avg_x = AVG_PA_data[i][1];
-	float avg_y = AVG_PA_data[i][2];
-	float avg_z = AVG_PA_data[i][3];
-
-	glPushMatrix();
-	glTranslatef((avg_x) / sqrt(avg_x * avg_x + avg_y * avg_y + avg_z * avg_z),
-	avg_y / sqrt(avg_x * avg_x + avg_y * avg_y + avg_z * avg_z)
-	, avg_z / sqrt(avg_x * avg_x + avg_y * avg_y + avg_z * avg_z));
-	glColor3f(1.0, 0.0, 0.0);
-	glutSolidSphere(0.02, 20, 20);
-	glPopMatrix();
-	}*/
+		glColor3f(0, 0, 0);
+		glPushMatrix();
+		//drawQuads(drawGrid[0][1], drawGrid[0][2], drawGrid[0][3]);
+		glTranslatef(drawGrid[0][1], drawGrid[0][2], drawGrid[0][3]);
+		glutSolidSphere(0.025, 30, 30);
+		glPopMatrix();
+	}
 
 
-
-	//for (int i = 0; i < indexP - 1; i++)
-	//{
-	//	
-	//	glPushMatrix();
-	//	//glColor3f(0.4, 0.1, 0.98);
-	//	glColor3f(0.9, 0.0, 0.9);
-	//	renderCylinder_convenient(y_tk_out[i][0], y_tk_out[i][1], y_tk_out[i][2], y_tk_out[i + 1][0], y_tk_out[i + 1][1], y_tk_out[i + 1][2], 0.01, 20);
-	//	glPopMatrix();
-	//}
 	glPopMatrix();
 	/*glDisable(GL_LIGHTING);
 	glEnable(GL_LIGHTING);
@@ -1781,31 +1794,7 @@ void computeIntialpoint()
 void myinit()
 {
 	computeIntialpoint();
-
-	///////////////////////Texture mapping///////////////////////////
-	image_t   temp_image;
-
-	//glClearColor(1.0, 1.0, 1.0, 0.0);
-	glEnable(GL_TEXTURE_2D);
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	glGenTextures(2, texture_id);
-
-	glBindTexture(GL_TEXTURE_2D, texture_id[0]);
-	glEnable(GL_BLEND);							// Enable Blending       (disable alpha testing)
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	tgaLoad("worldmgrs.tga", &temp_image, TGA_FREE | TGA_LOW_QUALITY);
-
-	//glEnable(GL_CULL_FACE);
-
-	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
-
-	sphere = gluNewQuadric();
-	gluQuadricDrawStyle(sphere, GLU_FILL);
-	gluQuadricNormals(sphere, GLU_SMOOTH);
-	gluQuadricOrientation(sphere, GLU_OUTSIDE);
-	gluQuadricTexture(sphere, GL_TRUE);
-
+	
 	/////// allocate quadrics with filled drawing style /////////
 
 	h = gluNewQuadric();
@@ -2016,6 +2005,31 @@ void myinit()
 	rfoot_node.child = NULL;
 
 	glLoadIdentity();
+
+	///////////////////////Texture mapping///////////////////////////
+	image_t   temp_image;
+
+	//glClearColor(1.0, 1.0, 1.0, 0.0);
+	glEnable(GL_TEXTURE_2D);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	glGenTextures(2, texture_id);
+
+	glBindTexture(GL_TEXTURE_2D, texture_id[0]);
+	//glEnable(GL_BLEND);							// Enable Blending       (disable alpha testing)
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	tgaLoad("worldmgrs.tga", &temp_image, TGA_FREE | TGA_LOW_QUALITY);
+
+	//glEnable(GL_CULL_FACE);
+
+	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+
+	sphere = gluNewQuadric();
+	gluQuadricDrawStyle(sphere, GLU_FILL);
+	gluQuadricNormals(sphere, GLU_SMOOTH);
+	gluQuadricOrientation(sphere, GLU_INSIDE);
+	gluQuadricTexture(sphere, GL_TRUE);
+
 }
 
 
