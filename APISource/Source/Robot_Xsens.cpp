@@ -291,44 +291,7 @@ void quaternionToEulerAngles(quaternion q, TVector3& RPY)
 	// yaw (z-axis rotation)
 	double siny_cosp = 2.0 * (q.mData[3] * q.mData[2] + q.mData[0] * q.mData[1]);
 	double cosy_cosp = 1.0 - 2.0 * (q.mData[1] * q.mData[1] + q.mData[2] * q.mData[2]);
-	RPY._z = atan2(siny_cosp, cosy_cosp);
-
-	//---------------------------------XYZ----------------------------
-	//// roll (x-axis rotation)
-	//double sinr_cosp = -2.0* (q.mData[1]* q.mData[2] - q.mData[3] * q.mData[0]);
-	//double cosr_cosp = (q.mData[3]* q.mData[3] - q.mData[0]* q.mData[0] - q.mData[1]* q.mData[1] + q.mData[2]* q.mData[2]);
-	//RPY._x = atan2(sinr_cosp, cosr_cosp);
-
-	//// pitch (y-axis rotation)
-	//double sinp = 2.0* (q.mData[0] *q.mData[2] + q.mData[3] * q.mData[1]);
-	//if (fabs(sinp) >= 1)
-	//	RPY._y = (double)copysign(PI / 2, sinp); // use 90 degrees if out of range
-	//else
-	//	RPY._y = asin(sinp);
-
-	//// yaw (z-axis rotation)
-	//double siny_cosp = -2.0* (q.mData[0]* q.mData[1] - q.mData[3] * q.mData[2]);
-	//double cosy_cosp = (q.mData[3]* q.mData[3] + q.mData[0]* q.mData[0] - q.mData[1]* q.mData[1] - q.mData[2]* q.mData[2]);
-	//RPY._z = atan2(siny_cosp, cosy_cosp);
-
-	//---------------------------------Robotics----------------------------
-	//// roll (x-axis rotation)
-	//double sinr_cosp = 2.0 * (q.mData[1] * q.mData[2] - q.mData[3] * q.mData[0]);
-	//double cosr_cosp = 2.0 * (q.mData[3] * q.mData[3]) - 1.0 + 2 * (q.mData[2] * q.mData[2]);
-	//RPY._x = atan2(sinr_cosp, cosr_cosp);
-
-	//// pitch (y-axis rotation)
-	//double sinp = 2.0 * (q.mData[0] * q.mData[2] + q.mData[3] * q.mData[1]);
-	//double siny = sqrt(1-(2.0 * (q.mData[0] * q.mData[2]) + 2*(q.mData[3] * q.mData[1])));
-	////if (fabs(sinp) >= 1)
-	////	RPY._y = (double)copysign(PI / 2, sinp); // use 90 degrees if out of range
-	////else
-	//	RPY._y = -atan(sinp/siny);
-
-	//// yaw (z-axis rotation)
-	//double siny_cosp = 2.0 * (q.mData[0] * q.mData[1] - q.mData[3] * q.mData[2]);
-	//double cosy_cosp = 2.0 * (q.mData[3] * q.mData[3]) -1.0 + 2*  (q.mData[0] * q.mData[0]);
-	//RPY._z = atan2(siny_cosp, cosy_cosp);
+	RPY._z = atan2(siny_cosp, cosy_cosp);	
 }
 
 void drawCoordinate()
@@ -435,18 +398,6 @@ float ver[8][3] =
 	{ 10.0,-8.0,-10.0 },
 };
 
-float hver[8][3] =
-{
-	{ -0.5, 0.0,  1.0 },
-	{ -0.5, 0.0,  1.0 },
-	{ 0.5, 0.0,  1.0 },
-	{ 0.5, 0.0,  1.0 },
-	{ -0.5, 0.0, -1.0 },
-	{ -0.5, 0.0, -1.0 },
-	{ 0.5, 0.0, -1.0 },
-	{ 0.5, 0.0, -1.0 },
-};
-
 void quad(int a, int b, int c, int d)
 {
 	glBegin(GL_QUADS);
@@ -457,51 +408,15 @@ void quad(int a, int b, int c, int d)
 	glEnd();
 }
 
-void hquad(int a, int b, int c, int d)
-{
-	glBegin(GL_QUADS);
-	glVertex3fv(hver[a]);
-	glVertex3fv(hver[b]);
-	glVertex3fv(hver[c]);
-	glVertex3fv(hver[d]);
-	glEnd();
-}
-
-void DrawHand()
-{
-	//glDisable(GL_LIGHTING);
-	glColor3f(0.9, 0.2, 0.2);
-	hquad(0, 3, 2, 1);
-
-	hquad(2, 3, 7, 6);
-
-	hquad(0, 4, 7, 3);
-
-	hquad(1, 2, 6, 5);
-
-	hquad(4, 5, 6, 7);
-
-	hquad(0, 1, 5, 4);
-	//glEnable(GL_LIGHTING);
-	glColor3f(0.8, 0.4, 0.2);
-}
 void DrawGrid()
 {
-	//glDisable(GL_LIGHTING);
 	glColor3f(0.9, 0.9, 0.9);
 	quad(0, 3, 2, 1);
 	quad(2, 3, 7, 6);
 	quad(0, 4, 7, 3);
 	quad(1, 2, 6, 5);
 	quad(4, 5, 6, 7);
-	quad(0, 1, 5, 4);
-	/*glBegin(GL_QUADS);
-	glVertex3f(-10.1, -8.1, 10);
-	glVertex3f(10.1, -8.1, 10);
-	glVertex3f(10.5, -8.51, -10);
-	glVertex3f(-10.5, -8.51, -10);
-	glEnd();*/
-	//glEnable(GL_LIGHTING);
+	quad(0, 1, 5, 4);	
 }
 
 void drawElipsoid(int SLICES, int STACKS, float SCALE_X, float SCALE_Y, float SCALE_Z) {
@@ -661,13 +576,6 @@ void leftHand()
 	glPushMatrix();
 	//gluSphere(lknee, HAND_RADIUS, 15, 15);
 	glutSolidCube(1);
-	/*glRotatef(-90.0, 1.0, 0.0, 0.0);
-	glColor3f(1.0,0,0);
-	glutSolidCone(1, 1, 4, 30);*/
-	/*glColor3f(0.0, 0, 1);
-	glTranslatef(0.0f, -0.4f, -0.15f);
-	glutSolidCone(1, 1, 2, 30);*/
-	//DrawHand();
 	glPopMatrix();
 }
 
@@ -846,53 +754,6 @@ void IntializeRobotLight()
 	//glClearColor(0, 0, 0, 0);
 
 	glColor3f(1.0, 0.0, 0.0);
-}
-void
-initLightAndMaterial(void)
-{
-	static float ambient[] =
-	{ 0.1, 0.1, 0.1, 1.0 };
-	static float diffuse[] =
-	{ 0.5, 1.0, 1.0, 1.0 };
-	static float position[] =
-	{ 90.0, 90.0, 150.0, 0.0 };
-
-	static float front_mat_shininess[] =
-	{ 60.0 };
-	static float front_mat_specular[] =
-	{ 0.2, 0.2, 0.2, 1.0 };
-	static float front_mat_diffuse[] =
-	{ 0.5, 0.5, 0.28, 1.0 };
-	static float back_mat_shininess[] =
-	{ 60.0 };
-	static float back_mat_specular[] =
-	{ 0.5, 0.5, 0.2, 1.0 };
-	static float back_mat_diffuse[] =
-	{ 1.0, 0.9, 0.2, 1.0 };
-
-	static float lmodel_ambient[] =
-	{ 1.0, 1.0, 1.0, 1.0 };
-
-	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LEQUAL);
-
-	glLightfv(GL_LIGHT0, GL_AMBIENT, ambient);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse);
-	glLightfv(GL_LIGHT0, GL_POSITION, position);
-
-	glMaterialfv(GL_FRONT, GL_SHININESS, front_mat_shininess);
-	glMaterialfv(GL_FRONT, GL_SPECULAR, front_mat_specular);
-	glMaterialfv(GL_FRONT, GL_DIFFUSE, front_mat_diffuse);
-	glMaterialfv(GL_BACK, GL_SHININESS, back_mat_shininess);
-	glMaterialfv(GL_BACK, GL_SPECULAR, back_mat_specular);
-	glMaterialfv(GL_BACK, GL_DIFFUSE, back_mat_diffuse);
-
-	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, lmodel_ambient);
-	//glLightModelfv(GL_LIGHT_MODEL_TWO_SIDE, lmodel_twoside);
-
-	glEnable(GL_LIGHTING);
-	glEnable(GL_LIGHT0);
-	glShadeModel(GL_SMOOTH);
 }
 
 void InitializeLight()
@@ -1180,25 +1041,18 @@ void Robotdisplay(void)
 }
 void PrincipalAxis(void)
 {
-	//glDisable(GL_SMOOTH);
-	//glDisable(GL_LIGHTING);
-	//glDisable(GL_LIGHT0);
-	//glDisable(GL_DEPTH_TEST);
-	//glDisable(GL_LIGHTING);
-
+	
 	InitializeLight();
-	//::glClearColor(0.5f, 0.5f, 0.5f, 0.0f);
-	//initLightAndMaterial();
+	
 	glViewport(width / 2, 0, width / 2, height);
 	glScissor(width / 2, 0, width / 2, height);
-	/*glMatrixMode(GL_MODELVIEW);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);*/
+	
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glOrtho(-2, 2, -2, 2, -1, 10);
 
 	glMatrixMode(GL_MODELVIEW);
-	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	
 	glPushMatrix();
 	glLoadIdentity();
 	gluLookAt(
@@ -1208,11 +1062,9 @@ void PrincipalAxis(void)
 	);
 
 	glScalef(zval - 2.5, zval - 2.5, zval - 2.5);
-	//glPushMatrix();
-
-	//glDisable(GL_CULL_FACE);
+	
 	glDisable(GL_COLOR_MATERIAL);
-	//glDisable(GL_SPOT_CUTOFF);
+	
 	glDisable(GL_LIGHTING);
 	glLineWidth(2.0);
 	glColor3f(1.0, 1.0, 1.0);
@@ -1220,16 +1072,14 @@ void PrincipalAxis(void)
 	glRotatef(-180, 0, 1, 0);
 	glRotatef(-90, 1, 0, 0);
 	gluSphere(sphere, 1.0, 50, 50);
-	//glutSolidSphere(1.0, 50, 50);
-	//glutWireSphere(1.0, 20, 20);
-	//glPopMatrix();
+	
 	glEnable(GL_COLOR_MATERIAL);
 	glEnable(GL_LIGHTING);
 
 	
 	drawcenterCoordinate();
 	float r = 1, g = 0, b = 0;
-	/*if (!fileClose && indexP > 0) {*/
+	
 	int j = 0;
 	for (int i = 1; i < indexP; i++)
 	{
@@ -1393,246 +1243,6 @@ void Display(void)
 	glutSwapBuffers();
 }
 
-void inverseKinematics()
-{
-	//switch (animation)
-	//{
-	//case 0: //an to teleytaio animation einai to 0 antistrepse to
-	//	if (theta[5] < 180.0)
-	//	{
-	//		theta[5] += STEP;
-	//		theta[3] += STEP;
-	//		theta[1] -= 0.2*STEP;
-	//	}
-	//	else animation = option; //an exei antistrafei tote eimaste stin arxiki thesi kai to neo animation einai to option
-
-	//	glPushMatrix();
-
-	//	glLoadIdentity();
-	//	glTranslatef(0, 0, 0.0);
-	//	glRotatef(theta[5], 1.0, 0.0, 0.0);
-
-	//	glGetFloatv(GL_MODELVIEW_MATRIX, rua_node.m);
-
-	//	glLoadIdentity();
-	//	glTranslatef(0, 0, 0.0);
-	//	glRotatef(theta[3], 1.0, 0.0, 0.0);
-
-	//	glGetFloatv(GL_MODELVIEW_MATRIX, lua_node.m);
-
-	//	glLoadIdentity();
-	//	glTranslatef(0.0, TORSO_HEIGHT - 0.25*NECK_HEIGHT, 0.0);
-	//	glRotatef(theta[1], 1.0, 0.0, 0.0);
-
-	//	glGetFloatv(GL_MODELVIEW_MATRIX, nk_node.m);
-
-	//	glPopMatrix();
-	//	break;
-	//case 1:
-	//	if (theta[9] < 180.0)
-	//	{
-	//		theta[9] += STEP;
-	//		theta[10] -= STEP;
-	//	}
-	//	else animation = option;
-
-	//	glPushMatrix();
-
-	//	glLoadIdentity();
-	//	glTranslatef(TORSO_RADIUS / 2, 0.1*UPPER_LEG_HEIGHT, 0.0);
-	//	glRotatef(theta[9], 1.0, 0.0, 0.0);
-
-	//	glGetFloatv(GL_MODELVIEW_MATRIX, rul_node.m);
-
-	//	glLoadIdentity();
-	//	glTranslatef(0.0, UPPER_LEG_HEIGHT, 0.0);
-
-	//	glGetFloatv(GL_MODELVIEW_MATRIX, rknee_node.m);
-
-	//	glLoadIdentity();
-	//	glTranslatef(0.0, KNEE_RADIUS / 2, 0.0);
-	//	glRotatef(theta[10], 1.0, 0.0, 0.0);
-
-	//	glGetFloatv(GL_MODELVIEW_MATRIX, rll_node.m);
-
-	//	glPopMatrix();
-	//	break;
-	//	/*case 6: case -1:
-	//	if (theta[9] < 180.0)
-	//	{
-	//	theta[9] += STEP;
-	//	theta[10] -= STEP;
-	//	theta[7] += STEP;
-	//	theta[8] -= STEP;
-	//	theta[5] -= 1.3*STEP;
-	//	theta[6] += STEP;
-	//	theta[3] += STEP;
-	//	theta[4] -= STEP;
-	//	horizontal -= 0.03*STEP;
-	//	}
-	//	else animation = option;
-
-	//	glPushMatrix();
-
-	//	glLoadIdentity();
-	//	glTranslatef(TORSO_RADIUS / 2, 0.1*UPPER_LEG_HEIGHT, 0.0);
-	//	glRotatef(theta[9], 1.0, 0.0, -1.0);
-	//	glGetFloatv(GL_MODELVIEW_MATRIX, rul_node.m);
-
-	//	glLoadIdentity();
-	//	glTranslatef(0.0, KNEE_RADIUS / 2, 0.0);
-	//	glRotatef(theta[10], 1.0, 0.0, -1.0);
-	//	glGetFloatv(GL_MODELVIEW_MATRIX, rll_node.m);
-
-	//	glLoadIdentity();
-	//	glTranslatef(0, horizontal, 0);
-	//	glGetFloatv(GL_MODELVIEW_MATRIX, torso_node.m);
-
-	//	glLoadIdentity();
-	//	glTranslatef(0, 0, 0.0);
-	//	glRotatef(theta[5], -1.0, 0.0, -1.0);
-	//	glGetFloatv(GL_MODELVIEW_MATRIX, rua_node.m);
-
-	//	glLoadIdentity();
-	//	glTranslatef(0, 0, 0.0);
-	//	glRotatef(theta[6], 1.0, 1.0, 1.0);
-	//	glGetFloatv(GL_MODELVIEW_MATRIX, rla_node.m);
-
-	//	glLoadIdentity();
-	//	glTranslatef(0, 0, 0.0);
-	//	glRotatef(theta[3], 1.0, 0.0, -1.0);
-	//	glGetFloatv(GL_MODELVIEW_MATRIX, lua_node.m);
-
-	//	glLoadIdentity();
-	//	glTranslatef(0, 0, 0.0);
-	//	glRotatef(theta[4], -1.0, -1.0, 1.0);
-	//	glGetFloatv(GL_MODELVIEW_MATRIX, lla_node.m);
-
-	//	glPopMatrix();
-	//	break;*/
-	//case 7: case -2:
-	//	if (theta[9] < 180.0)
-	//	{
-	//		theta[9] += STEP;
-	//		theta[10] -= STEP;
-	//		theta[7] += STEP;
-	//		theta[8] -= STEP;
-	//		theta[5] -= STEP;
-	//		theta[6] += STEP;
-	//		theta[3] += STEP;
-	//		theta[4] -= STEP;
-	//		horizontal -= 0.03*STEP;
-	//	}
-	//	else animation = option;
-
-	//	glPushMatrix();
-
-	//	glLoadIdentity();
-	//	glTranslatef(0, 0, 0.0);
-	//	glRotatef(theta[5], 0.0, 0.0, 1.0);
-	//	glGetFloatv(GL_MODELVIEW_MATRIX, rua_node.m);
-
-	//	glLoadIdentity();
-	//	glTranslatef(0, 0, 0.0);
-	//	glRotatef(theta[6], 0.0, 0.0, 1.0);
-	//	glGetFloatv(GL_MODELVIEW_MATRIX, rla_node.m);
-
-	//	glLoadIdentity();
-	//	glTranslatef(0, 0, 0.0);
-	//	glRotatef(theta[3], 0.0, 0.0, 1.0);
-	//	glGetFloatv(GL_MODELVIEW_MATRIX, lua_node.m);
-
-	//	glLoadIdentity();
-	//	glTranslatef(0, 0, 0.0);
-	//	glRotatef(theta[4], 0.0, 0.0, 1.0);
-	//	glGetFloatv(GL_MODELVIEW_MATRIX, lla_node.m);
-
-	//	glLoadIdentity();
-	//	glTranslatef(TORSO_RADIUS / 2, 0.1*UPPER_LEG_HEIGHT, 0.0);
-	//	glRotatef(theta[9], 1.0, 0.0, 0.0);
-	//	glGetFloatv(GL_MODELVIEW_MATRIX, rul_node.m);
-
-	//	glLoadIdentity();
-	//	glTranslatef(0.0, KNEE_RADIUS / 2, 0.0);
-	//	glRotatef(theta[10], 1.0, 0.0, 0.0);
-	//	glGetFloatv(GL_MODELVIEW_MATRIX, rll_node.m);
-
-	//	glLoadIdentity();
-	//	glTranslatef(-TORSO_RADIUS / 2, 0.1*UPPER_LEG_HEIGHT, 0.0);
-	//	glRotatef(theta[7], 1.0, 0.0, 0.0);
-	//	glGetFloatv(GL_MODELVIEW_MATRIX, lul_node.m);
-
-	//	glLoadIdentity();
-	//	glTranslatef(0.0, KNEE_RADIUS / 2, 0.0);
-	//	glRotatef(theta[8], 1.0, 0.0, 0.0);
-	//	glGetFloatv(GL_MODELVIEW_MATRIX, lll_node.m);
-
-	//	glLoadIdentity();
-	//	glTranslatef(0, -horizontal, -horizontal);
-	//	glGetFloatv(GL_MODELVIEW_MATRIX, torso_node.m);
-
-	//	glPopMatrix();
-	//	break;
-	//case 6:
-
-	//{glPushMatrix();
-	//float mdlv[16];
-	//glGetFloatv(GL_MODELVIEW_MATRIX, mdlv);
-	//vtkQuaternion<float> q = vtkQuaternion<float>(connectXS.ax[3], connectXS.ax[0], connectXS.ax[1], connectXS.ax[2]);
-
-	//float qw = sqrt(1 + mdlv[0] + mdlv[5] + mdlv[10]);
-	//float qx = (mdlv[9] - mdlv[6]) / (4 * qw);
-	//float qy = (mdlv[2] - mdlv[8]) / (4 * qw);
-	//float qz = (mdlv[4] - mdlv[1]) / (4 * qw);
-	//vtkQuaternion<float> qA = vtkQuaternion<float>(qw, qx, qy, qz);
-
-	//q = qA.Inverse() * q;
-	//q.Normalize();
-
-	//float axis[3];
-	//float angle = q.GetRotationAngleAndAxis(axis);
-
-	//glLoadIdentity();
-	////glTranslatef(TORSO_RADIUS / 2, 0.1*UPPER_ARM_HEIGHT, 0.0);
-	//glTranslatef(0.0, 0.0, 0.0);
-	////glRotatef(90, 1.0, 0.0, 0.0);
-	//glRotatef(angle * 180.0 / 3.14159, axis[2], axis[0], -axis[1]);
-	//glGetFloatv(GL_MODELVIEW_MATRIX, lua_node.m);
-
-	//glLoadIdentity();
-	//glTranslatef(0.0, UPPER_ARM_HEIGHT, 0.0);
-
-	//glGetFloatv(GL_MODELVIEW_MATRIX, lelb_node.m);
-
-
-
-	//glGetFloatv(GL_MODELVIEW_MATRIX, mdlv);
-	//q = vtkQuaternion<float>(connectXS.ax2[3], connectXS.ax2[0], connectXS.ax2[1], connectXS.ax2[2]);
-
-	//qw = sqrt(1 + mdlv[0] + mdlv[5] + mdlv[10]);
-	//qx = (mdlv[9] - mdlv[6]) / (4 * qw);
-	//qy = (mdlv[2] - mdlv[8]) / (4 * qw);
-	//qz = (mdlv[4] - mdlv[1]) / (4 * qw);
-	//qA = vtkQuaternion<float>(qw, qx, qy, qz);
-
-	//q = qA.Inverse() * q;
-	//q.Normalize();
-
-	//axis[3];
-	//angle = q.GetRotationAngleAndAxis(axis);
-
-	//glLoadIdentity();
-	//glTranslatef(0.0, ELBOW_RADIUS / 2, 0.0);
-	//glRotatef(theta[10], 1.0, 0.0, 0.0);
-	//glRotatef(angle * 180.0 / 3.14159, axis[2], axis[0], axis[1]);
-	//glGetFloatv(GL_MODELVIEW_MATRIX, lla_node.m);
-
-	//glPopMatrix(); }
-	//break;
-	//default: animation = option;
-	//}
-}
-
 void matchDBTrajectory(char * Ufile, char * Lfile)
 {	
 	diff = 0;
@@ -1753,31 +1363,13 @@ void idle()
 
 		if (DataAvailable && startAnim)
 		{
-			//............Right Arm.............//
-
-			glPushMatrix();
-
-			glGetFloatv(GL_MODELVIEW_MATRIX, lua_node.m);
-
-			//std::cout << "Angle:" << qw << "X:" << qx << "Y:" << qy << "Z:" << qz << std::endl;
-
-			float qwxyz[4] = { connectXS.ax[0], connectXS.ax[1], connectXS.ax[2], connectXS.ax[3] };
-
 			QuatData_U = quaternion(connectXS.ax[0], connectXS.ax[1], connectXS.ax[2], connectXS.ax[3]);
 			QuatData_L = quaternion(connectXS.ax2[0], connectXS.ax2[1], connectXS.ax2[2], connectXS.ax2[3]);
 			QuatData_C = quaternion(connectXS.r_ax3[0], connectXS.r_ax3[1], connectXS.r_ax3[2], connectXS.r_ax3[3]);
 
-			
-
-			//firstInvQuat_C = QuatData_C.Inverse();
-			//std::cout << "Angle:" << firstInvQuat_L.mData[3] << "X:" << firstInvQuat_L.mData[0] << "Y:" << firstInvQuat_L.mData[1] << "Z:" << firstInvQuat_L.mData[2] << std::endl;
 			double q0 , q1, q2, q3;
-			double angle_rad ;
-			double angle_deg ;
-			double x;
-			double y;
-			double z;
-			double fnorm;
+			double angle_rad, angle_deg;
+			double x, y, z, fnorm;
 
 			if (First_calibrate  /*&& fileClose*/) {
 
@@ -1798,7 +1390,6 @@ void idle()
 				tm *tm_local = localtime(&curr_time);
 
 				/*sprintf_s(fileName, "CData\\CalibFile-00%d-%d%d%d.csv", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
-				
 				Calibfile.open(fileName);
 				Calibfile << QuatData_U.mData[3] << "," << QuatData_U.mData[0] << "," << QuatData_U.mData[1] << "," << QuatData_U.mData[2] << "," << "UpperArm" << "\n";
 				Calibfile << QuatData_L.mData[3] << "," << QuatData_L.mData[0] << "," << QuatData_L.mData[1] << "," << QuatData_L.mData[2] << "," << "LowerArm" << "\n";
@@ -1806,7 +1397,7 @@ void idle()
 				Calibfile.close();*/
 				First_calibrate = false;
 
-							/*time_t curr_time;
+				/*time_t curr_time;
 				curr_time = time(NULL);
 				tm *tm_local = localtime(&curr_time);*/
 
@@ -1817,31 +1408,35 @@ void idle()
 			}
 
 			firstInvQuat_C = QuatData_C.mutiplication(firstPlvCalib);
-			//std::cout << "W:\t" << firstInvQuat_C.mData[3] << "X:\t" << firstInvQuat_C.mData[0] << "Y:\t" << firstInvQuat_C.mData[1] << "Z:\t" << firstInvQuat_C.mData[2] << std::endl;
-
+			
 			quaternion reset_U = firstInvQuat_C.Inverse().mutiplication(QuatData_U.mutiplication(firstInvQuat_U));
 			reset_U.normalize();
 			quaternion usf_q = reset_U;
+			quaternion reset_L = QuatData_U.mutiplication(firstInvQuat_U).Inverse().mutiplication(QuatData_L.mutiplication(firstInvQuat_L));
+			reset_L.normalize();
+			quaternion lsf_q = reset_L;
 
-			float q0u = reset_U.mData[3];
-			float q1u = reset_U.mData[0];
-			float q2u = reset_U.mData[2];
-			float q3u = -reset_U.mData[1];
+			q0 = reset_U.mData[3];
+			q1 = reset_U.mData[0];
+			q2 = reset_U.mData[2];
+			q3 = -reset_U.mData[1];
 
 
-			float angle_radu = acos(q0u) * 2;
-			float angle_degu = angle_radu * 180 / PI;
+			angle_rad = acos(q0) * 2;
+			angle_deg = angle_rad * 180 / PI;
 
-			float xu = q1u / sin(angle_radu / 2);
-			float yu = q2u / sin(angle_radu / 2);
-			float zu = q3u / sin(angle_radu / 2);
-			float fnormu = sqrt(xu*xu + yu*yu + zu*zu);
-			//glRotatef(lla_angle, lla_axis[0], lla_axis[1], lla_axis[2]);
-			glRotatef(angle_degu, xu / fnormu, yu / fnormu, zu / fnormu);
+			x = q1 / sin(angle_rad / 2);
+			y = q2 / sin(angle_rad / 2);
+			z = q3 / sin(angle_rad / 2);
+			fnorm = sqrt(x*x + y*y + z*z);
+			
+			//............Right Arm.............//
 
+			glPushMatrix();
 			glGetFloatv(GL_MODELVIEW_MATRIX, lua_node.m);
-			////std::cout << "Angle-RU:" << lua_angle << "X:" << lua_axis[0] << "Y:" << lua_axis[2] << "Z:" << -lua_axis[1] << std::endl;
-			//
+			glRotatef(angle_deg, x / fnorm, y / fnorm, z / fnorm);
+			glGetFloatv(GL_MODELVIEW_MATRIX, lua_node.m);
+			
 			////Right elbow
 			glLoadIdentity();
 			glTranslatef(0.0, -UPPER_ARM_HEIGHT, 0.0);
@@ -1849,25 +1444,7 @@ void idle()
 
 			//Right lower arm
 			glGetFloatv(GL_MODELVIEW_MATRIX, lla_node.m);
-
-			quaternion reset_L = QuatData_U.mutiplication(firstInvQuat_U).Inverse().mutiplication(QuatData_L.mutiplication(firstInvQuat_L));
-			//quaternion reset_L = QuatData_C.Inverse().mutiplication(QuatData_L.mutiplication(firstInvQuat_L));
-			//quaternion reset_L = (firstInvQuat_L.mutiplication( QuatData_L))/*.mutiplication(firstInvQuat_C)*/;
-
-			quaternion lsf_q = reset_L; //(myRoundFunction(reset_L.mData[0]), myRoundFunction(reset_L.mData[1]), myRoundFunction(reset_L.mData[2]), myRoundFunction(reset_L.mData[3]));
-			lsf_q.normalize();
-			//sf_q = sf_q.mutiplication(quaternion(-0.138931378,-0.085475045, -0.38201938, 0.909644591));
-
-			//std::cout << " sf_q before:%.15" << sf_q.mData[3] << "\tX:" << sf_q.mData[0] << "\tY:" << sf_q.mData[1] << "\tZ:" << sf_q.mData[2] << std::endl;
-
-			//glRotatef(theta[10], 1.0, 0.0, 0.0);
-			//glRotatef(angle, -axis[2], axis[0], -axis[1]);
 			
-			/*lla_axis[0] = lua_axis[0] - lla_axis[0];
-			lla_axis[1] = lua_axis[1] - lla_axis[1];
-			lla_axis[2] = lua_axis[2] - lla_axis[2];*/
-				
-
 			q0 = lsf_q.mData[3];
 			q1 = lsf_q.mData[0];
 			q2 = lsf_q.mData[2];
@@ -1875,11 +1452,7 @@ void idle()
 
 
 			angle_rad = acos(q0) * 2;
-			//angle_rad -= angle_radu;
 			angle_deg = angle_rad * 180 / PI;
-			
-			//angle_deg -= angle_degu;
-
 			x = q1 / sin(angle_rad / 2);
 			y = q2 / sin(angle_rad / 2);
 			z = q3 / sin(angle_rad / 2);
@@ -1905,16 +1478,6 @@ void idle()
 
 			quaternion tempQuat1 = tempQuat2.mutiplication(lsf_q);//Case-2 usf_q
 
-			/*if (isRQFirst)
-			{
-				QuatFirstVect1 = tempQuat1;
-				QuatFirstVect2 = tempQuat2;
-				isRQFirst = false;
-				L_sfqfile << lsf_q.mData[3] << "," << lsf_q.mData[0] << "," << lsf_q.mData[1] << "," << lsf_q.mData[2] << "\n";
-				U_sfqfile << usf_q.mData[3] << "," << usf_q.mData[0] << "," << usf_q.mData[1] << "," << usf_q.mData[2] << "\n";
-
-				break;
-			}*/
 			
 			quaternion lTransfBodyQuat = tempQuat1;
 			quaternion uTransfBodyQuat = tempQuat2;
@@ -1981,10 +1544,6 @@ void idle()
 
 				break;
 							
-
-				//printf("current quat: %.5f\t%.5f\t%.5f\t%.5f\n", currentQuat.mData[3], currentQuat.mData[0], currentQuat.mData[1], currentQuat.mData[2]);
-				//-------------------------------------- //
-
 				//std::cout << "printf: " << duration << '\n';
 				//printf(" AxisAngle: %f \t %f \t %.15f\n", dot(a, b) / (mag(a)*mag(b)), Axis_Angle * 180 / PI, q0);
 			}
@@ -2066,7 +1625,6 @@ void idle()
 			glTranslatef(0.0, -UPPER_ARM_HEIGHT, 0.0);
 			glGetFloatv(GL_MODELVIEW_MATRIX, lelb_node.m);
 
-
 			glGetFloatv(GL_MODELVIEW_MATRIX, lla_node.m);
 			quaternion reset_L(lqdata[isize][0], lqdata[isize][1], lqdata[isize][2], lqdata[isize][3]);
 			quaternion firstQuat_Plv(uqdata[isize][0], uqdata[isize][1], uqdata[isize][2], uqdata[isize][3]);
@@ -2075,13 +1633,11 @@ void idle()
 
 			quaternion sf_q = reset_L;
 			sf_q.normalize();
-					
-
+		
 			float q0 = lqdata[isize][3];
 			float q1 = lqdata[isize][0];
 			float q2 = lqdata[isize][2];
 			float q3 = -lqdata[isize][1];
-
 			
 			if (q0 == 9)
 			{
@@ -2103,15 +1659,13 @@ void idle()
 			float z = q3 / sin(angle_rad / 2);
 
 			float fnorm = sqrt(x*x + y*y + z*z);
-			
-			
+						
 			glLoadIdentity();
 			glTranslatef(0.0, 0.0, 0.0);
 			glRotatef(angle_deg, x / fnorm, y / fnorm, z / fnorm);
 			glGetFloatv(GL_MODELVIEW_MATRIX, lla_node.m);
 			glPopMatrix();
-			//break;
-
+			
 			/*qPrevInvsPA = qPrevPA;
 			qPrevPA = sf_q.Inverse();
 			if (!isFirst)
@@ -2128,31 +1682,16 @@ void idle()
 				isize++;
 				break;
 			}*/
-
-			////////////////LowPassFilter//////////////
-			//float h_delta = 1 / 60;
-			//float Tf_constant = h_delta * 5;
-
-			//float alpha = 0.2;//h_delta / (Tf_constant + h_delta);
-
-
-			//quaternion BodyQuat( -0.0130125, 0.702762, -0.711143, 0.0152293);
-			quaternion BodyQuat(1.29947E-16, 0.707106781, -0.707106781, 1.41232E-32);
-			//quaternion tempQuat = BodyQuat.mutiplication(sf_q);
-
-			quaternion tempQuat2 = BodyQuat.mutiplication(reset_U);
-
-			quaternion tempQuat1 = tempQuat2.mutiplication(reset_L);//Case-2 usf_q
-			//quaternion tempQuat1 = BodyQuat.mutiplication(reset_L);
 			
-			TVector3 TransfBodyQuat1 = tempQuat1.quternionMatrices(tempQuat1, tempVec);
-			TVector3 TransfBodyQuat2 = tempQuat2.quternionMatrices(tempQuat2, tempVec);
+			quaternion tempQuat1 = BodyQuat.mutiplication(reset_U);
+			quaternion tempQuat2 = tempQuat1.mutiplication(reset_L);
+					
+			TVector3 TransfBodyQuat1 = tempQuat2.quternionMatrices(tempQuat2, tempVec);
+			TVector3 TransfBodyQuat2 = tempQuat1.quternionMatrices(tempQuat1, tempVec);
 			
 			///////////////////////////////////
 			indexP++;
-
-			
-			
+						
 			PA_data[indexP][0] = 1.0;
 			PA_data[indexP][1] = TransfBodyQuat1._x;
 			PA_data[indexP][2] = TransfBodyQuat1._y;
@@ -2170,223 +1709,6 @@ void idle()
 
 			isize++;
 			break;
-
-
-			/*if (Counterindex < windowSize)
-			{
-			if (Counterindex == 0)
-			{
-			V0._x =  RPY._x;
-			V0._y =  RPY._y;
-			V0._z =  RPY._z;
-
-			isize++;
-			Counterindex++;
-			break;
-			}
-
-
-			V1._x = RPY._x - V0._x;
-			V1._y = RPY._y - V0._y;
-			V1._z = RPY._z - V0._z;
-
-			avgRPY._x +=  V1._x;
-			avgRPY._y +=  V1._y;
-			avgRPY._z +=  V1._z;
-
-			V0._x =RPY._x;
-			V0._y =RPY._y;
-			V0._z =RPY._z;
-
-			isize++;
-			Counterindex++;
-			break;
-			}
-
-			Counterindex = 0;
-			cout << "avg: \t" << (avgRPY._x) <<"\t" << (avgRPY._y) << "\t" << (avgRPY._z) << endl;*/
-
-			/*if (abs(avgRPY._x)/ (windowSize - 1) < 0.017 && abs(avgRPY._y)/ (windowSize - 1) < 0.017 && abs(avgRPY._z)/ (windowSize - 1) < 0.017)
-			{
-			isize++;
-
-			avgRPY._x = 0;
-			avgRPY._y = 0;
-			avgRPY._z = 0;
-			break;
-			}
-
-			avgRPY._x = 0;
-			avgRPY._y = 0;
-			avgRPY._z = 0;*/
-
-
-			////////////
-
-			//qPrevInvsPA = qPrevPA;
-			//qPrevPA = sf_q.Inverse();
-			//if (!isFirst)
-			//	qPA = sf_q.mutiplication(qPrevInvsPA);
-			//else
-			//{
-			//	isFirst = false;
-			//	break;
-			//}
-
-			//q0 = qPA.mData[3];
-			//q1 = qPA.mData[0];
-			//q2 = qPA.mData[1];
-			//q3 = qPA.mData[2];
-			////printf("%.5f\t%.5f\t%.5f\t%.5f\n", Test2Axis.mData[3], Test2Axis.mData[0], Test2Axis.mData[1], Test2Axis.mData[2]);
-
-
-
-			//angle_rad = acos(q0) * 2;
-			//angle_deg = angle_rad * 180 / PI;
-			//x = q1 / sin(angle_rad / 2);
-			//y = q2 / sin(angle_rad / 2);
-			//z = q3 / sin(angle_rad / 2);
-
-			//fnorm = sqrt(x*x + y*y + z*z);
-			///////////////////////////////////////////
-
-			quaternion raw_q;
-			raw_q.mData[0] = lqdata[isize][0];// x / fnorm;
-			raw_q.mData[1] = lqdata[isize][1];// y / fnorm;
-			raw_q.mData[2] = lqdata[isize][2];// z / fnorm;
-			raw_q.mData[3] = lqdata[isize][3];// 0;
-
-			if (!isFirst)
-			{
-				/*qPA = sf_q.mutiplication(QuatFirstVect.mutiplication(sf_q.Inverse()));
-				qPA = qPA.normalize();*/
-				qPA = raw_q.mutiplication(QuatFirstVect1.mutiplication(raw_q.Inverse()));
-				//qPA = qPA.normalize();
-			}
-			else
-			{
-				QuatFirstVect1.mData[0] = lqdata[isize][0];// x / fnorm;
-				QuatFirstVect1.mData[1] = lqdata[isize][1];// y / fnorm;
-				QuatFirstVect1.mData[2] = lqdata[isize][2];// z / fnorm;
-
-				QuatFirstVect1.mData[3] = lqdata[isize][3];
-				printf("V0: %.5f\t%.5f\t%.5f\n", QuatFirstVect1.mData[0], QuatFirstVect1.mData[1], QuatFirstVect1.mData[2]);
-
-				V1 = qutObj.quternionMatrices(QuatFirstVect1, V0);
-
-				isFirst = false;
-				break;
-			}
-
-			indexP++;
-			PA_data[indexP][0] = sf_q.mData[3];
-
-			float axis_norm = sqrt(qPA.mData[0] * qPA.mData[0] + qPA.mData[1] * qPA.mData[1] + qPA.mData[2] * qPA.mData[2]);
-
-			QuatFirstVect1.mData[0] = PA_data[indexP][1] = qPA.mData[0] / axis_norm;
-			QuatFirstVect1.mData[1] = PA_data[indexP][2] = qPA.mData[1] / axis_norm;
-			QuatFirstVect1.mData[2] = PA_data[indexP][3] = qPA.mData[2] / axis_norm;
-			printf("%d \tV1: %.5f\t%.5f\t%.5f\n", indexP, qPA.mData[0], qPA.mData[1], qPA.mData[2]);
-			/*indexP++;
-			PA_data[indexP][0] = angle_rad;
-			PA_data[indexP][1] = x / fnorm;
-			PA_data[indexP][2] = y / fnorm;
-			PA_data[indexP][3] = z / fnorm;*/
-			/*q0 = sf_q.mData[3];
-			q1 = sf_q.mData[0];
-			q2 = sf_q.mData[2];
-			q3 = -sf_q.mData[1];
-
-			fnorm = sqrt(q1*q1 + q2*q2 + q3*q3);
-			indexP++;
-			PA_data[indexP][0] = q0;
-			PA_data[indexP][1] = q1 / fnorm;
-			PA_data[indexP][2] = q2 / fnorm;
-			PA_data[indexP][3] = q3 / fnorm;*/
-			glPopMatrix();
-			//printf("AngleAxis: %.5f\t%.5f\t%.5f\t%.5f\n", angle_deg, x / fnorm, y / fnorm, z / fnorm);
-			isize++;
-			break;
-			/*qPrevInvsPA = qPrevPA;
-			qPrevPA = reset_L.Inverse();
-			if (indexP != 0)
-			qPA = reset_L.mutiplication(qPrevInvsPA);
-
-			q0 = qPA.mData[3];
-			q1 = qPA.mData[0];
-			q2 = qPA.mData[2];
-			q3 = -qPA.mData[1];
-
-			angle_rad = acos(q0) * 2;
-			angle_deg = angle_rad;
-			x = q1 / sin(angle_rad / 2);
-			y = q2 / sin(angle_rad / 2);
-			z = q3 / sin(angle_rad / 2);
-
-			fnorm = sqrt(x*x + y*y + z*z);
-
-			indexP++;
-			PA_data[indexP][0] = angle_deg;
-			PA_data[indexP][1] = x/ fnorm;
-			PA_data[indexP][2] = y/ fnorm;
-			PA_data[indexP][3] = z/ fnorm;*/
-			//std::cout << "i:" << indexP << "	" << "Angle:" << angle_deg << "	X:" << x << "	Y:" << y << "	Z:" << z << "\n";
-
-			/////--------------20190712
-			qPrevInvsPA = qPrevPA;
-			qPrevPA = sf_q.Inverse();
-			if (!isFirst)
-				qPA = sf_q.mutiplication(qPrevInvsPA);
-			else
-			{
-				currentQuat.mData[3] = sf_q.mData[3];
-				currentQuat.mData[0] = sf_q.mData[0];
-				currentQuat.mData[1] = sf_q.mData[2];
-				currentQuat.mData[2] = -sf_q.mData[1];
-				isFirst = false;
-				cIndexArray[0] = centerindexP;
-				break;
-			}
-
-			//quaternion Test2Axis = currentQuat.mutiplication(sf_q.Inverse());//Test-2
-			quaternion Test2Axis = firstInvQuat_C.mutiplication(sf_q);//Test-3
-																	  //printf("Eqn-2: %f, %f, %f, %f\n", Test2Axis.mData[0], (Test2Axis.mData[1]), Test2Axis.mData[2], Test2Axis.mData[3]);
-																	  //		 Test2Axis = sf_q.Inverse().mutiplication(firstInvQuat_C.Inverse());//Test-3
-																	  //printf("Eqn-1: %f, %f, %f, %f\n", Test2Axis.mData[0], (Test2Axis.mData[1]), Test2Axis.mData[2], Test2Axis.mData[3]);
-
-
-			q0 = Test2Axis.mData[3];
-			q1 = Test2Axis.mData[0];
-			q2 = Test2Axis.mData[2];
-			q3 = -Test2Axis.mData[1];
-			//printf("%.5f\t%.5f\t%.5f\t%.5f\n", Test2Axis.mData[3], Test2Axis.mData[0], Test2Axis.mData[1], Test2Axis.mData[2]);
-
-
-			angle_rad = acos(q0) * 2;
-			angle_deg = angle_rad * 180 / PI;
-			x = q1 / sin(angle_rad / 2);
-			y = q2 / sin(angle_rad / 2);
-			z = q3 / sin(angle_rad / 2);
-
-			fnorm = sqrt(x*x + y*y + z*z);
-
-			indexP++;
-			PA_data[indexP][0] = angle_rad;
-			PA_data[indexP][1] = x / fnorm;
-			PA_data[indexP][2] = y / fnorm;
-			PA_data[indexP][3] = z / fnorm;
-			//printf("skip out: %f\t", (2 * acos((reset_L.mData[0])*(xCalib.mData[0])+ (reset_L.mData[1])*(xCalib.mData[1]) + (reset_L.mData[2])*(xCalib.mData[2]) + (reset_L.mData[3])*(xCalib.mData[3]))) * 180 / PI);
-
-			//---------------------
-
-			duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
-
-			//std::cout << "printf: " << duration << '\n';
-			//printf("Time:  %f \t Angle: %f \n", duration, PA_angle );
-
-			glPopMatrix();
-
-			isize++;
 		}
 	}
 	break;
@@ -2460,8 +1782,6 @@ void myinit()
 {
 	computeIntialpoint();
 
-
-	//IntializeRobotLight();
 	///////////////////////Texture mapping///////////////////////////
 	image_t   temp_image;
 
@@ -2761,9 +2081,6 @@ void mouseMotion(int x, int y)
 	}
 }
 
-
-
-
 void keyBoardEvent(unsigned char key, int x, int y)
 {
 	//printf("key_code =%d  \n", key);
@@ -2885,17 +2202,6 @@ void keyBoardEvent(unsigned char key, int x, int y)
 			P_rawfile.close();*/
 			L_sfqfile.close();
 			U_sfqfile.close();
-
-			//LatLongfile.close();
-			//printf("File Close\n");
-			/*AVG_PA_data[0][1] = AVG_PA_data[0][1] / indexP;
-			AVG_PA_data[0][2] = AVG_PA_data[0][2] / indexP;
-			AVG_PA_data[0][3] = AVG_PA_data[0][3] / indexP;*/
-			//printf("Recording stop..!\t Angle: %f \n", uPA_data[0][0] * 180 / PI);
-			/*duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
-
-			std::cout << "Total Time: " << duration << '\n';*/
-
 			matchDBTrajectory(UfileName, LfileName);
 			
 		}
@@ -2912,8 +2218,7 @@ void keyBoardEvent(unsigned char key, int x, int y)
 			std::istream_iterator<char>(infile),
 			std::istream_iterator<char>(),
 			'\n');
-		//std::cout << "Lines: " << line_count << "\n";
-
+	
 		const int icount = (const int)line_count;
 		dsize = icount;
 		uqdata = new float*[icount];
@@ -2925,9 +2230,6 @@ void keyBoardEvent(unsigned char key, int x, int y)
 		}
 
 		int i = 0;
-		//float a, b, c, d;
-		//float a1, b1, c1, d1;
-
 
 		std::ifstream infileu;
 		infileu.open("./Load/LFormFile.csv");
@@ -2955,25 +2257,9 @@ void keyBoardEvent(unsigned char key, int x, int y)
 				}
 				i++;
 			}
-			j++;
-
-			/*if (!(iss >> a >>",	" >> b >> ",	" >> c >> ",	" >> d)) { break; }
-
-			uqdata[i][3] = a;
-			uqdata[i][0] = b;
-			uqdata[i][1] = c;
-			uqdata[i][2] = d;
-			i++;			*/
+			j++;				
 		}
-		
-		
-		/*time_t curr_time;
-		curr_time = time(NULL);
-		tm *tm_local = localtime(&curr_time);
-		sprintf_s(fileName, "CData\\RPY-File-00%d-%d%d%d.csv", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
-		L_rfile2.open(fileName);
-		sprintf_s(fileName, "CData\\RPY-Lowpass-File-00%d-%d%d%d.csv", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
-		RPY_lowpass.open(fileName);*/
+			
 		std::ifstream infilep;
 		infilep.open("./Load/UFormFile.csv");
 
@@ -3004,37 +2290,9 @@ void keyBoardEvent(unsigned char key, int x, int y)
 			j++;
 
 		}
-		//std::ifstream infileL;
-
-		//infileL.open("./Data060619/0/LFormFile-000-155258.csv");
-
-		//if (!infileL) {
-		//	cout << "Cannot open input file.\n";
-
-		//}
-		//else
-		//{
-		//	cout << "C5 data\n";
-		//}
-
-		// j = 0;
-		//for (std::string line; getline(infileL, line); )
-		//{
-		//	std::istringstream iss(line);
-
-		//	if (!(iss >> a >> b >> c >> d)) { break; } // error
-
-		//	lqdata[j][3] = a;
-		//	lqdata[j][0] = b;
-		//	lqdata[j][1] = c;
-		//	lqdata[j][2] = d;
-		//	j++;
-		//}
-			
 
 		infile.close();
 		infileu.close();
-		//infileL.close();
 
 		bReadFile = true;
 		isRQFirst = true;
@@ -3042,8 +2300,6 @@ void keyBoardEvent(unsigned char key, int x, int y)
 		Counterindex = 0;
 		memset(PA_data, 0, 8056 * (sizeof(int)));
 		memset(uPA_data, 0, 8 * (sizeof(int)));
-		//First_calibrate = true;
-
 		start = std::clock();
 	}
 

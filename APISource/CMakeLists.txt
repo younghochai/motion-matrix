@@ -10,7 +10,7 @@ link_directories    (${PROJECT_SOURCE_DIR}/lib)
 #include_directories("${PROJECT_SOURCE_DIR}")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
-
+include_directories("${PROJECT_SOURCE_DIR}/include")
 include_directories("${PROJECT_SOURCE_DIR}/include/Xsens")
 include_directories("${PROJECT_SOURCE_DIR}/include/fgl")
 
