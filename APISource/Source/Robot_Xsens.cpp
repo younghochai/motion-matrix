@@ -105,8 +105,10 @@ float** uqdataDB;
 float** lqdataDB;
 
 bool bReadFile = false;
+bool bReadDBFile = false;
 int isize = 0;
 int dsize = 0;
+int idbsize = 0;
 bool startAnim = false;
 double prevDegree = 0;
 
@@ -128,6 +130,7 @@ bool startCalib = false;
 TVector3 V0, V1;
 TVector3 avgRPY;
 int indexP = 0;
+int indexDB = 0;
 int centerindexP = 1;
 int averageIndexP = 0;
 int Counterindex = 0;
@@ -1140,7 +1143,15 @@ void PrincipalAxis(void)
 
 	}
 
-
+	if (!fileClose)
+	{
+		glColor3f(0, 0, 0);
+		glPushMatrix();
+		//drawQuads(drawGrid[0][1], drawGrid[0][2], drawGrid[0][3]);
+		glTranslatef(1.011*drawGrid[0][1], 1.011*drawGrid[0][2], 1.011*drawGrid[0][3]);
+		glutSolidSphere(0.025, 30, 30);
+		glPopMatrix();
+	}
 
 	for (int i = 0; i < dbCount; i++)
 	{
@@ -1215,15 +1226,7 @@ void PrincipalAxis(void)
 	}
 
 	// draw quads
-	if (!fileClose)
-	{
-		glColor3f(0, 0, 0);
-		glPushMatrix();
-		//drawQuads(drawGrid[0][1], drawGrid[0][2], drawGrid[0][3]);
-		glTranslatef(drawGrid[0][1], drawGrid[0][2], drawGrid[0][3]);
-		glutSolidSphere(0.025, 30, 30);
-		glPopMatrix();
-	}
+	
 
 
 	glPopMatrix();
@@ -1608,6 +1611,7 @@ void idle()
 				matchDBTrajectory("Load\\UFormFile.csv", "Load\\LFormFile.csv");
 				break;
 			}
+		
 			///////////////
 			quaternion qutObj;
 			glPushMatrix();
@@ -1615,42 +1619,36 @@ void idle()
 			glGetFloatv(GL_MODELVIEW_MATRIX, lua_node.m);
 
 			quaternion reset_U(uqdata[isize][0], uqdata[isize][1], uqdata[isize][2], uqdata[isize][3]);
-			float q0u = reset_U.mData[3];
-			float q1u = reset_U.mData[0];
-			float q2u = reset_U.mData[2];
-			float q3u = -reset_U.mData[1];
+			quaternion reset_L(lqdata[isize][0], lqdata[isize][1], lqdata[isize][2], lqdata[isize][3]);
+
+			float q0 = reset_U.mData[3];
+			float q1 = reset_U.mData[0];
+			float q2 = reset_U.mData[2];
+			float q3 = -reset_U.mData[1];
 
 
-			float angle_radu = acos(q0u) * 2;
-			float angle_degu = angle_radu * 180 / PI;
+			float angle_rad = acos(q0) * 2;
+			float angle_deg = angle_rad * 180 / PI;
 
-			float xu = q1u / sin(angle_radu / 2);
-			float yu = q2u / sin(angle_radu / 2);
-			float zu = q3u / sin(angle_radu / 2);
-			float fnormu = sqrt(xu*xu + yu*yu + zu*zu);
-			//glRotatef(lla_angle, lla_axis[0], lla_axis[1], lla_axis[2]);
-			glRotatef(angle_degu, xu / fnormu, yu / fnormu, zu / fnormu);
+			float x = q1 / sin(angle_rad / 2);
+			float y = q2 / sin(angle_rad / 2);
+			float z = q3 / sin(angle_rad / 2);
+			float fnorm = sqrt(x*x + y*y + z*z);
+			
+			glRotatef(angle_deg, x / fnorm, y / fnorm, z / fnorm);
 
 			glGetFloatv(GL_MODELVIEW_MATRIX, lua_node.m);
-			////std::cout << "Angle-RU:" << lua_angle << "X:" << lua_axis[0] << "Y:" << lua_axis[2] << "Z:" << -lua_axis[1] << std::endl;
 			
 			glLoadIdentity();
 			glTranslatef(0.0, -UPPER_ARM_HEIGHT, 0.0);
 			glGetFloatv(GL_MODELVIEW_MATRIX, lelb_node.m);
 
 			glGetFloatv(GL_MODELVIEW_MATRIX, lla_node.m);
-			quaternion reset_L(lqdata[isize][0], lqdata[isize][1], lqdata[isize][2], lqdata[isize][3]);
-			quaternion firstQuat_Plv(uqdata[isize][0], uqdata[isize][1], uqdata[isize][2], uqdata[isize][3]);
-
-			firstInvQuat_C = firstQuat_Plv.Inverse();
-
-			quaternion sf_q = reset_L;
-			sf_q.normalize();
-		
-			float q0 = lqdata[isize][3];
-			float q1 = lqdata[isize][0];
-			float q2 = lqdata[isize][2];
-			float q3 = -lqdata[isize][1];
+			
+			q0 = lqdata[isize][3];
+			q1 = lqdata[isize][0];
+			q2 = lqdata[isize][2];
+			q3 = -lqdata[isize][1];
 			
 			if (q0 == 9)
 			{
@@ -1665,13 +1663,13 @@ void idle()
 				break;
 			}
 
-			float angle_rad = acos(q0) * 2;
-			float angle_deg = angle_rad * 180 / PI;
-			float x = q1 / sin(angle_rad / 2);
-			float y = q2 / sin(angle_rad / 2);
-			float z = q3 / sin(angle_rad / 2);
+			angle_rad = acos(q0) * 2;
+			angle_deg = angle_rad * 180 / PI;
+			x = q1 / sin(angle_rad / 2);
+			y = q2 / sin(angle_rad / 2);
+			z = q3 / sin(angle_rad / 2);
 
-			float fnorm = sqrt(x*x + y*y + z*z);
+			fnorm = sqrt(x*x + y*y + z*z);
 						
 			glLoadIdentity();
 			glTranslatef(0.0, 0.0, 0.0);
@@ -1727,6 +1725,7 @@ void idle()
 	break;
 
 	case 9:
+	{
 		bool DataAvailable = connectXS.newDataAvailable;
 		if (DataAvailable && startCalib)
 		{
@@ -1736,9 +1735,115 @@ void idle()
 			if (TposAxisCalib)
 				Calib_tpos = quaternion(connectXS.ax2[0], connectXS.ax2[1], connectXS.ax2[2], connectXS.ax2[3]);
 		}
-		break;
 	}
+	break;
+	
+	case 10:
+	{
+		if (bReadDBFile)
+		{
+			//............Right Arm.............//
+			if (idbsize >= dbCount)
+			{
+				bReadDBFile = false;
+				idbsize = 0;
+				break;
+			}
 
+			///////////////
+			quaternion qutObj;
+			glPushMatrix();
+			glLoadIdentity();
+			glGetFloatv(GL_MODELVIEW_MATRIX, lua_node.m);
+
+			quaternion reset_U(uqdataDB[idbsize][0], uqdataDB[idbsize][1], uqdataDB[idbsize][2], uqdataDB[idbsize][3]);
+			quaternion reset_L(lqdataDB[idbsize][0], lqdataDB[idbsize][1], lqdataDB[idbsize][2], lqdataDB[idbsize][3]);
+
+			float q0 = reset_U.mData[3];
+			float q1 = reset_U.mData[0];
+			float q2 = reset_U.mData[2];
+			float q3 = -reset_U.mData[1];
+
+
+			float angle_rad = acos(q0) * 2;
+			float angle_deg = angle_rad * 180 / PI;
+
+			float x = q1 / sin(angle_rad / 2);
+			float y = q2 / sin(angle_rad / 2);
+			float z = q3 / sin(angle_rad / 2);
+			float fnorm = sqrt(x*x + y*y + z*z);
+
+			glRotatef(angle_deg, x / fnorm, y / fnorm, z / fnorm);
+
+			glGetFloatv(GL_MODELVIEW_MATRIX, lua_node.m);
+
+			glLoadIdentity();
+			glTranslatef(0.0, -UPPER_ARM_HEIGHT, 0.0);
+			glGetFloatv(GL_MODELVIEW_MATRIX, lelb_node.m);
+
+			glGetFloatv(GL_MODELVIEW_MATRIX, lla_node.m);
+
+			q0 = reset_L.mData[3];
+			q1 = reset_L.mData[0];
+			q2 = reset_L.mData[2];
+			q3 = -reset_L.mData[1];
+			
+			angle_rad = acos(q0) * 2;
+			angle_deg = angle_rad * 180 / PI;
+			x = q1 / sin(angle_rad / 2);
+			y = q2 / sin(angle_rad / 2);
+			z = q3 / sin(angle_rad / 2);
+
+			fnorm = sqrt(x*x + y*y + z*z);
+
+			glLoadIdentity();
+			glTranslatef(0.0, 0.0, 0.0);
+			glRotatef(angle_deg, x / fnorm, y / fnorm, z / fnorm);
+			glGetFloatv(GL_MODELVIEW_MATRIX, lla_node.m);
+			glPopMatrix();
+
+			/*qPrevInvsPA = qPrevPA;
+			qPrevPA = sf_q.Inverse();
+			if (!isFirst)
+			qPA = sf_q.mutiplication(qPrevInvsPA);
+			else
+			{
+			isFirst = false;
+			isize++;
+			break;
+			}
+
+			if (qPA.mData[3] >= 0.99999 || isinf(x) || isnan(x)) {
+
+			isize++;
+			break;
+			}*/
+
+			quaternion tempQuat1 = BodyQuat.mutiplication(reset_U);
+			quaternion tempQuat2 = tempQuat1.mutiplication(reset_L);
+
+			TVector3 TransfBodyQuat1 = tempQuat2.quternionMatrices(tempQuat2, tempVec);
+			TVector3 TransfBodyQuat2 = tempQuat1.quternionMatrices(tempQuat1, tempVec);
+
+			///////////////////////////////////
+			indexDB++;
+
+			lDB_data[indexDB][0] = 1.0;
+			lDB_data[indexDB][1] = TransfBodyQuat1._x;
+			lDB_data[indexDB][2] = TransfBodyQuat1._y;
+			lDB_data[indexDB][3] = TransfBodyQuat1._z;
+					 
+			uDB_data[indexDB][0] = 1.0;
+			uDB_data[indexDB][1] = TransfBodyQuat2._x;
+			uDB_data[indexDB][2] = TransfBodyQuat2._y;
+			uDB_data[indexDB][3] = TransfBodyQuat2._z;
+					
+			idbsize++;
+			break;
+		}
+	}
+	break;
+	}
 	glutPostRedisplay();
 }
 
@@ -2407,30 +2512,11 @@ void keyBoardEvent(unsigned char key, int x, int y)
 			j++;
 
 		}
-
-		for (int i = 0; i<icount; i++)
-		{
-			quaternion sfq_ua(uqdataDB[i][0], uqdataDB[i][1], uqdataDB[i][2], uqdataDB[i][3]);
-			quaternion sfq_la(lqdataDB[i][0], lqdataDB[i][1], lqdataDB[i][2], lqdataDB[i][3]);
-			quaternion BodyQuat(1.29947E-16, 0.707106781, -0.707106781, 1.41232E-32);
-
-			quaternion tempQuat2 = BodyQuat.mutiplication(sfq_ua);
-
-			quaternion tempQuat1 = tempQuat2.mutiplication(sfq_la);
-
-			TVector3 TransfBodyQuat1 = tempQuat1.quternionMatrices(tempQuat1, tempVec);
-			TVector3 TransfBodyQuat2 = tempQuat2.quternionMatrices(tempQuat2, tempVec);
-
-			lDB_data[i][0] = 1.0;
-			lDB_data[i][1] = TransfBodyQuat1._x;
-			lDB_data[i][2] = TransfBodyQuat1._y;
-			lDB_data[i][3] = TransfBodyQuat1._z;
-
-			uDB_data[i][0] = 1.0;
-			uDB_data[i][1] = TransfBodyQuat2._x;
-			uDB_data[i][2] = TransfBodyQuat2._y;
-			uDB_data[i][3] = TransfBodyQuat2._z;
-		}
+		bReadDBFile = true;
+		indexDB = 0;
+		
+		memset(uDB_data, 0, 8056 * (sizeof(int)));
+		memset(lDB_data, 0, 8 * (sizeof(int)));		
 	}
 
 	if (key == '8')
@@ -2523,30 +2609,12 @@ void keyBoardEvent(unsigned char key, int x, int y)
 			j++;
 
 		}
+		bReadDBFile = true;
+		indexDB = 0;
 
-		for (int i = 0; i<icount; i++)
-		{
-			quaternion sfq_ua(uqdataDB[i][0], uqdataDB[i][1], uqdataDB[i][2], uqdataDB[i][3]);
-			quaternion sfq_la(lqdataDB[i][0], lqdataDB[i][1], lqdataDB[i][2], lqdataDB[i][3]);
-			quaternion BodyQuat(1.29947E-16, 0.707106781, -0.707106781, 1.41232E-32);
-
-			quaternion tempQuat2 = BodyQuat.mutiplication(sfq_ua);
-
-			quaternion tempQuat1 = tempQuat2.mutiplication(sfq_la);
-
-			TVector3 TransfBodyQuat1 = tempQuat1.quternionMatrices(tempQuat1, tempVec);
-			TVector3 TransfBodyQuat2 = tempQuat2.quternionMatrices(tempQuat2, tempVec);
-
-			lDB_data[i][0] = 1.0;
-			lDB_data[i][1] = TransfBodyQuat1._x;
-			lDB_data[i][2] = TransfBodyQuat1._y;
-			lDB_data[i][3] = TransfBodyQuat1._z;
-
-			uDB_data[i][0] = 1.0;
-			uDB_data[i][1] = TransfBodyQuat2._x;
-			uDB_data[i][2] = TransfBodyQuat2._y;
-			uDB_data[i][3] = TransfBodyQuat2._z;
-		}
+		memset(uDB_data, 0, 8056 * (sizeof(int)));
+		memset(lDB_data, 0, 8 * (sizeof(int)));
+		
 	}
 
 	if (key == '9')
@@ -2639,30 +2707,11 @@ void keyBoardEvent(unsigned char key, int x, int y)
 			j++;
 
 		}
+		bReadDBFile = true;
+		indexDB = 0;
 
-		for(int i=0; i<icount; i++)
-		{
-			quaternion sfq_ua(uqdataDB[i][0], uqdataDB[i][1], uqdataDB[i][2], uqdataDB[i][3]);
-			quaternion sfq_la(lqdataDB[i][0], lqdataDB[i][1], lqdataDB[i][2], lqdataDB[i][3]);
-			quaternion BodyQuat(1.29947E-16, 0.707106781, -0.707106781, 1.41232E-32);
-		
-			quaternion tempQuat2 = BodyQuat.mutiplication(sfq_ua);
-
-			quaternion tempQuat1 = tempQuat2.mutiplication(sfq_la);
-
-			TVector3 TransfBodyQuat1 = tempQuat1.quternionMatrices(tempQuat1, tempVec);
-			TVector3 TransfBodyQuat2 = tempQuat2.quternionMatrices(tempQuat2, tempVec);
-
-			lDB_data[i][0] = 1.0;
-			lDB_data[i][1] = TransfBodyQuat1._x;
-			lDB_data[i][2] = TransfBodyQuat1._y;
-			lDB_data[i][3] = TransfBodyQuat1._z;
-
-			uDB_data[i][0] = 1.0;
-			uDB_data[i][1] = TransfBodyQuat2._x;
-			uDB_data[i][2] = TransfBodyQuat2._y;
-			uDB_data[i][3] = TransfBodyQuat2._z;
-		}
+		memset(uDB_data, 0, 8056 * (sizeof(int)));
+		memset(lDB_data, 0, 8 * (sizeof(int)));
 	}
 	
 
@@ -2691,6 +2740,7 @@ DWORD WINAPI RoboticArm(LPVOID lpParam)
 	glutAddMenuEntry(" Start Xsens ", 0);
 	glutAddMenuEntry(" Data Capture", 1);
 	glutAddMenuEntry(" Read file ", 8);
+	glutAddMenuEntry(" Read DB file ", 10);
 	glutAddMenuEntry(" Calibration ", 9);
 	glutAddMenuEntry(" Reset ", 2);
 	glutAddMenuEntry(" Side View ", 3);
