@@ -1143,7 +1143,15 @@ void PrincipalAxis(void)
 
 	}
 
-
+	if (!fileClose)
+	{
+		glColor3f(0, 0, 0);
+		glPushMatrix();
+		//drawQuads(drawGrid[0][1], drawGrid[0][2], drawGrid[0][3]);
+		glTranslatef(1.011*drawGrid[0][1], 1.011*drawGrid[0][2], 1.011*drawGrid[0][3]);
+		glutSolidSphere(0.025, 30, 30);
+		glPopMatrix();
+	}
 
 	for (int i = 0; i < dbCount; i++)
 	{
@@ -1218,15 +1226,7 @@ void PrincipalAxis(void)
 	}
 
 	// draw quads
-	if (!fileClose)
-	{
-		glColor3f(0, 0, 0);
-		glPushMatrix();
-		//drawQuads(drawGrid[0][1], drawGrid[0][2], drawGrid[0][3]);
-		glTranslatef(drawGrid[0][1], drawGrid[0][2], drawGrid[0][3]);
-		glutSolidSphere(0.025, 30, 30);
-		glPopMatrix();
-	}
+	
 
 
 	glPopMatrix();
