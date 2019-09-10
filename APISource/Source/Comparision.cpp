@@ -63,11 +63,11 @@ void Comparision:: readCSV(istream &input, vector< vector<string> > &output, qua
 	//rpyFile.close();
 }
 
-float Comparision::getDiffBtwTrajectory(char* usf1File, char* lsf1File, char* usf2File, char* lsf2File)
+float Comparision::getDiffBtwTrajectory(char* usf1File, char* lsf1File, char* usf2File, char* lsf2File, int &percent)
 {
 	int count1, count2;
 	quaternion usf1[1024], lsf1[1024], usf2[1024], lsf2[1024];
-
+	percent = 0;
 	// Read First Trajectory (UpperArm and Lower Arm) into usf1 and lsf1
 	fstream file1(usf1File, ios::in);
 	if (!file1.is_open())
@@ -151,7 +151,10 @@ float Comparision::getDiffBtwTrajectory(char* usf1File, char* lsf1File, char* us
 		//cout << usf2[(int)round(val2)] << "," << lsf2[(int)round(val2)] << endl;
 		TVector3 TransfBodyQuat2 = tempQuat2.quternionMatrices(tempQuat2, tempVec);
 		/////////////////////////////////////////////////////////////
-		sumOfDistance = sumOfDistance + getAngularDistance(TransfBodyQuat1,TransfBodyQuat2);
+		float angularDist = getAngularDistance(TransfBodyQuat1, TransfBodyQuat2);
+		if (angularDist < 0.15)
+			percent++;
+		sumOfDistance = sumOfDistance + angularDist;
 		//cout << TransfBodyQuat1 <<"," << TransfBodyQuat2 <<","<< getAngularDistance(TransfBodyQuat1, TransfBodyQuat2) << endl;
 	}
 
