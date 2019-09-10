@@ -95,7 +95,7 @@ rsh_node, lsh_node;
 
 //Output to file
 ofstream L_rawqfile, U_rawqfile, P_rawfile ,LatLongfile;
-ofstream L_qfile1, L_rfile2, L_sfqfile, U_sfqfile, Calibfile, RPY_lowpass;
+ofstream L_qfile1, L_rfile2, L_sfqfile, U_sfqfile, Calibfile, RPY_lowpass, outData;
 
 bool fileClose = false;
 float** uqdata;
@@ -187,6 +187,7 @@ float diff = 10;
 float diff1 = 10;
 float diff2 = 10;
 float diff3 = 10;
+int stdPercent, closePercent, widePercent;
 
 float threshold = 0.15f;
 float color[4] = { 0, 0, 0, 1 };
@@ -912,7 +913,7 @@ void showInfo(/*std::stringstream &ss, int tWidth, int tHeight*/)
 	if (diff < threshold && diff == diff1)
 	{
 		std::stringstream ss;
-		ss << "Standard Curl: (" << diff1 << "[Match])";
+		ss << "Standard Curl: (" << diff1 << "["<<stdPercent<<"% Match])";
 		drawString(ss.str().c_str(), width / 4 + 150, height / 2 - TEXT_HEIGHT, mcolor, font);
 		//ss.str("");
 		//printf("Standard Curl:%f (Match)\n", diff1);
@@ -921,7 +922,7 @@ void showInfo(/*std::stringstream &ss, int tWidth, int tHeight*/)
 	else
 	{
 		std::stringstream ss;
-		ss << "Standard Curl: (" << diff1 << "[No-Match])";
+		ss << "Standard Curl: (" << diff1 << "[" << 100-stdPercent << "% No-Match])";
 		drawString(ss.str().c_str(), width / 4 + 150, height / 2 - TEXT_HEIGHT, color, font);
 		//printf("Standard Curl:%f (No-Match)\n", diff1);
 	}
@@ -935,7 +936,7 @@ void showInfo(/*std::stringstream &ss, int tWidth, int tHeight*/)
 		if (diff < threshold && diff == diff2)
 		{
 			std::stringstream ss;
-			ss << "Close Curl: (" << diff2 << "[Match])";
+			ss << "Close Curl: (" << diff2 << "[" << closePercent << "% Match])";
 			drawString(ss.str().c_str(), width / 4 + 150, height / 2 - (2 * TEXT_HEIGHT), mcolor, font);
 				
 			isMatched = true;
@@ -943,7 +944,7 @@ void showInfo(/*std::stringstream &ss, int tWidth, int tHeight*/)
 		else
 		{
 			std::stringstream ss;
-			ss << "Close Curl: (" << diff2 << "[No-Match])";
+			ss << "Close Curl: (" << diff2 << "[" << 100-closePercent << "% No-Match])";
 			drawString(ss.str().c_str(), width / 4 + 150, height / 2 - (2 * TEXT_HEIGHT), color, font);
 			
 		}
@@ -956,7 +957,7 @@ void showInfo(/*std::stringstream &ss, int tWidth, int tHeight*/)
 		if (diff < threshold && diff == diff3)
 		{
 			std::stringstream ss;
-			ss << "Wide Curl: (" << diff3 << "[Match])";
+			ss << "Wide Curl: (" << diff3 << "[" << widePercent << "% Match])";
 			drawString(ss.str().c_str(), width / 4 + 150, height / 2 - (3 * TEXT_HEIGHT), mcolor, font);
 			
 			isMatched = true;
@@ -964,7 +965,7 @@ void showInfo(/*std::stringstream &ss, int tWidth, int tHeight*/)
 		else
 		{
 			std::stringstream ss;
-			ss << "Wide Curl: (" << diff3 << "[No-Match])";
+			ss << "Wide Curl: (" << diff3 << "[" << 100-widePercent << "% No-Match])";
 			drawString(ss.str().c_str(), width / 4 + 150, height / 2 - (3 * TEXT_HEIGHT), color, font);
 			
 		}
@@ -1143,7 +1144,15 @@ void PrincipalAxis(void)
 
 	}
 
-
+	if (!fileClose)
+	{
+		glColor3f(0, 0, 0);
+		glPushMatrix();
+		//drawQuads(drawGrid[0][1], drawGrid[0][2], drawGrid[0][3]);
+		glTranslatef(1.011*drawGrid[0][1], 1.011*drawGrid[0][2], 1.011*drawGrid[0][3]);
+		glutSolidSphere(0.025, 30, 30);
+		glPopMatrix();
+	}
 
 	for (int i = 0; i < dbCount; i++)
 	{
@@ -1218,15 +1227,7 @@ void PrincipalAxis(void)
 	}
 
 	// draw quads
-	if (!fileClose)
-	{
-		glColor3f(0, 0, 0);
-		glPushMatrix();
-		//drawQuads(drawGrid[0][1], drawGrid[0][2], drawGrid[0][3]);
-		glTranslatef(drawGrid[0][1], drawGrid[0][2], drawGrid[0][3]);
-		glutSolidSphere(0.025, 30, 30);
-		glPopMatrix();
-	}
+	
 
 
 	glPopMatrix();
@@ -1262,9 +1263,10 @@ void Display(void)
 void matchDBTrajectory(char * Ufile, char * Lfile)
 {	
 	diff = 0;
-	diff1 = Comparision::getDiffBtwTrajectory("Load\\Standard\\UFormFile.csv", "Load\\Standard\\LFormFile.csv", Ufile, Lfile);
-	diff2 = Comparision::getDiffBtwTrajectory("Load\\Close\\UFormFile.csv", "Load\\Close\\LFormFile.csv", Ufile, Lfile);
-	diff3 = Comparision::getDiffBtwTrajectory("Load\\Wide\\UFormFile.csv", "Load\\Wide\\LFormFile.csv", Ufile, Lfile);
+	
+	diff1 = Comparision::getDiffBtwTrajectory("Load\\Standard\\UFormFile.csv", "Load\\Standard\\LFormFile.csv", Ufile, Lfile, stdPercent);
+	diff2 = Comparision::getDiffBtwTrajectory("Load\\Close\\UFormFile.csv", "Load\\Close\\LFormFile.csv", Ufile, Lfile,closePercent);
+	diff3 = Comparision::getDiffBtwTrajectory("Load\\Wide\\UFormFile.csv", "Load\\Wide\\LFormFile.csv", Ufile, Lfile,widePercent);
 	
 	if (diff1 < diff2)
 	{
@@ -1747,6 +1749,7 @@ void idle()
 			{
 				bReadDBFile = false;
 				idbsize = 0;
+				outData.close();
 				break;
 			}
 
@@ -1832,7 +1835,9 @@ void idle()
 			lDB_data[indexDB][1] = TransfBodyQuat1._x;
 			lDB_data[indexDB][2] = TransfBodyQuat1._y;
 			lDB_data[indexDB][3] = TransfBodyQuat1._z;
-					 
+			outData.open("outData.txt");
+			outData << lDB_data[indexDB][1] << "\t" << lDB_data[indexDB][2] << "\t" << lDB_data[indexDB][3] << endl;
+			
 			uDB_data[indexDB][0] = 1.0;
 			uDB_data[indexDB][1] = TransfBodyQuat2._x;
 			uDB_data[indexDB][2] = TransfBodyQuat2._y;

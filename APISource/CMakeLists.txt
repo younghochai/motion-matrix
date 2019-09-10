@@ -36,13 +36,30 @@ set(FILENAME "${CMAKE_CURRENT_BINARY_DIR}/Load"
 )
 
 
-foreach( file_i ${FILENAME})
-    add_custom_command(
+file(GLOB DEPLOY_FILES_AND_DIRS "${PROJECT_SOURCE_DIR}/database/*")
+foreach(ITEM ${DEPLOY_FILES_AND_DIRS})
+   IF( IS_DIRECTORY "${ITEM}" )
+      LIST( APPEND DIRS_TO_DEPLOY "${ITEM}" )
+   ELSE()
+      LIST( APPEND FILES_TO_DEPLOY "${ITEM}" )
+   ENDIF()
+endforeach()
+INSTALL( FILES ${FILES_TO_DEPLOY} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/Load )
+INSTALL( DIRECTORY ${DIRS_TO_DEPLOY} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/Load )
+
+add_custom_command(
 	TARGET motion-matrix
 	POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${file_i}
+    COMMAND ${CMAKE_COMMAND} -E make_directory CData
 	)
-endforeach( file_i )
+
+#foreach( file_i ${FILENAME})
+#    add_custom_command(
+#	TARGET motion-matrix
+#	POST_BUILD
+#    COMMAND ${CMAKE_COMMAND} -E make_directory ${file_i}
+#	)
+#endforeach( file_i )
 
 add_custom_command(
     TARGET motion-matrix
