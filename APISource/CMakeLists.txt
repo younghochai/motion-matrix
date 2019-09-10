@@ -47,7 +47,11 @@ endforeach()
 INSTALL( FILES ${FILES_TO_DEPLOY} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/Load )
 INSTALL( DIRECTORY ${DIRS_TO_DEPLOY} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/Load )
 
-
+add_custom_command(
+	TARGET motion-matrix
+	POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory CData
+	)
 
 #foreach( file_i ${FILENAME})
 #    add_custom_command(
