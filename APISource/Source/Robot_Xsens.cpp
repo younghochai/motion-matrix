@@ -1196,10 +1196,10 @@ void PrincipalAxis(void)
 		glColor4f(0.13, 0.54, 0.13, 0.3);
 		glPushMatrix();
 		float fnorm = sqrt(lDB_data[i][1] * lDB_data[i][1] + lDB_data[i][2] * lDB_data[i][2] + lDB_data[i][3] * lDB_data[i][3]);
-		if (i != 0 && i <= 49)
+		if (i > 1 && i <= 49)
 			renderCylinder_convenient(lDB_data[i - 1][1] / fnorm, lDB_data[i - 1][2] / fnorm, lDB_data[i - 1][3] / fnorm, lDB_data[i][1] / fnorm, lDB_data[i][2] / fnorm, lDB_data[i][3] / fnorm, 0.15, 30);
 
-		if (i == 0 || i == 50)
+		if (i == 1 || i == 50)
 		{
 			glTranslatef(1.011*lDB_data[i][1] / fnorm, 1.011*lDB_data[i][2] / fnorm, 1.011*lDB_data[i][3] / fnorm);
 			glutSolidSphere(0.15, 30, 30);

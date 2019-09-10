@@ -132,10 +132,38 @@ float Comparision::getDiffBtwTrajectory(char* usf1File, char* lsf1File, char* us
 	tempVec._y = y / fnorm;
 	tempVec._z = z / fnorm;
 
+	for (int i = 0; i <= SAMPLESIZE; i++)
+	{
+		float minDist = 999;
+		
+		for (int j = (int)round(val1); j <= (int)round(val1) + 7 ; j++)
+		{
+			if (j >= count2) continue;
+			quaternion tempQuat = BodyQuat.mutiplication(usf1[(int)round(j)]);
+			quaternion tempQuat1 = tempQuat.mutiplication(lsf1[(int)round(j)]);//Case-2 usf_q
+																				  //cout << usf1[(int)round(val1)] << "," << lsf1[(int)round(val1)] << endl;
+			TVector3 TransfBodyQuat1 = tempQuat1.quternionMatrices(tempQuat1, tempVec);
+
+			tempQuat = BodyQuat.mutiplication(usf2[(int)round(val2)]);
+			quaternion tempQuat2 = tempQuat.mutiplication(lsf2[(int)round(val2)]);//Case-2 usf_q
+																				  //cout << usf2[(int)round(val2)] << "," << lsf2[(int)round(val2)] << endl;
+			TVector3 TransfBodyQuat2 = tempQuat2.quternionMatrices(tempQuat2, tempVec);
+			/////////////////////////////////////////////////////////////
+			float angularDist = getAngularDistance(TransfBodyQuat1, TransfBodyQuat2);
+			if (angularDist < minDist)
+				minDist = angularDist;
+		}
+		val1 = val1++;
+		val2 = increment2 + val2;
+		if (minDist < 0.15)
+			percent++;
+	}
+	val1 = 0; val2 = 0;
 	for (int i = 0; i < SAMPLESIZE; i++)
 	{
 		val1 = increment1 + val1;
 		val2 = increment2 + val2;
+		
 
 		//////////////////Computing vector difference//////////////////////
 		
@@ -152,8 +180,6 @@ float Comparision::getDiffBtwTrajectory(char* usf1File, char* lsf1File, char* us
 		TVector3 TransfBodyQuat2 = tempQuat2.quternionMatrices(tempQuat2, tempVec);
 		/////////////////////////////////////////////////////////////
 		float angularDist = getAngularDistance(TransfBodyQuat1, TransfBodyQuat2);
-		if (angularDist < 0.15)
-			percent++;
 		sumOfDistance = sumOfDistance + angularDist;
 		//cout << TransfBodyQuat1 <<"," << TransfBodyQuat2 <<","<< getAngularDistance(TransfBodyQuat1, TransfBodyQuat2) << endl;
 	}
