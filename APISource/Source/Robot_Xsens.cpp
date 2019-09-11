@@ -910,7 +910,8 @@ void showInfo(/*std::stringstream &ss, int tWidth, int tHeight*/)
 	
 	/////////////////////
 	isMatched = false;
-	if (diff < threshold && diff == diff1)
+	//if (diff < threshold && diff == diff1)
+	if (stdPercent >= 90 )
 	{
 		std::stringstream ss;
 		ss << "Standard Curl: (" << diff1 << "["<<stdPercent<<"% Match])";
@@ -933,7 +934,8 @@ void showInfo(/*std::stringstream &ss, int tWidth, int tHeight*/)
 	{
 
 
-		if (diff < threshold && diff == diff2)
+		//if (diff < threshold && diff == diff2)
+		if (closePercent >= 90)
 		{
 			std::stringstream ss;
 			ss << "Close Curl: (" << diff2 << "[" << closePercent << "% Match])";
@@ -954,7 +956,8 @@ void showInfo(/*std::stringstream &ss, int tWidth, int tHeight*/)
 	{
 
 
-		if (diff < threshold && diff == diff3)
+		//if (diff < threshold && diff == diff3)
+		if (widePercent >= 90)
 		{
 			std::stringstream ss;
 			ss << "Wide Curl: (" << diff3 << "[" << widePercent << "% Match])";
