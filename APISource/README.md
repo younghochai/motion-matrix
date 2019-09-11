@@ -1,6 +1,6 @@
 Instruction for Building the Project.
 
 - Create Solution File using Cmake
-- Build the Project
-- Copy dll files from bin folder to the folder where executable is generated
-- Copy "worldmgrs.tga" to the solution file folder
+- Open solution file (.sln) in Visual Studio
+- Right click on the INSTALL in the solution panel and select build
+- After the build is completed, click on the PLAY icon (Local Window Debugging) to run the project.

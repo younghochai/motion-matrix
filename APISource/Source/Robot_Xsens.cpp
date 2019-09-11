@@ -910,7 +910,8 @@ void showInfo(/*std::stringstream &ss, int tWidth, int tHeight*/)
 	
 	/////////////////////
 	isMatched = false;
-	if (diff < threshold && diff == diff1)
+	//if (diff < threshold && diff == diff1)
+	if (stdPercent >= 90 )
 	{
 		std::stringstream ss;
 		ss << "Standard Curl: (" << diff1 << "["<<stdPercent<<"% Match])";
@@ -933,7 +934,8 @@ void showInfo(/*std::stringstream &ss, int tWidth, int tHeight*/)
 	{
 
 
-		if (diff < threshold && diff == diff2)
+		//if (diff < threshold && diff == diff2)
+		if (closePercent >= 90)
 		{
 			std::stringstream ss;
 			ss << "Close Curl: (" << diff2 << "[" << closePercent << "% Match])";
@@ -954,7 +956,8 @@ void showInfo(/*std::stringstream &ss, int tWidth, int tHeight*/)
 	{
 
 
-		if (diff < threshold && diff == diff3)
+		//if (diff < threshold && diff == diff3)
+		if (widePercent >= 90)
 		{
 			std::stringstream ss;
 			ss << "Wide Curl: (" << diff3 << "[" << widePercent << "% Match])";
@@ -1829,15 +1832,17 @@ void idle()
 			TVector3 TransfBodyQuat2 = tempQuat1.quternionMatrices(tempQuat1, tempVec);
 
 			///////////////////////////////////
+			
 			indexDB++;
-
+			if(indexDB == 1) 
+				outData.open("outData.txt");
 			lDB_data[indexDB][0] = 1.0;
 			lDB_data[indexDB][1] = TransfBodyQuat1._x;
 			lDB_data[indexDB][2] = TransfBodyQuat1._y;
 			lDB_data[indexDB][3] = TransfBodyQuat1._z;
-			outData.open("outData.txt");
-			outData << lDB_data[indexDB][1] << "\t" << lDB_data[indexDB][2] << "\t" << lDB_data[indexDB][3] << endl;
 			
+			outData << lDB_data[indexDB][1] << "\t" << lDB_data[indexDB][2] << "\t" << lDB_data[indexDB][3] << endl;
+
 			uDB_data[indexDB][0] = 1.0;
 			uDB_data[indexDB][1] = TransfBodyQuat2._x;
 			uDB_data[indexDB][2] = TransfBodyQuat2._y;
@@ -2431,7 +2436,7 @@ void keyBoardEvent(unsigned char key, int x, int y)
 	{
 		memset(uDB_data, 0, 80056 * (sizeof(float)));
 		memset(lDB_data, 0, 80056 * (sizeof(float)));
-
+		
 		std::ifstream infile;
 		infile.open("Load\\Standard\\UFormFile.csv");
 
@@ -2517,6 +2522,7 @@ void keyBoardEvent(unsigned char key, int x, int y)
 			j++;
 
 		}
+		
 		bReadDBFile = true;
 		indexDB = 0;
 		
