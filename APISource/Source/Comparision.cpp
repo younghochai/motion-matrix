@@ -19,6 +19,7 @@ typedef vector< vector<string> > csvVector;
 csvVector csvData;
 ofstream myfile;
 string a;
+bool diagnosisDone = false;
 
 ostream& operator<<(ostream& os, quaternion& q)
 {
@@ -63,7 +64,7 @@ void Comparision:: readCSV(istream &input, vector< vector<string> > &output, qua
 	//rpyFile.close();
 }
 
-float Comparision::getDiffBtwTrajectory(char* usf1File, char* lsf1File, char* usf2File, char* lsf2File, int &percent)
+float Comparision::getDiffBtwTrajectory(char* usf1File, char* lsf1File, char* usf2File, char* lsf2File, int &percent, struct CurveProperty &curveProperty)
 {
 	int count1, count2;
 	quaternion usf1[1024], lsf1[1024], usf2[1024], lsf2[1024];
@@ -102,6 +103,7 @@ float Comparision::getDiffBtwTrajectory(char* usf1File, char* lsf1File, char* us
 	}
 	readCSV(file4, csvData, lsf2, count2);
 	
+		
 	//Linearly Distributed Indexed Sampling 
 	float increment1 = (float)count1 / SAMPLESIZE;
 	float increment2 = (float)count2 / SAMPLESIZE;
@@ -134,6 +136,31 @@ float Comparision::getDiffBtwTrajectory(char* usf1File, char* lsf1File, char* us
 
 	for (int i = 0; i < SAMPLESIZE; i++)
 	{
+		val1 = increment1 + val1;
+		val2 = increment2 + val2;
+
+		//////////////////Computing vector difference//////////////////////
+
+		//quaternion tempQuat = BodyQuat.mutiplication(sf_q);
+
+		quaternion tempQuat = BodyQuat.mutiplication(usf1[(int)round(val1)]);
+		quaternion tempQuat1 = tempQuat.mutiplication(lsf1[(int)round(val1)]);//Case-2 usf_q
+																			  //cout << usf1[(int)round(val1)] << "," << lsf1[(int)round(val1)] << endl;
+		TVector3 TransfBodyQuat1 = tempQuat1.quternionMatrices(tempQuat1, tempVec);
+
+		tempQuat = BodyQuat.mutiplication(usf2[(int)round(val2)]);
+		quaternion tempQuat2 = tempQuat.mutiplication(lsf2[(int)round(val2)]);//Case-2 usf_q
+																			  //cout << usf2[(int)round(val2)] << "," << lsf2[(int)round(val2)] << endl;
+		TVector3 TransfBodyQuat2 = tempQuat2.quternionMatrices(tempQuat2, tempVec);
+		/////////////////////////////////////////////////////////////
+		float angularDist = getAngularDistance(TransfBodyQuat1, TransfBodyQuat2);
+		sumOfDistance = sumOfDistance + angularDist;
+		//cout << TransfBodyQuat1 <<"," << TransfBodyQuat2 <<","<< getAngularDistance(TransfBodyQuat1, TransfBodyQuat2) << endl;
+	}
+
+	val1 = 0, val2 = 0;
+	for (int i = 0; i < SAMPLESIZE; i++)
+	{
 		float minDist = 999;
 				
 
@@ -156,20 +183,29 @@ float Comparision::getDiffBtwTrajectory(char* usf1File, char* lsf1File, char* us
 			/////////////////////////////////////////////////////////////
 			float angularDist = getAngularDistance(TransfBodyQuat1, TransfBodyQuat2);
 			if (angularDist < minDist)
-				minDist = angularDist;			
+				minDist = angularDist;	
+			if (i == 0 && !diagnosisDone)
+				curveProperty.initialOrientationDeviation = angularDist;
 		}
+		
 		val1 = val1++;
 		val2 = increment2 + val2;
-		if(minDist!=999)
-		sumOfDistance = sumOfDistance + minDist;
+		//if(minDist!=999)
 
-		cout << "MinDistance:"<<i<<"->"<< minDist << endl;
+
+	//	cout << "MinDistance:"<<i<<"->"<< minDist << endl;
 		if (minDist < 0.15)
 			percent++;
 	}
+	if (!diagnosisDone)
+	{
+		
+		curveDiagnosis(usf2, lsf2, count2, curveProperty);
+		diagnosisDone = true;
+	}
 	val1 = 0; val2 = 0;
 
-	cout << "-------------------XXXXXXX-----------------"  << endl;
+	//cout << "-------------------XXXXXXX-----------------"  << endl;
 	//for (int i = 0; i < SAMPLESIZE; i++)
 	//{
 	//	val1 = increment1 + val1;
@@ -208,4 +244,72 @@ float Comparision:: getAngularDistance(TVector3 v1, TVector3 v2)
 		(v1._y - v2._y)*(v1._y - v2._y) +
 		(v1._z - v2._z)*(v1._z - v2._z));
 	return distance;
+}
+
+void Comparision::curveDiagnosis(quaternion usf2[], quaternion lsf2[], int noOfPoints, struct CurveProperty &Curveproperty)
+{
+	//speed
+	Curveproperty.speed = noOfPoints;
+	TVector3 lowerFBQ, upperFBQ; // upper and lower first body quats
+	TVector3 tempVec;
+	float maxUL = 0, maxLL = 0;
+	
+	quaternion BodyQuat(1.29947E-16, 0.707106781, -0.707106781, 1.41232E-32);
+	tempVec._x = 0;
+	tempVec._y = 0;
+	tempVec._z = 0;
+
+	float q0 = BodyQuat.mData[3];
+	float q1 = BodyQuat.mData[0];
+	float q2 = BodyQuat.mData[1];
+	float q3 = BodyQuat.mData[2];
+
+	float angle_rad = acos(q0) * 2;
+	float angle_deg = angle_rad * 180 / PI;
+	float x = q1 / sin(angle_rad / 2);
+	float y = q2 / sin(angle_rad / 2);
+	float z = q3 / sin(angle_rad / 2);
+
+	float fnorm = sqrt(x*x + y * y + z * z);
+
+	tempVec._x = x / fnorm;
+	tempVec._y = y / fnorm;
+	tempVec._z = z / fnorm;
+
+	for (int i = 0; i < noOfPoints; i++)
+	{
+		if (i == 0)
+		{
+			quaternion tempQuat1 = BodyQuat.mutiplication(usf2[i]);
+			quaternion tempQuat2 = tempQuat1.mutiplication(lsf2[i]);
+
+			lowerFBQ = tempQuat2.quternionMatrices(tempQuat2, tempVec);
+			upperFBQ = tempQuat1.quternionMatrices(tempQuat1, tempVec);
+		}
+		quaternion tempQuat1 = BodyQuat.mutiplication(usf2[i]);
+		quaternion tempQuat2 = tempQuat1.mutiplication(lsf2[i]);
+
+		TVector3 TransfBodyQuat1 = tempQuat2.quternionMatrices(tempQuat2, tempVec);
+		TVector3 TransfBodyQuat2 = tempQuat1.quternionMatrices(tempQuat1, tempVec);
+
+		float lowerLength = sqrt((lowerFBQ._x - TransfBodyQuat1._x)*(lowerFBQ._x - TransfBodyQuat1._x) +
+			(lowerFBQ._y - TransfBodyQuat1._y)*(lowerFBQ._y - TransfBodyQuat1._y) +
+			(lowerFBQ._z - TransfBodyQuat1._z)*(lowerFBQ._z - TransfBodyQuat1._z));
+		//lowerArmLength
+		if (lowerLength > maxLL)
+		{
+			maxLL = lowerLength;
+		}
+		//upperArmLength
+		float upperLength = sqrt((upperFBQ._x - TransfBodyQuat2._x)*(upperFBQ._x - TransfBodyQuat2._x) +
+			(upperFBQ._y - TransfBodyQuat2._y)*(upperFBQ._y - TransfBodyQuat2._y) +
+			(upperFBQ._z - TransfBodyQuat2._z)*(upperFBQ._z - TransfBodyQuat2._z));
+		if (upperLength> maxUL)
+		{
+			maxUL = upperLength;
+		}
+		//cout << lowerLength << "," << upperLength<<endl;
+	}
+	Curveproperty.upperArmLength = maxUL;
+	Curveproperty.LowerArmLength = maxLL;
 }
