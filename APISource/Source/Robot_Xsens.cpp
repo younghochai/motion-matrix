@@ -47,6 +47,8 @@ struct TVec3 {
 	float _z;
 };
 
+
+
 int option = -1;
 int animation = -3; //teleytaio animation
 int done = 0; //an oloklirwthike to teleytaio animation
@@ -119,6 +121,7 @@ quaternion uqPA,uqPrevPA, uqPrevInvsPA;
 quaternion currentQuat, nextQuat, firstQuat;
 quaternion QuatFirstVect1, QuatFirstVect2, QuatAxis;
 float prev_angle = 0.0;
+struct CurveProperty curveProperty;
 
 quaternion BodyQuat(1.29947E-16, 0.707106781, -0.707106781, 1.41232E-32);
 
@@ -910,23 +913,30 @@ void showInfo(/*std::stringstream &ss, int tWidth, int tHeight*/)
 	
 	/////////////////////
 	isMatched = false;
+	float normalLowerArmCurveLength, normalUpperArmCurveLength, normalSpeed, percentage, deviation;
+	std::stringstream closeness;
 	//if (diff < threshold && diff == diff1)
 	if (stdPercent >= 90 )
 	{
 		std::stringstream ss;
-		ss << "Standard Curl: (" << diff1 << "["<<stdPercent<<"% Match])";
-		drawString(ss.str().c_str(), width / 4 + 150, height / 2 - TEXT_HEIGHT, mcolor, font);
+		ss << "Falls within the range of STANDARD CURL";
+		drawString(ss.str().c_str(), width / 4 + 150, height / 1.5 - TEXT_HEIGHT, mcolor, font);
 		//ss.str("");
 		//printf("Standard Curl:%f (Match)\n", diff1);
 		isMatched = true;
+		normalLowerArmCurveLength = 1.34;
+		normalUpperArmCurveLength = 0.16;
+		normalSpeed = 101;
+		percentage = stdPercent;
+		deviation = diff1 * 180 / PI;
 	}
-	else
-	{
-		std::stringstream ss;
-		ss << "Standard Curl: (" << diff1 << "[" << 100-stdPercent << "% No-Match])";
-		drawString(ss.str().c_str(), width / 4 + 150, height / 2 - TEXT_HEIGHT, color, font);
-		//printf("Standard Curl:%f (No-Match)\n", diff1);
-	}
+	//else
+	//{
+	//	std::stringstream ss;
+	//	ss << "Not within the range of STANDARD CURL";
+	//	drawString(ss.str().c_str(), width / 4 + 150, height / 1.5 - TEXT_HEIGHT, color, font);
+	//	//printf("Standard Curl:%f (No-Match)\n", diff1);
+	//}
 
 
 
@@ -938,18 +948,23 @@ void showInfo(/*std::stringstream &ss, int tWidth, int tHeight*/)
 		if (closePercent >= 90)
 		{
 			std::stringstream ss;
-			ss << "Close Curl: (" << diff2 << "[" << closePercent << "% Match])";
-			drawString(ss.str().c_str(), width / 4 + 150, height / 2 - (2 * TEXT_HEIGHT), mcolor, font);
+			ss << "Falls within the range of CLOSE CURL";
+			drawString(ss.str().c_str(), width / 4 + 150, height / 1.5 - (2 * TEXT_HEIGHT), mcolor, font);
 				
 			isMatched = true;
+			normalLowerArmCurveLength = 0.88;
+			normalUpperArmCurveLength = 0.14;
+			normalSpeed = 101;
+			percentage = closePercent;
+			deviation = diff2 * 180 / PI;
 		}
-		else
+		/*else
 		{
 			std::stringstream ss;
-			ss << "Close Curl: (" << diff2 << "[" << 100-closePercent << "% No-Match])";
-			drawString(ss.str().c_str(), width / 4 + 150, height / 2 - (2 * TEXT_HEIGHT), color, font);
+			ss << "Not within the range of CLOSE CURL";
+			drawString(ss.str().c_str(), width / 4 + 150, height / 1.5 - (2 * TEXT_HEIGHT), color, font);
 			
-		}
+		}*/
 	}
 
 	//if (!isMatched)
@@ -960,27 +975,83 @@ void showInfo(/*std::stringstream &ss, int tWidth, int tHeight*/)
 		if (widePercent >= 90)
 		{
 			std::stringstream ss;
-			ss << "Wide Curl: (" << diff3 << "[" << widePercent << "% Match])";
-			drawString(ss.str().c_str(), width / 4 + 150, height / 2 - (3 * TEXT_HEIGHT), mcolor, font);
+			ss << "Falls within the range of WIDE CURL";
+			drawString(ss.str().c_str(), width / 4 + 150, height / 1.5 - (3 * TEXT_HEIGHT), mcolor, font);
 			
 			isMatched = true;
+			normalLowerArmCurveLength = 1.19;
+			normalUpperArmCurveLength = 0.08;
+			normalSpeed = 101;
+			percentage = widePercent;
+			deviation = diff3 * 180 / PI;
 		}
-		else
+		/*else
 		{
 			std::stringstream ss;
-			ss << "Wide Curl: (" << diff3 << "[" << 100-widePercent << "% No-Match])";
-			drawString(ss.str().c_str(), width / 4 + 150, height / 2 - (3 * TEXT_HEIGHT), color, font);
+			ss << "Not within the range of WIDE CURL";
+			drawString(ss.str().c_str(), width / 4 + 150, height / 1.5 - (3 * TEXT_HEIGHT), color, font);
 			
-		}
+		}*/
 	}
+	closeness.str("");
+	
+	if (diff1 < 0.15)
+	{
+		if (diff2 < 0.41)
+			closeness.str("Suggestion: Slightly closed, try to open your arm");
+		else
+			closeness.str("Suggestion: Slightly wider, try to close your arm");
+	}
+	
+	if (diff2 < 0.15)
+	{
+		if (diff1 < 0.38)
+			closeness.str("Suggestion: Slightly wider, try to close your arm");
+		else
+			closeness.str("Suggestion: Slightly closed, try to open your arm");
+	}
+	
 
+	if (diff3 < 0.15)
+	{
+		if (diff1 < 0.98)
+			closeness.str("Suggestion: Slightly closed, try to open your arm");
+		else
+			closeness.str("Suggestion: Slightly wider, try to close your arm");
+	}
 
 	if (!isMatched)
 	{
 		std::stringstream ss;
 		ss << "No match found!!";
-		drawString(ss.str().c_str(), width / 4 + 150, height / 2 - (4 * TEXT_HEIGHT), mcolor, font);
+		drawString(ss.str().c_str(), width / 4 + 150, height / 1.5 - (2 * TEXT_HEIGHT), mcolor, font);
 		
+	}
+	else
+	{
+		std::stringstream ss;
+		ss << "Curve-Diagnosis: ";
+		drawString(ss.str().c_str(), width / 4 + 150, height / 1.5 - (6 * TEXT_HEIGHT), color, font);
+		ss.str("");
+		ss << "Speed: "<<curveProperty.speed<<"("<< curveProperty.speed/normalSpeed<<"X)";
+		drawString(ss.str().c_str(), width / 4 + 150, height / 1.5 - (7 * TEXT_HEIGHT), color, font);
+		ss.str("");
+		ss << "UpperArm Curve Length: " << curveProperty.upperArmLength << "(< " << normalUpperArmCurveLength << ")";
+		drawString(ss.str().c_str(), width / 4 + 150, height / 1.5 - (8 * TEXT_HEIGHT), color, font);
+		ss.str("");
+		ss << "LowerArm Curve Length: " << curveProperty.LowerArmLength << "(< " << normalLowerArmCurveLength << ")";
+		drawString(ss.str().c_str(), width / 4 + 150, height / 1.5 - (9 * TEXT_HEIGHT), color, font);
+		ss.str("");
+		ss << percentage<<"% of points are within the range";
+		drawString(ss.str().c_str(), width / 4 + 150, height / 1.5 - (10 * TEXT_HEIGHT), color, font);
+		ss.str("");
+		ss << "Average deviation: " << deviation << " (degrees)";
+		drawString(ss.str().c_str(), width / 4 + 150, height / 1.5 - (11 * TEXT_HEIGHT), color, font);
+		
+		ss.str("");
+		ss << "Initial Orientation deviation: " << curveProperty.initialOrientationDeviation << " (< 0.15)";
+		drawString(ss.str().c_str(), width / 4 + 150, height / 1.5 - (12 * TEXT_HEIGHT), color, font);
+		drawString(closeness.str().c_str(), width / 4 + 150, height / 1.5 - (13 * TEXT_HEIGHT), color, font);
 	}
 	
 	///////////////////
@@ -1156,7 +1227,7 @@ void PrincipalAxis(void)
 		glutSolidSphere(0.025, 30, 30);
 		glPopMatrix();
 	}
-
+	
 	for (int i = 0; i < dbCount; i++)
 	{
 		/*if (PA_data[i][0] == 0)
@@ -1267,9 +1338,9 @@ void matchDBTrajectory(char * Ufile, char * Lfile)
 {	
 	diff = 0;
 	
-	diff1 = Comparision::getDiffBtwTrajectory("Load\\Standard\\UFormFile.csv", "Load\\Standard\\LFormFile.csv", Ufile, Lfile, stdPercent);
-	diff2 = Comparision::getDiffBtwTrajectory("Load\\Close\\UFormFile.csv", "Load\\Close\\LFormFile.csv", Ufile, Lfile,closePercent);
-	diff3 = Comparision::getDiffBtwTrajectory("Load\\Wide\\UFormFile.csv", "Load\\Wide\\LFormFile.csv", Ufile, Lfile,widePercent);
+	diff1 = Comparision::getDiffBtwTrajectory("Load\\Standard\\UFormFile.csv", "Load\\Standard\\LFormFile.csv", Ufile, Lfile, stdPercent, curveProperty);
+	diff2 = Comparision::getDiffBtwTrajectory("Load\\Close\\UFormFile.csv", "Load\\Close\\LFormFile.csv", Ufile, Lfile,closePercent, curveProperty);
+	diff3 = Comparision::getDiffBtwTrajectory("Load\\Wide\\UFormFile.csv", "Load\\Wide\\LFormFile.csv", Ufile, Lfile,widePercent, curveProperty);
 	
 	if (diff1 < diff2)
 	{
