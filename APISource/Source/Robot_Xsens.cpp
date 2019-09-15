@@ -995,26 +995,26 @@ void showInfo(/*std::stringstream &ss, int tWidth, int tHeight*/)
 	}
 	closeness.str("");
 	
-	if (diff1 < 0.15)
+	if (stdPercent >= 90)
 	{
-		if (diff2 < 0.41)
+		if (diff2 < 0.42)
 			closeness.str("Suggestion: Slightly closed, try to open your arm");
 		else
 			closeness.str("Suggestion: Slightly wider, try to close your arm");
 	}
 	
-	if (diff2 < 0.15)
+	if (closePercent >= 90)
 	{
-		if (diff1 < 0.38)
+		if (diff1 < 0.39)
 			closeness.str("Suggestion: Slightly wider, try to close your arm");
 		else
 			closeness.str("Suggestion: Slightly closed, try to open your arm");
 	}
 	
 
-	if (diff3 < 0.15)
+	if (widePercent >= 90 )
 	{
-		if (diff1 < 0.98)
+		if (diff1 < 0.99)
 			closeness.str("Suggestion: Slightly closed, try to open your arm");
 		else
 			closeness.str("Suggestion: Slightly wider, try to close your arm");
@@ -1342,6 +1342,8 @@ void matchDBTrajectory(char * Ufile, char * Lfile)
 	diff2 = Comparision::getDiffBtwTrajectory("Load\\Close\\UFormFile.csv", "Load\\Close\\LFormFile.csv", Ufile, Lfile,closePercent, curveProperty);
 	diff3 = Comparision::getDiffBtwTrajectory("Load\\Wide\\UFormFile.csv", "Load\\Wide\\LFormFile.csv", Ufile, Lfile,widePercent, curveProperty);
 	
+	cout << diff1 << "," << diff2 << "," << diff3 << endl;
+
 	if (diff1 < diff2)
 	{
 		diff = diff1;
