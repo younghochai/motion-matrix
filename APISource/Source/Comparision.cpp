@@ -185,7 +185,7 @@ float Comparision::getDiffBtwTrajectory(char* usf1File, char* lsf1File, char* us
 			if (angularDist < minDist)
 				minDist = angularDist;	
 			if (i == 0 && !diagnosisDone)
-				curveProperty.initialOrientationDeviation = angularDist;
+				curveProperty.initialOrientationDeviation = (angularDist *180/PI)/3600;
 		}
 		
 		val1 = val1++;
@@ -249,7 +249,7 @@ float Comparision:: getAngularDistance(TVector3 v1, TVector3 v2)
 void Comparision::curveDiagnosis(quaternion usf2[], quaternion lsf2[], int noOfPoints, struct CurveProperty &Curveproperty)
 {
 	//speed
-	Curveproperty.speed = noOfPoints;
+	Curveproperty.speed = (float) (noOfPoints / 60.0) * 1000.0;
 	TVector3 lowerFBQ, upperFBQ; // upper and lower first body quats
 	TVector3 tempVec;
 	float maxUL = 0, maxLL = 0;
@@ -310,6 +310,6 @@ void Comparision::curveDiagnosis(quaternion usf2[], quaternion lsf2[], int noOfP
 		}
 		//cout << lowerLength << "," << upperLength<<endl;
 	}
-	Curveproperty.upperArmLength = maxUL;
-	Curveproperty.LowerArmLength = maxLL;
+	Curveproperty.upperArmLength = (maxUL * 180 / PI) / 3600;
+	Curveproperty.LowerArmLength = (maxLL * 180 / PI) / 3600;
 }
