@@ -9,7 +9,7 @@ using namespace std;
 struct CurveProperty
 {
 	float upperArmLength, LowerArmLength;
-	int speed;
+	float speed;
 	float initialOrientationDeviation;
 
 

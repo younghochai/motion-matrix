@@ -190,8 +190,10 @@ float Comparision::getDiffBtwTrajectory(char* usf1File, char* lsf1File, char* us
 			float angularDist = getAngularDistance(TransfBodyQuat1, TransfBodyQuat2);
 			if (angularDist < minDist)
 				minDist = angularDist;	
+
 			if (i == 0 && j==0 && !diagnosisDone)
 				curveProperty.initialOrientationDeviation = (angularDist *180/PI);
+
 		}
 		
 		val1 = val1++;
@@ -326,6 +328,7 @@ void Comparision::curveDiagnosis(quaternion usf2[], quaternion lsf2[], int noOfP
 		}
 		//cout << lowerLength << "," << upperLength<<endl;
 	}
+
 	Curveproperty.upperArmLength = (maxUL * 180 / PI) ;
 	Curveproperty.LowerArmLength = (maxLL * 180 / PI) ;
 }

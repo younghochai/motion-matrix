@@ -929,6 +929,7 @@ void showInfo(/*std::stringstream &ss, int tWidth, int tHeight*/)
 		//ss.str("");
 		//printf("Standard Curl:%f (Match)\n", diff1);
 		isMatched = true;
+
 		normalLowerArmCurveLength = ((1.34 + 0.3) * 180/PI);
 		normalUpperArmCurveLength = ((0.16 + 0.3) * 180 / PI) ;
 		
@@ -957,8 +958,10 @@ void showInfo(/*std::stringstream &ss, int tWidth, int tHeight*/)
 			drawString(ss.str().c_str(), width / 4 + 150, height / 1.5 - (2 * TEXT_HEIGHT), mcolor, font);
 				
 			isMatched = true;
+
 			normalLowerArmCurveLength = ((0.88 + 0.3) * 180/PI);
 			normalUpperArmCurveLength = ((0.14 + 0.3) * 180/PI);
+
 			percentage = closePercent;
 			deviation = diff2 * 180 / PI;
 		}
@@ -983,8 +986,10 @@ void showInfo(/*std::stringstream &ss, int tWidth, int tHeight*/)
 			drawString(ss.str().c_str(), width / 4 + 150, height / 1.5 - (3 * TEXT_HEIGHT), mcolor, font);
 			
 			isMatched = true;
+
 			normalLowerArmCurveLength = ((1.19 + 0.3) * 180/PI);
 			normalUpperArmCurveLength = ((0.08 + 0.3) * 180/PI);
+
 			percentage = widePercent;
 			deviation = diff3 * 180 / PI;
 		}
@@ -1055,23 +1060,27 @@ void showInfo(/*std::stringstream &ss, int tWidth, int tHeight*/)
 	else
 	{
 		std::stringstream ss;
-	
+
 		ss << "Curve-Diagnosis: ";
 		drawString(ss.str().c_str(), width / 4 + 150, height / 1.5 - (6 * TEXT_HEIGHT), color, font);
 		ss.str("");
 		ss << setprecision(3) << "Speed: "<<curveProperty.speed<<"/ms ("<< normalSpeed<<"/ms)";
 		drawString(ss.str().c_str(), width / 4 + 150, height / 1.5 - (7 * TEXT_HEIGHT), color, font);
 		ss.str("");
+
 		ss << setprecision(2) << "UpperArm Degree of Curvature : " << curveProperty.upperArmLength << " deg (< " << normalUpperArmCurveLength << "deg)";
 		drawString(ss.str().c_str(), width / 4 + 150, height / 1.5 - (8 * TEXT_HEIGHT), color, font);
 		ss.str("");
 		ss << setprecision(3) << "LowerArm Degree of Curvature : " << curveProperty.LowerArmLength << "deg (< " << normalLowerArmCurveLength << "deg)";
+
 		drawString(ss.str().c_str(), width / 4 + 150, height / 1.5 - (9 * TEXT_HEIGHT), color, font);
 		ss.str("");
 		ss << percentage<<"% of trajectory is within the range (> 90%)";
 		drawString(ss.str().c_str(), width / 4 + 150, height / 1.5 - (10 * TEXT_HEIGHT), color, font);
 		ss.str("");
+
 		ss << setprecision(3) << "Average angle of deviation: " << (deviation) << "deg ";
+
 		drawString(ss.str().c_str(), width / 4 + 150, height / 1.5 - (12 * TEXT_HEIGHT), color, font);
 		ss.str("");
 		ss << setprecision(3) << "Initial angle of deviation: " << curveProperty.initialOrientationDeviation << " (<" << (0.15 * 180 / PI) << "deg)";
