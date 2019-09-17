@@ -64,6 +64,12 @@ void Comparision:: readCSV(istream &input, vector< vector<string> > &output, qua
 	//rpyFile.close();
 }
 
+void Comparision::resetDiagnosis()
+{
+	diagnosisDone = false;
+
+}
+
 float Comparision::getDiffBtwTrajectory(char* usf1File, char* lsf1File, char* usf2File, char* lsf2File, int &percent, struct CurveProperty &curveProperty)
 {
 	int count1, count2;
@@ -184,8 +190,8 @@ float Comparision::getDiffBtwTrajectory(char* usf1File, char* lsf1File, char* us
 			float angularDist = getAngularDistance(TransfBodyQuat1, TransfBodyQuat2);
 			if (angularDist < minDist)
 				minDist = angularDist;	
-			if (i == 0 && !diagnosisDone)
-				curveProperty.initialOrientationDeviation = angularDist;
+			if (i == 0 && j==0 && !diagnosisDone)
+				curveProperty.initialOrientationDeviation = (angularDist *180/PI);
 		}
 		
 		val1 = val1++;
@@ -240,16 +246,24 @@ float Comparision::getDiffBtwTrajectory(char* usf1File, char* lsf1File, char* us
 
 float Comparision:: getAngularDistance(TVector3 v1, TVector3 v2)
 {
-	float distance = sqrt((v1._x - v2._x)*(v1._x - v2._x) +
+	/*float distance = sqrt((v1._x - v2._x)*(v1._x - v2._x) +
 		(v1._y - v2._y)*(v1._y - v2._y) +
-		(v1._z - v2._z)*(v1._z - v2._z));
+		(v1._z - v2._z)*(v1._z - v2._z));*/
+
+	float v1dotv2 = (v1._x*v2._x) + (v1._y*v2._y) + (v1._z*v2._z);
+	
+	if (v1dotv2 > 0.99999)
+		return 0;
+	
+	float distance = acos(v1dotv2);
+
 	return distance;
 }
 
 void Comparision::curveDiagnosis(quaternion usf2[], quaternion lsf2[], int noOfPoints, struct CurveProperty &Curveproperty)
 {
 	//speed
-	Curveproperty.speed = noOfPoints;
+	Curveproperty.speed = (float) (noOfPoints / 60.0) * 1000.0;
 	TVector3 lowerFBQ, upperFBQ; // upper and lower first body quats
 	TVector3 tempVec;
 	float maxUL = 0, maxLL = 0;
@@ -292,24 +306,26 @@ void Comparision::curveDiagnosis(quaternion usf2[], quaternion lsf2[], int noOfP
 		TVector3 TransfBodyQuat1 = tempQuat2.quternionMatrices(tempQuat2, tempVec);
 		TVector3 TransfBodyQuat2 = tempQuat1.quternionMatrices(tempQuat1, tempVec);
 
-		float lowerLength = sqrt((lowerFBQ._x - TransfBodyQuat1._x)*(lowerFBQ._x - TransfBodyQuat1._x) +
+		/*float lowerLength = sqrt((lowerFBQ._x - TransfBodyQuat1._x)*(lowerFBQ._x - TransfBodyQuat1._x) +
 			(lowerFBQ._y - TransfBodyQuat1._y)*(lowerFBQ._y - TransfBodyQuat1._y) +
-			(lowerFBQ._z - TransfBodyQuat1._z)*(lowerFBQ._z - TransfBodyQuat1._z));
+			(lowerFBQ._z - TransfBodyQuat1._z)*(lowerFBQ._z - TransfBodyQuat1._z));*/
+		float lowerLength = getAngularDistance(lowerFBQ,TransfBodyQuat1);
 		//lowerArmLength
 		if (lowerLength > maxLL)
 		{
 			maxLL = lowerLength;
 		}
 		//upperArmLength
-		float upperLength = sqrt((upperFBQ._x - TransfBodyQuat2._x)*(upperFBQ._x - TransfBodyQuat2._x) +
+		/*float upperLength = sqrt((upperFBQ._x - TransfBodyQuat2._x)*(upperFBQ._x - TransfBodyQuat2._x) +
 			(upperFBQ._y - TransfBodyQuat2._y)*(upperFBQ._y - TransfBodyQuat2._y) +
-			(upperFBQ._z - TransfBodyQuat2._z)*(upperFBQ._z - TransfBodyQuat2._z));
+			(upperFBQ._z - TransfBodyQuat2._z)*(upperFBQ._z - TransfBodyQuat2._z));*/
+		float upperLength = getAngularDistance(upperFBQ, TransfBodyQuat2);
 		if (upperLength> maxUL)
 		{
 			maxUL = upperLength;
 		}
 		//cout << lowerLength << "," << upperLength<<endl;
 	}
-	Curveproperty.upperArmLength = maxUL;
-	Curveproperty.LowerArmLength = maxLL;
+	Curveproperty.upperArmLength = (maxUL * 180 / PI) ;
+	Curveproperty.LowerArmLength = (maxLL * 180 / PI) ;
 }
