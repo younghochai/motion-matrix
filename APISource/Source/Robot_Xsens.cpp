@@ -1090,7 +1090,7 @@ void showInfo(/*std::stringstream &ss, int tWidth, int tHeight*/)
 	
 	///////////////////
 	std::stringstream ss;
-	ss << "Press SPACE mode.";
+	//ss << "Press SPACE mode.";
 	drawString(ss.str().c_str(), 2, 2, color, font);
 	ss.str("");
 
