@@ -913,8 +913,13 @@ void showInfo(/*std::stringstream &ss, int tWidth, int tHeight*/)
 	
 	/////////////////////
 	isMatched = false;
-	float normalLowerArmCurveLength, normalUpperArmCurveLength, normalSpeed, percentage, deviation;
+	float normalLowerArmCurveLength=0.0, normalUpperArmCurveLength=0.0, normalSpeed, percentage=0, deviation=0;
+	normalSpeed = (101.0 / 60.0)*1000.0;
 	std::stringstream closeness;
+	std::stringstream closeness1;
+	std::stringstream closeness2;
+	std::stringstream closeness3;
+	std::stringstream closeness4;
 	//if (diff < threshold && diff == diff1)
 	if (stdPercent >= 90 )
 	{
@@ -924,9 +929,10 @@ void showInfo(/*std::stringstream &ss, int tWidth, int tHeight*/)
 		//ss.str("");
 		//printf("Standard Curl:%f (Match)\n", diff1);
 		isMatched = true;
-		normalLowerArmCurveLength = 1.34;
-		normalUpperArmCurveLength = 0.16;
-		normalSpeed = 101;
+
+		normalLowerArmCurveLength = ((1.34 + 0.3) * 180/PI);
+		normalUpperArmCurveLength = ((0.16 + 0.3) * 180 / PI) ;
+		
 		percentage = stdPercent;
 		deviation = diff1 * 180 / PI;
 	}
@@ -952,9 +958,10 @@ void showInfo(/*std::stringstream &ss, int tWidth, int tHeight*/)
 			drawString(ss.str().c_str(), width / 4 + 150, height / 1.5 - (2 * TEXT_HEIGHT), mcolor, font);
 				
 			isMatched = true;
-			normalLowerArmCurveLength = 0.88;
-			normalUpperArmCurveLength = 0.14;
-			normalSpeed = 101;
+
+			normalLowerArmCurveLength = ((0.88 + 0.3) * 180/PI);
+			normalUpperArmCurveLength = ((0.14 + 0.3) * 180/PI);
+
 			percentage = closePercent;
 			deviation = diff2 * 180 / PI;
 		}
@@ -979,9 +986,10 @@ void showInfo(/*std::stringstream &ss, int tWidth, int tHeight*/)
 			drawString(ss.str().c_str(), width / 4 + 150, height / 1.5 - (3 * TEXT_HEIGHT), mcolor, font);
 			
 			isMatched = true;
-			normalLowerArmCurveLength = 1.19;
-			normalUpperArmCurveLength = 0.08;
-			normalSpeed = 101;
+
+			normalLowerArmCurveLength = ((1.19 + 0.3) * 180/PI);
+			normalUpperArmCurveLength = ((0.08 + 0.3) * 180/PI);
+
 			percentage = widePercent;
 			deviation = diff3 * 180 / PI;
 		}
@@ -994,6 +1002,10 @@ void showInfo(/*std::stringstream &ss, int tWidth, int tHeight*/)
 		}*/
 	}
 	closeness.str("");
+	closeness1.str("");
+	closeness2.str("");
+	closeness3.str("");
+	closeness4.str("");
 	
 	if (stdPercent >= 90)
 	{
@@ -1019,7 +1031,25 @@ void showInfo(/*std::stringstream &ss, int tWidth, int tHeight*/)
 		else
 			closeness.str("Suggestion: Slightly wider, try to close your arm");
 	}
+	
+	
+		if (curveProperty.speed < normalSpeed)
+			closeness1.str( " # Slightly slowdown");
+		else
+			closeness1.str( " # Slightly speedup");
+	
+	
+		if (curveProperty.upperArmLength > normalUpperArmCurveLength)
+			closeness2.str(" # More then normal upper arm movement observed");
+			
+		if (curveProperty.LowerArmLength > normalLowerArmCurveLength)
+			closeness3.str(" # More then normal lower arm movement observed");
 
+	
+		if (curveProperty.initialOrientationDeviation > (0.15 * 180 / PI))
+			closeness4.str(" # Initial orientation missmatch");
+	
+		closeness << closeness.str() << closeness1.str() << closeness2.str() << closeness3.str() << closeness4.str();
 	if (!isMatched)
 	{
 		std::stringstream ss;
@@ -1030,28 +1060,32 @@ void showInfo(/*std::stringstream &ss, int tWidth, int tHeight*/)
 	else
 	{
 		std::stringstream ss;
+
 		ss << "Curve-Diagnosis: ";
 		drawString(ss.str().c_str(), width / 4 + 150, height / 1.5 - (6 * TEXT_HEIGHT), color, font);
 		ss.str("");
-		ss << "Speed: "<<curveProperty.speed<<"("<< curveProperty.speed/normalSpeed<<"X)";
+		ss << setprecision(3) << "Speed: "<<curveProperty.speed<<"/ms ("<< normalSpeed<<"/ms)";
 		drawString(ss.str().c_str(), width / 4 + 150, height / 1.5 - (7 * TEXT_HEIGHT), color, font);
 		ss.str("");
-		ss << "UpperArm Curve Length: " << curveProperty.upperArmLength << "(< " << normalUpperArmCurveLength << ")";
+
+		ss << setprecision(2) << "UpperArm Degree of Curvature : " << curveProperty.upperArmLength << " deg (< " << normalUpperArmCurveLength << "deg)";
 		drawString(ss.str().c_str(), width / 4 + 150, height / 1.5 - (8 * TEXT_HEIGHT), color, font);
 		ss.str("");
-		ss << "LowerArm Curve Length: " << curveProperty.LowerArmLength << "(< " << normalLowerArmCurveLength << ")";
+		ss << setprecision(3) << "LowerArm Degree of Curvature : " << curveProperty.LowerArmLength << "deg (< " << normalLowerArmCurveLength << "deg)";
+
 		drawString(ss.str().c_str(), width / 4 + 150, height / 1.5 - (9 * TEXT_HEIGHT), color, font);
 		ss.str("");
-		ss << percentage<<"% of points are within the range";
+		ss << percentage<<"% of trajectory is within the range (> 90%)";
 		drawString(ss.str().c_str(), width / 4 + 150, height / 1.5 - (10 * TEXT_HEIGHT), color, font);
 		ss.str("");
-		ss << "Average deviation: " << deviation << " (degrees)";
-		drawString(ss.str().c_str(), width / 4 + 150, height / 1.5 - (11 * TEXT_HEIGHT), color, font);
-		
-		ss.str("");
-		ss << "Initial Orientation deviation: " << curveProperty.initialOrientationDeviation << " (< 0.15)";
+
+		ss << setprecision(3) << "Average angle of deviation: " << (deviation) << "deg ";
+
 		drawString(ss.str().c_str(), width / 4 + 150, height / 1.5 - (12 * TEXT_HEIGHT), color, font);
-		drawString(closeness.str().c_str(), width / 4 + 150, height / 1.5 - (13 * TEXT_HEIGHT), color, font);
+		ss.str("");
+		ss << setprecision(3) << "Initial angle of deviation: " << curveProperty.initialOrientationDeviation << " (<" << (0.15 * 180 / PI) << "deg)";
+		drawString(ss.str().c_str(), width / 4 + 150, height / 1.5 - (11 * TEXT_HEIGHT), color, font);
+		drawString(closeness.str().c_str(), 10, 50, color, font);
 	}
 	
 	///////////////////
@@ -1339,8 +1373,8 @@ void matchDBTrajectory(char * Ufile, char * Lfile)
 	diff = 0;
 	
 	diff1 = Comparision::getDiffBtwTrajectory("Load\\Standard\\UFormFile.csv", "Load\\Standard\\LFormFile.csv", Ufile, Lfile, stdPercent, curveProperty);
-	diff2 = Comparision::getDiffBtwTrajectory("Load\\Close\\UFormFile.csv", "Load\\Close\\LFormFile.csv", Ufile, Lfile,closePercent, curveProperty);
-	diff3 = Comparision::getDiffBtwTrajectory("Load\\Wide\\UFormFile.csv", "Load\\Wide\\LFormFile.csv", Ufile, Lfile,widePercent, curveProperty);
+	diff2 = Comparision::getDiffBtwTrajectory("Load\\Close\\UFormFile.csv", "Load\\Close\\LFormFile.csv", Ufile, Lfile, closePercent, curveProperty);
+	diff3 = Comparision::getDiffBtwTrajectory("Load\\Wide\\UFormFile.csv", "Load\\Wide\\LFormFile.csv", Ufile, Lfile, widePercent, curveProperty);
 	
 	cout << diff1 << "," << diff2 << "," << diff3 << endl;
 
@@ -2407,6 +2441,8 @@ void keyBoardEvent(unsigned char key, int x, int y)
 			matchDBTrajectory(UfileName, LfileName);
 			
 		}
+
+		Comparision::resetDiagnosis();
 	}
 
 	if (key == 49) //Key-1
@@ -2503,6 +2539,7 @@ void keyBoardEvent(unsigned char key, int x, int y)
 		memset(PA_data, 0, 8056 * (sizeof(int)));
 		memset(uPA_data, 0, 8 * (sizeof(int)));
 		start = std::clock();
+		Comparision::resetDiagnosis();
 	}
 
 	if (key == '7')
