@@ -478,95 +478,231 @@ void traverse(treenode* root)
 	if (root->sibling != NULL) traverse(root->sibling);
 }
 
+void circle(float r, int width)
+{
+	float x, y;
+	int w = width;
+	float radius = r;
+	glLineWidth(w);
+	glBegin(GL_LINES);
+
+	x = (float)radius * cos(359 * PI / 180.0f);
+	y = (float)radius * sin(359 * PI / 180.0f);
+	for (int j = 0; j < 360; j++)
+	{
+		glVertex2f(x, y);
+		x = (float)radius * cos(j * PI / 180.0f);
+		y = (float)radius * sin(j * PI / 180.0f);
+		glVertex2f(x, y);
+	}
+	glEnd();
+}
+
 void torso()
 {
-	glPushMatrix();
+	//glPushMatrix();
+	//glRotatef(-90.0, 1.0, 0.0, 0.0);
+	//glRotatef(180.0, 0.0, 0.0, 1.0);
+	////gluCylinder(t, TORSO_RADIUS / 1.2, TORSO_RADIUS, TORSO_HEIGHT, 3, 30);
+	////glutSolidCube(TORSO_RADIUS);
+	////drawElipsoid(10,10,1.0,1.0,1.0);
+	//glPopMatrix();
 
-	glRotatef(-90.0, 1.0, 0.0, 0.0);
-	glRotatef(180.0, 0.0, 0.0, 1.0);
-	gluCylinder(t, TORSO_RADIUS / 1.2, TORSO_RADIUS, TORSO_HEIGHT, 3, 30);
-	//glutSolidCube(TORSO_RADIUS);
-	//drawElipsoid(10,10,1.0,1.0,1.0);
+	glPushMatrix();
+	glTranslatef(0.0, 0.0, 0.0);
+	glRotatef(90, 1, 0, 0);
+	glutSolidCone(1.0, 0.75, 5, 5);
 	glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(0, 0.25, 0);
+	glRotatef(180, 1, 0, 0);
+	circle(0.25, 2);
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(-0.75, 0, 0);
+	glRotatef(180, 1, 0, 0);
+	circle(0.25, 2);
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(0.75, 0, 0);
+	glRotatef(180, 1, 0, 0);
+	circle(0.25, 2);
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(0.0, 5.75, 0.0);
+	glRotatef(90, 1, 0, 0);
+	glutSolidCone(0.8, 5.5, 5, 5);
+	glPopMatrix();
+
+
 }
 
 void head()
 {
+	//glPushMatrix();
+	//glTranslatef(0.0, HEAD_HEIGHT, 0.0);
+	//glScalef(HEAD_RADIUS, HEAD_HEIGHT, HEAD_RADIUS);
+	//gluSphere(h, HEAD_RADIUS, 15, 15);
+	////drawCoordinate();
+	////glasses
+	//glRotatef(-90.0, 1.0, 0.0, 0.0);
+	//glTranslatef(0.0f, -0.4f, -0.15f);
+	//gluCylinder(h, 0.9*HEAD_RADIUS, 0.9*HEAD_RADIUS, HEAD_HEIGHT / 5, 10, 10);
+
+	//glPopMatrix();
 	glPushMatrix();
-
-	glTranslatef(0.0, HEAD_HEIGHT, 0.0);
-	glScalef(HEAD_RADIUS, HEAD_HEIGHT, HEAD_RADIUS);
-	gluSphere(h, HEAD_RADIUS, 15, 15);
-	//drawCoordinate();
-	//glasses
-	glRotatef(-90.0, 1.0, 0.0, 0.0);
-	glTranslatef(0.0f, -0.4f, -0.15f);
-	gluCylinder(h, 0.9*HEAD_RADIUS, 0.9*HEAD_RADIUS, HEAD_HEIGHT / 5, 10, 10);
-
+	glTranslatef(-0.1, 0.25, 0);
+	glRotatef(-90, 1, 0, 0);
+	glutSolidCone(0.55, 2.05, 5, 5);
 	glPopMatrix();
+
+
 }
 
 void neck()
 {
+	//glPushMatrix();
+	//glRotatef(-90.0, 1.0, 0.0, 0.0);
+	//gluCylinder(nk, NECK_RADIUS, NECK_RADIUS, NECK_HEIGHT, 10, 10);
+	//glPopMatrix();
+
 	glPushMatrix();
 	glRotatef(-90.0, 1.0, 0.0, 0.0);
-	gluCylinder(nk, NECK_RADIUS, NECK_RADIUS, NECK_HEIGHT, 10, 10);
+	glTranslatef(0.0, 0.0, 0.0);
+	glutSolidCone(0.55, 1.05, 5, 5);
 	glPopMatrix();
+
+	glPushMatrix();
+	glRotatef(180, 0, 1, 0);
+	glTranslatef(0.0, 1, 0);
+	circle(0.2, 2);
+	glPopMatrix();
+
+
 }
 
 void rightShoulder()
 {
 	glPushMatrix();
-	gluSphere(relb, SHOULDER_RADIUS, 15, 15);
+	//gluSphere(relb, SHOULDER_RADIUS, 15, 15);
+	glTranslatef(0.0, 0.2, 0);
+	circle(0.5, 2);
 	glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(-1.85, 0.10, 0);
+	glRotatef(90, 0.12, 1, 0);
+	glutSolidCone(0.35, 2.25, 5, 5);
+	glPopMatrix();
+
+
 }
+
+
 
 void leftShoulder()
 {
 	glPushMatrix();
-	gluSphere(lelb, SHOULDER_RADIUS, 15, 15);
+	//gluSphere(lelb, SHOULDER_RADIUS, 15, 15);
+	glTranslatef(0.0, 0.2, 0);
+	circle(0.5, 2);
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(1.85, 0.125, 0);
+	glRotatef(-90, -0.1, 1, 0.0);
+	glutSolidCone(0.35, 2.25, 5, 5);
 	glPopMatrix();
 }
 
 void rightElbow()
 {
 	glPushMatrix();
-	gluSphere(relb, ELBOW_RADIUS, 15, 15);
+	//gluSphere(relb, ELBOW_RADIUS, 15, 15);
+	glTranslatef(0.0, 0.0, 0);
+	glRotatef(180, 1, 0, 0);
+	circle(0.5, 2);
 	glPopMatrix();
 }
 
 void leftElbow()
 {
 	glPushMatrix();
-	gluSphere(lelb, ELBOW_RADIUS, 15, 15);
+	//gluSphere(lelb, ELBOW_RADIUS, 15, 15);
+	glTranslatef(0.0, 0.0, 0);
+	glRotatef(180, 1, 0, 0);
+	circle(0.5, 2);
 	glPopMatrix();
 }
 
 void rightKnee()
 {
-	glPushMatrix();
+	/*glPushMatrix();
 	gluSphere(rknee, KNEE_RADIUS, 15, 15);
+	glPopMatrix();*/
+
+	glPushMatrix();
+	glRotatef(180, 0, 1, 0);
+	glTranslatef(-0.15, 0.8, 0);
+	circle(0.5, 2);
 	glPopMatrix();
+
+
 }
 
 void leftKnee()
 {
-	glPushMatrix();
+	/*glPushMatrix();
 	gluSphere(lknee, KNEE_RADIUS, 15, 15);
+	glPopMatrix();*/
+	glPushMatrix();
+	glRotatef(180, 0, 1, 0);
+	glTranslatef(0.0, 0.8, 0);
+	circle(0.5, 2);
 	glPopMatrix();
 }
 
 void leftFoot()
 {
-	glPushMatrix();
+	/*glPushMatrix();
 	gluSphere(lknee, FOOT_RADIUS, 15, 15);
+	glPopMatrix();*/
+
+	glPushMatrix();
+	glTranslatef(0.0, 0.8, 0);
+	glRotatef(90, 1, 0, 0);
+	glutSolidCone(0.75, 0.75, 5, 5);
 	glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(0.0, 0.8, 0);
+	glRotatef(180, 0, 1, 0);
+	glTranslatef(0.0, -0.65, 0);
+	circle(0.2, 2);
+	glPopMatrix();
+
 }
 
 void rightFoot()
 {
+	//glPushMatrix();
+	//gluSphere(lknee, FOOT_RADIUS, 15, 15);
+	//glPopMatrix();
+
 	glPushMatrix();
-	gluSphere(lknee, FOOT_RADIUS, 15, 15);
+	glTranslatef(0.15, 0.8, 0);
+	glRotatef(90, 1, 0, 0);
+	glutSolidCone(0.75, 0.75, 5, 5);
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(0.15, 0.15, 0);
+	glRotatef(180, 0, 1, 0);
+	circle(0.2, 2);
 	glPopMatrix();
 }
 
@@ -574,24 +710,63 @@ void rightHand()
 {
 	glPushMatrix();
 	//gluSphere(lknee, HAND_RADIUS, 15, 15);
-	glutSolidCube(1);
+	//glutSolidCube(1);
+	glPopMatrix();
+
+
+	glPushMatrix();
+	glTranslatef(0.0, 0.0, 0);
+	glRotatef(-90, 1, 0, 0);
+	glutSolidCone(0.55, 0.75, 5, 5);
+	glPopMatrix();
+
+
+	glPushMatrix();
+	glRotatef(180, 0, 1, 0);
+	glTranslatef(0.0, 0.65, 0);
+	circle(0.2, 2);
 	glPopMatrix();
 }
 
 void leftHand()
 {
-	glPushMatrix();
+	//glPushMatrix();
 	//gluSphere(lknee, HAND_RADIUS, 15, 15);
-	glutSolidCube(1);
+	///glutSolidCube(1);
+	//glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(0.0, 0.0, 0);
+	glRotatef(-90, 1, 0, 0);
+	glutSolidCone(0.55, 0.75, 5, 5);
+	glPopMatrix();
+
+
+	glPushMatrix();
+	glRotatef(180, 0, 1, 0);
+	glTranslatef(0.0, 0.65, 0);
+	circle(0.2, 2);
 	glPopMatrix();
 }
 
 void left_upper_arm()
 {
 	glPushMatrix();
-	glRotatef(90.0, 1.0, 0.0, 0.0);//-90
-	gluCylinder(lua, UPPER_ARM_RADIUS, UPPER_ARM_RADIUS - 0.1, UPPER_ARM_HEIGHT, 10, 10);
+	//glRotatef(90.0, 1.0, 0.0, 0.0);//-90
+	//gluCylinder(lua, UPPER_ARM_RADIUS, UPPER_ARM_RADIUS - 0.1, UPPER_ARM_HEIGHT, 10, 10);
+	glTranslatef(0.0, 0.0, 0);
+	glRotatef(-90.0, 1.0, 0.0, 0.0);
+	glutSolidCone(UPPER_ARM_RADIUS - 0.1, 0.5, 10, 10);
 	glPopMatrix();
+	
+	glPushMatrix();
+	glTranslatef(0.0, 0.0, 0);
+	glRotatef(90.0, 1.0, 0.0, 0.0);
+	glutSolidCone(UPPER_ARM_RADIUS - 0.1, UPPER_ARM_HEIGHT, 10, 10);
+	glPopMatrix();
+
+
+
 	glPushMatrix();
 	glRotatef(180.0, 0.0, 1.0, 0.0);//-90
 	glRotatef(180.0, 1.0, 0.0, 0.0);
@@ -602,9 +777,22 @@ void left_upper_arm()
 void left_lower_arm()
 {
 	glPushMatrix();
-	glRotatef(90.0, 1.0, 0.0, 0.0);//-90
-	gluCylinder(lla, LOWER_ARM_RADIUS - 0.1, LOWER_ARM_RADIUS - 0.15, LOWER_ARM_HEIGHT, 10, 10);
+	//glRotatef(90.0, 1.0, 0.0, 0.0);//-90
+	//gluCylinder(lla, LOWER_ARM_RADIUS - 0.1, LOWER_ARM_RADIUS - 0.15, LOWER_ARM_HEIGHT, 10, 10);
+	
+	//glTranslatef(0.1, 0.1, 0);
+	glRotatef(-90.0, 1.0, 0.0, 0.0);
+
+	glutSolidCone(LOWER_ARM_RADIUS - 0.15, 0.5, 10, 10);
 	glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(0.0, 0.0, 0);
+	glRotatef(90.0, 1.0, 0.0, 0.0);
+	glutSolidCone(LOWER_ARM_RADIUS - 0.15, LOWER_ARM_HEIGHT, 10, 10);
+	glPopMatrix();
+
+
 	glPushMatrix();
 	glRotatef(180.0, 0.0, 1.0, 0.0);//-90
 	glRotatef(180.0, 1.0, 0.0, 0.0);
@@ -615,9 +803,25 @@ void left_lower_arm()
 void right_upper_arm()
 {
 	glPushMatrix();
-	glRotatef(90.0, 1.0, 0.0, 0.0);//-90
-	gluCylinder(rua, UPPER_ARM_RADIUS, UPPER_ARM_RADIUS - 0.1, UPPER_ARM_HEIGHT, 10, 10);
+	//glRotatef(90.0, 1.0, 0.0, 0.0);//-90
+	//gluCylinder(rua, UPPER_ARM_RADIUS, UPPER_ARM_RADIUS - 0.1, UPPER_ARM_HEIGHT, 10, 10);
+
+	glTranslatef(0.0, 0.0, 0);
+	glRotatef(-90.0, 1.0, 0.0, 0.0);
+	glutSolidCone(UPPER_ARM_RADIUS - 0.1, 0.5, 10, 10);
 	glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(0.0, 0.0, 0);
+	glRotatef(90.0, 1.0, 0.0, 0.0);
+	glutSolidCone(UPPER_ARM_RADIUS - 0.1, UPPER_ARM_HEIGHT, 10, 10);
+
+
+
+	glPopMatrix();
+
+
+
 	glPushMatrix();
 	glRotatef(180.0, 0.0, 1.0, 0.0);//-90
 	glRotatef(180.0, 1.0, 0.0, 0.0);
@@ -628,9 +832,19 @@ void right_upper_arm()
 void right_lower_arm()
 {
 	glPushMatrix();
-	glRotatef(90.0, 1.0, 0.0, 0.0);//-90
-	gluCylinder(rla, LOWER_ARM_RADIUS - 0.1, LOWER_ARM_RADIUS - 0.15, LOWER_ARM_HEIGHT, 10, 10);
+	//glRotatef(90.0, 1.0, 0.0, 0.0);//-90
+	//gluCylinder(rla, LOWER_ARM_RADIUS - 0.1, LOWER_ARM_RADIUS - 0.15, LOWER_ARM_HEIGHT, 10, 10);
+	glRotatef(-90.0, 1.0, 0.0, 0.0);
+
+	glutSolidCone(LOWER_ARM_RADIUS - 0.15, 0.5, 10, 10);
 	glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(0.0, 0.0, 0);
+	glRotatef(90.0, 1.0, 0.0, 0.0);
+	glutSolidCone(LOWER_ARM_RADIUS - 0.15, LOWER_ARM_HEIGHT, 10, 10);
+	glPopMatrix();
+
 	glPushMatrix();
 	glRotatef(180.0, 0.0, 1.0, 0.0);//-90
 	glRotatef(180.0, 1.0, 0.0, 0.0);
@@ -640,34 +854,88 @@ void right_lower_arm()
 
 void left_upper_leg()
 {
+	//glPushMatrix();
+	//glRotatef(-90.0, 1.0, 0.0, 0.0);
+	////gluCylinder(lul, UPPER_LEG_RADIUS, UPPER_LEG_RADIUS - 0.1, UPPER_LEG_HEIGHT, 10, 10);
+	//glPopMatrix();
 	glPushMatrix();
+	glTranslatef(0.0, 1.0, 0);
 	glRotatef(-90.0, 1.0, 0.0, 0.0);
-	gluCylinder(lul, UPPER_LEG_RADIUS, UPPER_LEG_RADIUS - 0.1, UPPER_LEG_HEIGHT, 10, 10);
+	glutSolidCone(UPPER_LEG_RADIUS - 0.1, UPPER_LEG_HEIGHT, 10, 10);
 	glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(0.0, 1.0, 0);
+	glRotatef(90.0, 1.0, 0.0, 0.0);
+	glutSolidCone(UPPER_LEG_RADIUS - 0.1, 0.5, 10, 10);
+	glPopMatrix();
+
+
 }
 
 void left_lower_leg()
 {
+	//glPushMatrix();
+	//glRotatef(-90.0, 1.0, 0.0, 0.0);
+	////gluCylinder(lll, LOWER_LEG_RADIUS - 0.1, LOWER_LEG_RADIUS - 0.2, LOWER_LEG_HEIGHT, 10, 10);
+	//glPopMatrix();
 	glPushMatrix();
+	glTranslatef(0.0, 0.8, 0);
 	glRotatef(-90.0, 1.0, 0.0, 0.0);
-	gluCylinder(lll, LOWER_LEG_RADIUS - 0.1, LOWER_LEG_RADIUS - 0.2, LOWER_LEG_HEIGHT, 10, 10);
+	glutSolidCone(LOWER_LEG_RADIUS - 0.2, LOWER_LEG_HEIGHT, 10, 10);
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(0.0, 0.8, 0);
+	glRotatef(90.0, 1.0, 0.0, 0.0);
+	glutSolidCone(LOWER_LEG_RADIUS - 0.2, 0.5, 10, 10);
 	glPopMatrix();
 }
 
+
+
+
+
 void right_upper_leg()
 {
+	//glPushMatrix();
+	//glRotatef(-90.0, 1.0, 0.0, 0.0);
+	////gluCylinder(rul, UPPER_LEG_RADIUS, UPPER_LEG_RADIUS - 0.1, UPPER_LEG_HEIGHT, 10, 10);
+	//glPopMatrix();
+
 	glPushMatrix();
+	glTranslatef(0.15, 1.0, 0);
 	glRotatef(-90.0, 1.0, 0.0, 0.0);
-	gluCylinder(rul, UPPER_LEG_RADIUS, UPPER_LEG_RADIUS - 0.1, UPPER_LEG_HEIGHT, 10, 10);
+	glutSolidCone(UPPER_LEG_RADIUS - 0.1, UPPER_LEG_HEIGHT, 10, 10);
 	glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(0.15, 1.0, 0);
+	glRotatef(90.0, 1.0, 0.0, 0.0);
+	glutSolidCone(UPPER_LEG_RADIUS - 0.1, 0.5, 10, 10);
+	glPopMatrix();
+
 }
 
 void right_lower_leg()
 {
+	//glPushMatrix();
+	//glRotatef(-90.0, 1.0, 0.0, 0.0);
+	////gluCylinder(rll, LOWER_LEG_RADIUS - 0.1, LOWER_LEG_RADIUS - 0.2, LOWER_LEG_HEIGHT, 10, 10);
+	//glPopMatrix();
+
 	glPushMatrix();
+	glTranslatef(0.15, 0.8, 0);
 	glRotatef(-90.0, 1.0, 0.0, 0.0);
-	gluCylinder(rll, LOWER_LEG_RADIUS - 0.1, LOWER_LEG_RADIUS - 0.2, LOWER_LEG_HEIGHT, 10, 10);
+	glutSolidCone(LOWER_LEG_RADIUS - 0.2, LOWER_LEG_HEIGHT, 10, 10);
 	glPopMatrix();
+	
+	glPushMatrix();
+	glTranslatef(0.15, 0.8, 0);
+	glRotatef(90.0, 1.0, 0.0, 0.0);
+	glutSolidCone(LOWER_LEG_RADIUS - 0.2, 0.5, 10, 10);
+	glPopMatrix();
+
 }
 
 void drawText(char*string, int x, int y)
@@ -822,7 +1090,7 @@ void InitializeLight()
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
 
-	::glClearColor(0.984f, 0.76f, 0.6f, 0.0f);
+	::glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	//::glClearColor(0.0f, 0.0f, 0.0f, 0.0f);	
 	::glShadeModel(GL_SMOOTH);
 	//::glShadeModel(GL_FLAT);	
