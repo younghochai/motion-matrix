@@ -198,3 +198,21 @@ void quaternion::setPrecisionOfValues()
 	this->mData[1] = (float) ((int)(100 * this->mData[1]) / 100.0);
 	this->mData[2] = (float) ((int)(100 * this->mData[2]) / 100.0);
 }
+
+quaternion quaternion::EulerAngleToQuaternion(double yaw, double pitch, double roll) // yaw (Z), pitch (Y), roll (X)
+{
+	// Abbreviations for the various angular functions
+	double cy = cos(yaw * 0.5);
+	double sy = sin(yaw * 0.5);
+	double cp = cos(pitch * 0.5);
+	double sp = sin(pitch * 0.5);
+	double cr = cos(roll * 0.5);
+	double sr = sin(roll * 0.5);
+
+	quaternion q;
+	q.mData[3] = cy * cp * cr + sy * sp * sr;
+	q.mData[0] = cy * cp * sr - sy * sp * cr;
+	q.mData[1] = sy * cp * sr + cy * sp * cr;
+	q.mData[2] = sy * cp * cr - cy * sp * sr;
+	return q;
+}
