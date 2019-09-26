@@ -97,7 +97,7 @@ rsh_node, lsh_node;
 
 //Output to file
 ofstream L_rawqfile, U_rawqfile, P_rawfile ,LatLongfile;
-ofstream L_qfile1, L_rfile2, L_sfqfile, U_sfqfile, Calibfile, RPY_lowpass, outDataL, outDataU;
+ofstream L_qfile1, L_rfile2, L_sfqfile, U_sfqfile, Calibfile, RPY_lowpass, outData;
 
 bool fileClose = false;
 float** uqdata;
@@ -478,196 +478,452 @@ void traverse(treenode* root)
 	if (root->sibling != NULL) traverse(root->sibling);
 }
 
+void bodyJoint_circle(float r, int width)
+{
+	float x, y;
+	int w = width;
+	float radius = r;
+	glLineWidth(w);
+	glBegin(GL_LINES);
+
+	x = (float)radius * cos(359 * PI / 180.0f);
+	y = (float)radius * sin(359 * PI / 180.0f);
+	for (int j = 0; j < 360; j++)
+	{
+		glVertex2f(x, y);
+		x = (float)radius * cos(j * PI / 180.0f);
+		y = (float)radius * sin(j * PI / 180.0f);
+		glVertex2f(x, y);
+	}
+	glEnd();
+}
+
 void torso()
 {
+	// Belly
+	glColor3f(0.68, 0.14, 0.21);
 	glPushMatrix();
-
-	glRotatef(-90.0, 1.0, 0.0, 0.0);
-	glRotatef(180.0, 0.0, 0.0, 1.0);
-	gluCylinder(t, TORSO_RADIUS / 1.2, TORSO_RADIUS, TORSO_HEIGHT, 3, 30);
-	//glutSolidCube(TORSO_RADIUS);
-	//drawElipsoid(10,10,1.0,1.0,1.0);
+		glTranslatef(0.0, 0.0, 0.0);
+		glRotatef(90, 1, 0, 0);
+		glutSolidCone(1.0, 0.75, 5, 5);
 	glPopMatrix();
+
+	//Belly Center joint Circle
+	glColor3f(0, 0, 0);
+	glPushMatrix();
+		glTranslatef(0, 0.25, 0);
+		glRotatef(180, 1, 0, 0);
+		bodyJoint_circle(0.25, 2);
+	glPopMatrix();
+
+	//Belly Left joint Circle 
+	glColor3f(0, 0, 0);
+	glPushMatrix();
+		glTranslatef(-0.75, 0, 0);
+		glRotatef(180, 1, 0, 0);
+		bodyJoint_circle(0.25, 2);
+	glPopMatrix();
+
+
+	//Belly Right joint Circle 
+	glColor3f(0, 0, 0);
+	glPushMatrix();
+		glTranslatef(0.75, 0, 0);
+		glRotatef(180, 1, 0, 0);
+		bodyJoint_circle(0.25, 2);
+	glPopMatrix();
+
+	//Upper Body
+	glColor3f(0.68, 0.14, 0.21);
+	glPushMatrix();
+		glTranslatef(0.0, 5.75, 0.0);
+		glRotatef(90, 1, 0, 0);
+		glutSolidCone(0.8, 5.5, 5, 5);
+	glPopMatrix();
+
+
 }
 
 void head()
 {
-	glPushMatrix();
-
-	glTranslatef(0.0, HEAD_HEIGHT, 0.0);
-	glScalef(HEAD_RADIUS, HEAD_HEIGHT, HEAD_RADIUS);
-	gluSphere(h, HEAD_RADIUS, 15, 15);
-	//drawCoordinate();
-	//glasses
-	glRotatef(-90.0, 1.0, 0.0, 0.0);
-	glTranslatef(0.0f, -0.4f, -0.15f);
-	gluCylinder(h, 0.9*HEAD_RADIUS, 0.9*HEAD_RADIUS, HEAD_HEIGHT / 5, 10, 10);
-
+	//Head
+	glColor3f(0.68, 0.14, 0.21);
+		glPushMatrix();
+		glTranslatef(-0.1, 0.25, 0);
+		glRotatef(-90, 1, 0, 0);
+		glutSolidCone(0.55, 2.05, 5, 5);
 	glPopMatrix();
+
+
 }
 
 void neck()
 {
+	//Neck 
+	glColor3f(0.68, 0.14, 0.21);
 	glPushMatrix();
-	glRotatef(-90.0, 1.0, 0.0, 0.0);
-	gluCylinder(nk, NECK_RADIUS, NECK_RADIUS, NECK_HEIGHT, 10, 10);
+		glRotatef(-90.0, 1.0, 0.0, 0.0);
+		glTranslatef(0.0, 0.0, 0.0);
+		glutSolidCone(0.55, 1.05, 5, 5);
 	glPopMatrix();
+
+	//Neck Joint Circle
+	glPushMatrix();
+		glRotatef(180, 0, 1, 0);
+		glTranslatef(0.0, 1, 0);
+		bodyJoint_circle(0.2, 2);
+	glPopMatrix();
+
 }
 
 void rightShoulder()
 {
+	//Right Shoulder
+	glColor3f(0.98, 0.14, 0.21);
 	glPushMatrix();
-	gluSphere(relb, SHOULDER_RADIUS, 15, 15);
+		glTranslatef(-1.85, 0.10, 0);
+		glRotatef(90, 0.12, 1, 0);
+		glutSolidCone(0.35, 2.25, 5, 5);
 	glPopMatrix();
+
+
+	//Right Shoulder joint Circle
+	glColor3f(0.0, 0.0, 0.0);
+		glPushMatrix();
+		glTranslatef(0.0, 0.2, 0);
+		bodyJoint_circle(0.5, 2);
+	glPopMatrix();
+
+
 }
+
+
 
 void leftShoulder()
 {
+	//Left Shoulder
+	glColor3f(0.98, 0.14, 0.21);
 	glPushMatrix();
-	gluSphere(lelb, SHOULDER_RADIUS, 15, 15);
+		glTranslatef(1.85, 0.125, 0);
+		glRotatef(-90, -0.1, 1, 0.0);
+		glutSolidCone(0.35, 2.25, 5, 5);
+	glPopMatrix();
+
+
+	//Left Shoulder Joint Circle
+	glColor3f(0.0, 0.0, 0.0);
+		glPushMatrix();
+		glTranslatef(0.0, 0.2, 0);
+		bodyJoint_circle(0.5, 2);
 	glPopMatrix();
 }
 
 void rightElbow()
 {
 	glPushMatrix();
-	gluSphere(relb, ELBOW_RADIUS, 15, 15);
+		glTranslatef(0.0, 0.0, 0);
+		glRotatef(180, 1, 0, 0);
+		bodyJoint_circle(0.5, 2);
 	glPopMatrix();
 }
 
 void leftElbow()
 {
+	//Left Elbow
+	glColor3f(0.0, 0.0, 0.0);
 	glPushMatrix();
-	gluSphere(lelb, ELBOW_RADIUS, 15, 15);
+		glTranslatef(0.0, 0.0, 0);
+		glRotatef(180, 1, 0, 0);
+		bodyJoint_circle(0.5, 2);
 	glPopMatrix();
 }
 
 void rightKnee()
 {
+	//Right Knee
+	glColor3f(0.0, 0.0, 0.0);
 	glPushMatrix();
-	gluSphere(rknee, KNEE_RADIUS, 15, 15);
+		glRotatef(180, 0, 1, 0);
+		glTranslatef(-0.15, 0.8, 0);
+		bodyJoint_circle(0.5, 2);
 	glPopMatrix();
+
+
 }
 
 void leftKnee()
 {
+	//Left Knee
+	glColor3f(0.0, 0.0, 0.0);
 	glPushMatrix();
-	gluSphere(lknee, KNEE_RADIUS, 15, 15);
+		glRotatef(180, 0, 1, 0);
+		glTranslatef(0.0, 0.8, 0);
+		bodyJoint_circle(0.5, 2);
 	glPopMatrix();
 }
 
 void leftFoot()
-{
+{	
+	//Left Foot
+	glColor3f(0.98, 0.14, 0.21);
 	glPushMatrix();
-	gluSphere(lknee, FOOT_RADIUS, 15, 15);
+		glTranslatef(0.0, 0.8, 0);
+		glRotatef(90, 1, 0, 0);
+		glutSolidCone(0.75, 0.75, 5, 5);
 	glPopMatrix();
+
+	//Left Foot Joint Circle
+	glColor3f(0.0, 0.0, 0.0);
+	glPushMatrix();
+		glTranslatef(0.0, 0.8, 0);
+		glRotatef(180, 0, 1, 0);
+		glTranslatef(0.0, -0.65, 0);
+		bodyJoint_circle(0.2, 2);
+	glPopMatrix();
+
 }
 
 void rightFoot()
 {
+	//Right Foot
+	glColor3f(0.98, 0.14, 0.21);
 	glPushMatrix();
-	gluSphere(lknee, FOOT_RADIUS, 15, 15);
+		glTranslatef(0.15, 0.8, 0);
+		glRotatef(90, 1, 0, 0);
+		glutSolidCone(0.75, 0.75, 5, 5);
+	glPopMatrix();
+
+	//Right Foot Joint Circle
+	glColor3f(0.0, 0.0, 0.0);
+	glPushMatrix();
+		glTranslatef(0.15, 0.15, 0);
+		glRotatef(180, 0, 1, 0);
+		bodyJoint_circle(0.2, 2);
 	glPopMatrix();
 }
 
 void rightHand()
 {
+	//Right Hand
+	glColor3f(0.98, 0.14, 0.21);
 	glPushMatrix();
-	//gluSphere(lknee, HAND_RADIUS, 15, 15);
-	glutSolidCube(1);
+		glTranslatef(0.0, 0.0, 0);
+		glRotatef(-90, 1, 0, 0);
+		glutSolidCone(0.55, 0.75, 5, 5);
+	glPopMatrix();
+
+	//Right Hand Joint Circle
+	glColor3f(0.0, 0.0, 0.0);
+	glPushMatrix();
+		glRotatef(180, 0, 1, 0);
+		glTranslatef(0.0, 0.65, 0);
+		bodyJoint_circle(0.2, 2);
 	glPopMatrix();
 }
 
 void leftHand()
 {
+	//Left Hand
 	glPushMatrix();
-	//gluSphere(lknee, HAND_RADIUS, 15, 15);
-	glutSolidCube(1);
+		glTranslatef(0.0, 0.0, 0);
+		glRotatef(-90, 1, 0, 0);
+		glutSolidCone(0.55, 0.75, 5, 5);
+	glPopMatrix();
+
+	//Left Hand Joint Circle
+	glColor3f(0.0, 0.0, 0.0);
+	glPushMatrix();
+		glRotatef(180, 0, 1, 0);
+		glTranslatef(0.0, 0.65, 0);
+		bodyJoint_circle(0.2, 2);
 	glPopMatrix();
 }
 
 void left_upper_arm()
 {
+	//Left Upper Arm Cap
+	glColor3f(0.98, 0.14, 0.21);
 	glPushMatrix();
-	glRotatef(90.0, 1.0, 0.0, 0.0);//-90
-	gluCylinder(lua, UPPER_ARM_RADIUS, UPPER_ARM_RADIUS - 0.1, UPPER_ARM_HEIGHT, 10, 10);
+		glTranslatef(0.0, 0.0, 0);
+		glRotatef(-90.0, 1.0, 0.0, 0.0);
+		glutSolidCone(UPPER_ARM_RADIUS - 0.1, 0.5, 10, 10);
 	glPopMatrix();
+	
+	//Left Upper Arm
+	glColor3f(0.98, 0.14, 0.21);
 	glPushMatrix();
-	glRotatef(180.0, 0.0, 1.0, 0.0);//-90
-	glRotatef(180.0, 1.0, 0.0, 0.0);
-	drawCoordinate();
+		glTranslatef(0.0, 0.0, 0);
+		glRotatef(90.0, 1.0, 0.0, 0.0);
+		glutSolidCone(UPPER_ARM_RADIUS - 0.1, UPPER_ARM_HEIGHT, 10, 10);
+	glPopMatrix();
+
+	//Co-ordinate
+	glPushMatrix();
+		glRotatef(180.0, 0.0, 1.0, 0.0);//-90
+		glRotatef(180.0, 1.0, 0.0, 0.0);
+		drawCoordinate();
 	glPopMatrix();
 }
 
 void left_lower_arm()
 {
-	glPushMatrix();
-	glRotatef(90.0, 1.0, 0.0, 0.0);//-90
-	gluCylinder(lla, LOWER_ARM_RADIUS - 0.1, LOWER_ARM_RADIUS - 0.15, LOWER_ARM_HEIGHT, 10, 10);
+
+	//Left Lower Arm Cap
+	glColor3f(0.98, 0.14, 0.21);
+		glPushMatrix();
+		glRotatef(-90.0, 1.0, 0.0, 0.0);
+		glutSolidCone(LOWER_ARM_RADIUS - 0.15, 0.5, 10, 10);
 	glPopMatrix();
+
+	//Left Lower Arm
+	glColor3f(0.98, 0.14, 0.21);
+		glPushMatrix();
+		glTranslatef(0.0, 0.0, 0);
+		glRotatef(90.0, 1.0, 0.0, 0.0);
+		glutSolidCone(LOWER_ARM_RADIUS - 0.15, LOWER_ARM_HEIGHT, 10, 10);
+	glPopMatrix();
+
+
 	glPushMatrix();
-	glRotatef(180.0, 0.0, 1.0, 0.0);//-90
-	glRotatef(180.0, 1.0, 0.0, 0.0);
-	drawCoordinate();
+		glRotatef(180.0, 0.0, 1.0, 0.0);//-90
+		glRotatef(180.0, 1.0, 0.0, 0.0);
+		drawCoordinate();
 	glPopMatrix();
 }
 
 void right_upper_arm()
 {
+	//right upper Arm Cap
+	glColor3f(0.98, 0.14, 0.21);
 	glPushMatrix();
-	glRotatef(90.0, 1.0, 0.0, 0.0);//-90
-	gluCylinder(rua, UPPER_ARM_RADIUS, UPPER_ARM_RADIUS - 0.1, UPPER_ARM_HEIGHT, 10, 10);
+		glTranslatef(0.0, 0.0, 0);
+		glRotatef(-90.0, 1.0, 0.0, 0.0);
+		glutSolidCone(UPPER_ARM_RADIUS - 0.1, 0.5, 10, 10);
 	glPopMatrix();
+
+	//right upper Arm
+	glColor3f(0.98, 0.14, 0.21);
 	glPushMatrix();
-	glRotatef(180.0, 0.0, 1.0, 0.0);//-90
-	glRotatef(180.0, 1.0, 0.0, 0.0);
-	drawCoordinate();
+		glTranslatef(0.0, 0.0, 0);
+		glRotatef(90.0, 1.0, 0.0, 0.0);
+		glutSolidCone(UPPER_ARM_RADIUS - 0.1, UPPER_ARM_HEIGHT, 10, 10);
+	glPopMatrix();
+	   
+	glPushMatrix();
+		glRotatef(180.0, 0.0, 1.0, 0.0);//-90
+		glRotatef(180.0, 1.0, 0.0, 0.0);
+		drawCoordinate();
 	glPopMatrix();
 }
 
 void right_lower_arm()
 {
+
+	//Right Lower Arm Cap
+	glColor3f(0.98, 0.14, 0.21);
 	glPushMatrix();
-	glRotatef(90.0, 1.0, 0.0, 0.0);//-90
-	gluCylinder(rla, LOWER_ARM_RADIUS - 0.1, LOWER_ARM_RADIUS - 0.15, LOWER_ARM_HEIGHT, 10, 10);
+		glRotatef(-90.0, 1.0, 0.0, 0.0);
+		glutSolidCone(LOWER_ARM_RADIUS - 0.15, 0.5, 10, 10);
 	glPopMatrix();
+
+	//Right Lower Arm Cap
+	glColor3f(0.98, 0.14, 0.21);
 	glPushMatrix();
-	glRotatef(180.0, 0.0, 1.0, 0.0);//-90
-	glRotatef(180.0, 1.0, 0.0, 0.0);
-	drawCoordinate();
+		glTranslatef(0.0, 0.0, 0);
+		glRotatef(90.0, 1.0, 0.0, 0.0);
+		glutSolidCone(LOWER_ARM_RADIUS - 0.15, LOWER_ARM_HEIGHT, 10, 10);
+	glPopMatrix();
+
+	glPushMatrix();
+		glRotatef(180.0, 0.0, 1.0, 0.0);//-90
+		glRotatef(180.0, 1.0, 0.0, 0.0);
+		drawCoordinate();
 	glPopMatrix();
 }
 
 void left_upper_leg()
 {
+	//Left Upper Leg Cap
+	glColor3f(0.98, 0.14, 0.21);
 	glPushMatrix();
-	glRotatef(-90.0, 1.0, 0.0, 0.0);
-	gluCylinder(lul, UPPER_LEG_RADIUS, UPPER_LEG_RADIUS - 0.1, UPPER_LEG_HEIGHT, 10, 10);
+		glTranslatef(0.0, 1.0, 0);
+		glRotatef(-90.0, 1.0, 0.0, 0.0);
+		glutSolidCone(UPPER_LEG_RADIUS - 0.1, UPPER_LEG_HEIGHT, 10, 10);
 	glPopMatrix();
+
+	//Left Upper Leg
+	glColor3f(0.98, 0.14, 0.21);
+	glPushMatrix();
+		glTranslatef(0.0, 1.0, 0);
+		glRotatef(90.0, 1.0, 0.0, 0.0);
+		glutSolidCone(UPPER_LEG_RADIUS - 0.1, 0.5, 10, 10);
+	glPopMatrix();
+
+
 }
 
 void left_lower_leg()
 {
+	//Left lower Leg Cap
+	glColor3f(0.98, 0.14, 0.21);
 	glPushMatrix();
-	glRotatef(-90.0, 1.0, 0.0, 0.0);
-	gluCylinder(lll, LOWER_LEG_RADIUS - 0.1, LOWER_LEG_RADIUS - 0.2, LOWER_LEG_HEIGHT, 10, 10);
+		glTranslatef(0.0, 0.8, 0);
+		glRotatef(-90.0, 1.0, 0.0, 0.0);
+		glutSolidCone(LOWER_LEG_RADIUS - 0.2, LOWER_LEG_HEIGHT, 10, 10);
 	glPopMatrix();
+
+
+	//Left lower Leg
+	glColor3f(0.98, 0.14, 0.21);
+	glPushMatrix();
+		glTranslatef(0.0, 0.8, 0);
+		glRotatef(90.0, 1.0, 0.0, 0.0);
+		glutSolidCone(LOWER_LEG_RADIUS - 0.2, 0.5, 10, 10);
+		glPopMatrix();
 }
+
+
+
+
 
 void right_upper_leg()
 {
+	//right upper Leg Cap
+	glColor3f(0.98, 0.14, 0.21);
 	glPushMatrix();
-	glRotatef(-90.0, 1.0, 0.0, 0.0);
-	gluCylinder(rul, UPPER_LEG_RADIUS, UPPER_LEG_RADIUS - 0.1, UPPER_LEG_HEIGHT, 10, 10);
+		glTranslatef(0.15, 1.0, 0);
+		glRotatef(-90.0, 1.0, 0.0, 0.0);
+		glutSolidCone(UPPER_LEG_RADIUS - 0.1, UPPER_LEG_HEIGHT, 10, 10);
 	glPopMatrix();
+
+	//right upper Leg
+	glColor3f(0.98, 0.14, 0.21);
+	glPushMatrix();
+		glTranslatef(0.15, 1.0, 0);
+		glRotatef(90.0, 1.0, 0.0, 0.0);
+		glutSolidCone(UPPER_LEG_RADIUS - 0.1, 0.5, 10, 10);
+	glPopMatrix();
+
 }
 
 void right_lower_leg()
 {
+	//right lower  Leg Cap
+	glColor3f(0.98, 0.14, 0.21);
 	glPushMatrix();
-	glRotatef(-90.0, 1.0, 0.0, 0.0);
-	gluCylinder(rll, LOWER_LEG_RADIUS - 0.1, LOWER_LEG_RADIUS - 0.2, LOWER_LEG_HEIGHT, 10, 10);
+		glTranslatef(0.15, 0.8, 0);
+		glRotatef(-90.0, 1.0, 0.0, 0.0);
+		glutSolidCone(LOWER_LEG_RADIUS - 0.2, LOWER_LEG_HEIGHT, 10, 10);
 	glPopMatrix();
+	
+	//right lower  Leg 
+	glColor3f(0.98, 0.14, 0.21);
+	glPushMatrix();
+		glTranslatef(0.15, 0.8, 0);
+		glRotatef(90.0, 1.0, 0.0, 0.0);
+		glutSolidCone(LOWER_LEG_RADIUS - 0.2, 0.5, 10, 10);
+	glPopMatrix();
+
 }
 
 void drawText(char*string, int x, int y)
@@ -768,7 +1024,7 @@ void InitializeLight()
 	GLfloat mat_ambient_0[] = { 0.2f, 0.2f, 0.2f, 1.0f };
 	GLfloat mat_diffuse_0[] = { 1.0f, 1.0f, 1.0f, 1.0f };
 	GLfloat mat_specular_0[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-	GLfloat mat_position_0[] = { 0.0f, 0.0f, -5.0f, 0.0f };
+	GLfloat mat_position_0[] = { 0.0f, 0.0f, -4.0f, 0.0f };
 	//GLfloat mat_position_0[] = { 0.5f, 0.5f, 0.8f, 0.0f};	
 	GLfloat mat_shininess[] = { 128.0f };
 
@@ -822,7 +1078,7 @@ void InitializeLight()
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
 
-	::glClearColor(0.984f, 0.76f, 0.6f, 0.0f);
+	::glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	//::glClearColor(0.0f, 0.0f, 0.0f, 0.0f);	
 	::glShadeModel(GL_SMOOTH);
 	//::glShadeModel(GL_FLAT);	
@@ -830,7 +1086,7 @@ void InitializeLight()
 	glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
 	glEnable(GL_COLOR_MATERIAL);
 
-	glFrontFace(GL_CCW);
+	//glFrontFace(GL_CCW);
 
 }
 
@@ -913,8 +1169,13 @@ void showInfo(/*std::stringstream &ss, int tWidth, int tHeight*/)
 	
 	/////////////////////
 	isMatched = false;
-	float normalLowerArmCurveLength, normalUpperArmCurveLength, normalSpeed, percentage, deviation;
+	float normalLowerArmCurveLength=0.0, normalUpperArmCurveLength=0.0, normalSpeed, percentage=0, deviation=0;
+	normalSpeed = (101.0 / 60.0)*1000.0;
 	std::stringstream closeness;
+	std::stringstream closeness1;
+	std::stringstream closeness2;
+	std::stringstream closeness3;
+	std::stringstream closeness4;
 	//if (diff < threshold && diff == diff1)
 	if (stdPercent >= 90 )
 	{
@@ -924,9 +1185,10 @@ void showInfo(/*std::stringstream &ss, int tWidth, int tHeight*/)
 		//ss.str("");
 		//printf("Standard Curl:%f (Match)\n", diff1);
 		isMatched = true;
-		normalLowerArmCurveLength = ((1.34 + 0.3) * 180/PI)/3600;
-		normalUpperArmCurveLength = ((0.16 + 0.3) * 180 / PI) / 3600;
-		normalSpeed = (101.0/60.0)*1000.0;
+
+		normalLowerArmCurveLength = ((1.34 + 0.3) * 180/PI);
+		normalUpperArmCurveLength = ((0.16 + 0.3) * 180 / PI) ;
+		
 		percentage = stdPercent;
 		deviation = diff1 * 180 / PI;
 	}
@@ -952,9 +1214,10 @@ void showInfo(/*std::stringstream &ss, int tWidth, int tHeight*/)
 			drawString(ss.str().c_str(), width / 4 + 150, height / 1.5 - (2 * TEXT_HEIGHT), mcolor, font);
 				
 			isMatched = true;
-			normalLowerArmCurveLength = ((0.88 + 0.3) * 180/PI)/3600;
-			normalUpperArmCurveLength = ((0.14 + 0.3) * 180/PI)/3600;
-			normalSpeed = (101.0 / 60.0) * 1000.0;
+
+			normalLowerArmCurveLength = ((0.88 + 0.3) * 180/PI);
+			normalUpperArmCurveLength = ((0.14 + 0.3) * 180/PI);
+
 			percentage = closePercent;
 			deviation = diff2 * 180 / PI;
 		}
@@ -979,9 +1242,10 @@ void showInfo(/*std::stringstream &ss, int tWidth, int tHeight*/)
 			drawString(ss.str().c_str(), width / 4 + 150, height / 1.5 - (3 * TEXT_HEIGHT), mcolor, font);
 			
 			isMatched = true;
-			normalLowerArmCurveLength = ((1.19 + 0.3) * 180/PI)/3600;
-			normalUpperArmCurveLength = ((0.08 + 0.3) * 180/PI)/3600;
-			normalSpeed = (101.0 / 60.0) * 1000.0;
+
+			normalLowerArmCurveLength = ((1.19 + 0.3) * 180/PI);
+			normalUpperArmCurveLength = ((0.08 + 0.3) * 180/PI);
+
 			percentage = widePercent;
 			deviation = diff3 * 180 / PI;
 		}
@@ -994,6 +1258,10 @@ void showInfo(/*std::stringstream &ss, int tWidth, int tHeight*/)
 		}*/
 	}
 	closeness.str("");
+	closeness1.str("");
+	closeness2.str("");
+	closeness3.str("");
+	closeness4.str("");
 	
 	if (stdPercent >= 90)
 	{
@@ -1019,7 +1287,25 @@ void showInfo(/*std::stringstream &ss, int tWidth, int tHeight*/)
 		else
 			closeness.str("Suggestion: Slightly wider, try to close your arm");
 	}
+	
+	
+		if (curveProperty.speed < normalSpeed)
+			closeness1.str( " # Slightly slowdown");
+		else
+			closeness1.str( " # Slightly speedup");
+	
+	
+		if (curveProperty.upperArmLength > normalUpperArmCurveLength)
+			closeness2.str(" # More then normal upper arm movement observed");
+			
+		if (curveProperty.LowerArmLength > normalLowerArmCurveLength)
+			closeness3.str(" # More then normal lower arm movement observed");
 
+	
+		if (curveProperty.initialOrientationDeviation > (0.15 * 180 / PI))
+			closeness4.str(" # Initial orientation missmatch");
+	
+		closeness << closeness.str() << closeness1.str() << closeness2.str() << closeness3.str() << closeness4.str();
 	if (!isMatched)
 	{
 		std::stringstream ss;
@@ -1030,34 +1316,37 @@ void showInfo(/*std::stringstream &ss, int tWidth, int tHeight*/)
 	else
 	{
 		std::stringstream ss;
-		
+
 		ss << "Curve-Diagnosis: ";
 		drawString(ss.str().c_str(), width / 4 + 150, height / 1.5 - (6 * TEXT_HEIGHT), color, font);
 		ss.str("");
 		ss << setprecision(3) << "Speed: "<<curveProperty.speed<<"/ms ("<< normalSpeed<<"/ms)";
 		drawString(ss.str().c_str(), width / 4 + 150, height / 1.5 - (7 * TEXT_HEIGHT), color, font);
 		ss.str("");
-		ss << setprecision(3) << "UpperArm Curve Length: " << curveProperty.upperArmLength << "\" (< " << normalUpperArmCurveLength << "\")";
+
+		ss << setprecision(2) << "UpperArm Degree of Curvature : " << curveProperty.upperArmLength << " deg (< " << normalUpperArmCurveLength << "deg)";
 		drawString(ss.str().c_str(), width / 4 + 150, height / 1.5 - (8 * TEXT_HEIGHT), color, font);
 		ss.str("");
-		ss << setprecision(3) << "LowerArm Curve Length: " << curveProperty.LowerArmLength << "\" (< " << normalLowerArmCurveLength << "\")";
+		ss << setprecision(3) << "LowerArm Degree of Curvature : " << curveProperty.LowerArmLength << "deg (< " << normalLowerArmCurveLength << "deg)";
+
 		drawString(ss.str().c_str(), width / 4 + 150, height / 1.5 - (9 * TEXT_HEIGHT), color, font);
 		ss.str("");
-		ss << percentage<<"% of points are within the range";
+		ss << percentage<<"% of trajectory is within the range (> 90%)";
 		drawString(ss.str().c_str(), width / 4 + 150, height / 1.5 - (10 * TEXT_HEIGHT), color, font);
 		ss.str("");
-		ss << setprecision(3) << "Average deviation: " << (deviation * 180 / PI )/3600 << " \" ";
-		drawString(ss.str().c_str(), width / 4 + 150, height / 1.5 - (11 * TEXT_HEIGHT), color, font);
-		
-		ss.str("");
-		ss << setprecision(3) << "Initial Orientation deviation: " << curveProperty.initialOrientationDeviation << "\" (< 0.15 \")";
+
+		ss << setprecision(3) << "Average angle of deviation: " << (deviation) << "deg ";
+
 		drawString(ss.str().c_str(), width / 4 + 150, height / 1.5 - (12 * TEXT_HEIGHT), color, font);
-		drawString(closeness.str().c_str(), width / 4 + 150, height / 1.5 - (13 * TEXT_HEIGHT), color, font);
+		ss.str("");
+		ss << setprecision(3) << "Initial angle of deviation: " << curveProperty.initialOrientationDeviation << " (<" << (0.15 * 180 / PI) << "deg)";
+		drawString(ss.str().c_str(), width / 4 + 150, height / 1.5 - (11 * TEXT_HEIGHT), color, font);
+		drawString(closeness.str().c_str(), 10, 50, color, font);
 	}
 	
 	///////////////////
 	std::stringstream ss;
-	ss << "Press SPACE mode.";
+	//ss << "Press SPACE mode.";
 	drawString(ss.str().c_str(), 2, 2, color, font);
 	ss.str("");
 
@@ -1686,8 +1975,7 @@ void idle()
 				isize = 0;
 				L_rfile2.close();
 				RPY_lowpass.close();
-				outDataL.close();
-				outDataU.close();
+
 				matchDBTrajectory("Load\\UFormFile.csv", "Load\\LFormFile.csv");
 				break;
 			}
@@ -1699,17 +1987,12 @@ void idle()
 			glGetFloatv(GL_MODELVIEW_MATRIX, lua_node.m);
 
 			quaternion reset_U(uqdata[isize][0], uqdata[isize][1], uqdata[isize][2], uqdata[isize][3]);
-			quaternion reset_L(-lqdata[isize][0], lqdata[isize][2], lqdata[isize][1], lqdata[isize][3]);
-
-			/*float q0 = reset_U.mData[3];
-			float q1 = reset_U.mData[0];
-			float q2 = reset_U.mData[2];
-			float q3 = -reset_U.mData[1];*/
+			quaternion reset_L(lqdata[isize][0], lqdata[isize][1], lqdata[isize][2], lqdata[isize][3]);
 
 			float q0 = reset_U.mData[3];
 			float q1 = reset_U.mData[0];
-			float q2 = reset_U.mData[1];
-			float q3 = reset_U.mData[2];
+			float q2 = reset_U.mData[2];
+			float q3 = -reset_U.mData[1];
 
 
 			float angle_rad = acos(q0) * 2;
@@ -1730,15 +2013,10 @@ void idle()
 
 			glGetFloatv(GL_MODELVIEW_MATRIX, lla_node.m);
 			
-			/*q0 = lqdata[isize][3];
+			q0 = lqdata[isize][3];
 			q1 = lqdata[isize][0];
 			q2 = lqdata[isize][2];
-			q3 = -lqdata[isize][1];*/
-
-			q0 = lqdata[isize][3];
-			q1 = -lqdata[isize][0];
-			q2 = lqdata[isize][2];
-			q3 = lqdata[isize][1];
+			q3 = -lqdata[isize][1];
 			
 			if (q0 == 9)
 			{
@@ -1793,25 +2071,15 @@ void idle()
 			///////////////////////////////////
 			indexP++;
 						
-			if (indexP == 1)
-			{
-				outDataL.open("pointData\\StandarduserDataL.txt");
-				outDataU.open("pointData\\StandarduserDataU.txt");
-			}
-
 			PA_data[indexP][0] = 1.0;
 			PA_data[indexP][1] = TransfBodyQuat1._x;
 			PA_data[indexP][2] = TransfBodyQuat1._y;
 			PA_data[indexP][3] = TransfBodyQuat1._z;
 
-			outDataL << PA_data[indexP][1] << "\t" << PA_data[indexP][2] << "\t" << PA_data[indexP][3] << endl;
-
 			uPA_data[indexP][0] = 1.0;
 			uPA_data[indexP][1] = TransfBodyQuat2._x;
 			uPA_data[indexP][2] = TransfBodyQuat2._y;
 			uPA_data[indexP][3] = TransfBodyQuat2._z;
-
-			outDataU << uPA_data[indexP][1] << "\t" << uPA_data[indexP][2] << "\t" << uPA_data[indexP][3] << endl;
 			
 			//PA_data[indexP][0] = 1;// TransfBodyQuat.mData[3];
 			//PA_data[indexP][1] = TransfBodyQuat.mData[0];
@@ -1847,8 +2115,7 @@ void idle()
 			{
 				bReadDBFile = false;
 				idbsize = 0;
-				outDataL.close();
-				outDataU.close();
+				outData.close();
 				break;
 			}
 
@@ -1930,23 +2197,19 @@ void idle()
 			///////////////////////////////////
 			
 			indexDB++;
-			if(indexDB == 1){
-				outDataL.open("pointData\\outDataDBL.txt");
-				outDataU.open("pointData\\outDataDBU.txt");
-			}
+			if(indexDB == 1) 
+				outData.open("outData.txt");
 			lDB_data[indexDB][0] = 1.0;
 			lDB_data[indexDB][1] = TransfBodyQuat1._x;
 			lDB_data[indexDB][2] = TransfBodyQuat1._y;
 			lDB_data[indexDB][3] = TransfBodyQuat1._z;
 			
-			outDataL << lDB_data[indexDB][1] << "\t" << lDB_data[indexDB][2] << "\t" << lDB_data[indexDB][3] << endl;
+			outData << lDB_data[indexDB][1] << "\t" << lDB_data[indexDB][2] << "\t" << lDB_data[indexDB][3] << endl;
 
 			uDB_data[indexDB][0] = 1.0;
 			uDB_data[indexDB][1] = TransfBodyQuat2._x;
 			uDB_data[indexDB][2] = TransfBodyQuat2._y;
 			uDB_data[indexDB][3] = TransfBodyQuat2._z;
-
-			outDataU << uDB_data[indexDB][1] << "\t" << uDB_data[indexDB][2] << "\t" << uDB_data[indexDB][3] << endl;
 					
 			idbsize++;
 			break;
@@ -2434,6 +2697,8 @@ void keyBoardEvent(unsigned char key, int x, int y)
 			matchDBTrajectory(UfileName, LfileName);
 			
 		}
+
+		Comparision::resetDiagnosis();
 	}
 
 	if (key == 49) //Key-1
@@ -2530,6 +2795,7 @@ void keyBoardEvent(unsigned char key, int x, int y)
 		memset(PA_data, 0, 8056 * (sizeof(int)));
 		memset(uPA_data, 0, 8 * (sizeof(int)));
 		start = std::clock();
+		Comparision::resetDiagnosis();
 	}
 
 	if (key == '7')
