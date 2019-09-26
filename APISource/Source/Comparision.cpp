@@ -64,6 +64,12 @@ void Comparision:: readCSV(istream &input, vector< vector<string> > &output, qua
 	//rpyFile.close();
 }
 
+void Comparision::resetDiagnosis()
+{
+	diagnosisDone = false;
+
+}
+
 float Comparision::getDiffBtwTrajectory(char* usf1File, char* lsf1File, char* usf2File, char* lsf2File, int &percent, struct CurveProperty &curveProperty)
 {
 	int count1, count2;

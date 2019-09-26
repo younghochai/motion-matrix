@@ -21,4 +21,5 @@ class Comparision {
 	public:static void readCSV(istream &input, vector< vector<string> > &output, quaternion(&trajectory)[1024], int &count);
 public:static void curveDiagnosis(quaternion usf1[], quaternion lsf1[], int noOfPoints,
 	struct CurveProperty &Curveproperty);
+public:static   void resetDiagnosis();
 };
