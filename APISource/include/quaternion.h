@@ -39,8 +39,8 @@ public:
 	quaternion mutiplication(quaternion Q);
 	TVector3 quternionMatrices(quaternion Q,  TVector3 vecPoint);
 	void quaternionToEulerAngles(quaternion Q, TVector3& vecPoint);
-
 	void setPrecisionOfValues();
+	quaternion EulerAngleToQuaternion(double yaw, double pitch, double roll);
 
 };
 
