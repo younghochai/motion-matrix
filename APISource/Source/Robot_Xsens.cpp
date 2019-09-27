@@ -97,7 +97,7 @@ rsh_node, lsh_node;
 
 //Output to file
 ofstream L_rawqfile, U_rawqfile, P_rawfile ,LatLongfile;
-ofstream L_qfile1, L_rfile2, L_sfqfile, U_sfqfile, Calibfile, RPY_lowpass, outData;
+ofstream L_qfile1, L_rfile2, L_sfqfile, U_sfqfile, Calibfile, RPY_lowpass, outDataL, outDataU;
 
 bool fileClose = false;
 float** uqdata;
@@ -1975,7 +1975,8 @@ void idle()
 				isize = 0;
 				L_rfile2.close();
 				RPY_lowpass.close();
-
+				outDataL.close();
+				outDataU.close();
 				matchDBTrajectory("Load\\UFormFile.csv", "Load\\LFormFile.csv");
 				break;
 			}
@@ -1987,14 +1988,12 @@ void idle()
 			glGetFloatv(GL_MODELVIEW_MATRIX, lua_node.m);
 
 			quaternion reset_U(uqdata[isize][0], uqdata[isize][1], uqdata[isize][2], uqdata[isize][3]);
-			quaternion reset_L(lqdata[isize][0], lqdata[isize][1], lqdata[isize][2], lqdata[isize][3]);
-
+			quaternion reset_L(-lqdata[isize][1], -lqdata[isize][2], lqdata[isize][0], lqdata[isize][3]);
 			float q0 = reset_U.mData[3];
 			float q1 = reset_U.mData[0];
 			float q2 = reset_U.mData[2];
 			float q3 = -reset_U.mData[1];
-
-
+			
 			float angle_rad = acos(q0) * 2;
 			float angle_deg = angle_rad * 180 / PI;
 
@@ -2017,6 +2016,8 @@ void idle()
 			q1 = lqdata[isize][0];
 			q2 = lqdata[isize][2];
 			q3 = -lqdata[isize][1];
+
+			
 			
 			if (q0 == 9)
 			{
@@ -2071,16 +2072,24 @@ void idle()
 			///////////////////////////////////
 			indexP++;
 						
+			if (indexP == 1)
+			{
+				outDataL.open("pointData\\StandarduserDataL.txt");
+				outDataU.open("pointData\\StandarduserDataU.txt");
+			}
 			PA_data[indexP][0] = 1.0;
 			PA_data[indexP][1] = TransfBodyQuat1._x;
 			PA_data[indexP][2] = TransfBodyQuat1._y;
 			PA_data[indexP][3] = TransfBodyQuat1._z;
 
+			outDataL << PA_data[indexP][1] << "\t" << PA_data[indexP][2] << "\t" << PA_data[indexP][3] << endl;
+
 			uPA_data[indexP][0] = 1.0;
 			uPA_data[indexP][1] = TransfBodyQuat2._x;
 			uPA_data[indexP][2] = TransfBodyQuat2._y;
 			uPA_data[indexP][3] = TransfBodyQuat2._z;
-			
+
+			outDataU << uPA_data[indexP][1] << "\t" << uPA_data[indexP][2] << "\t" << uPA_data[indexP][3] << endl;
 			//PA_data[indexP][0] = 1;// TransfBodyQuat.mData[3];
 			//PA_data[indexP][1] = TransfBodyQuat.mData[0];
 			//PA_data[indexP][2] = TransfBodyQuat.mData[1];
@@ -2115,7 +2124,8 @@ void idle()
 			{
 				bReadDBFile = false;
 				idbsize = 0;
-				outData.close();
+				outDataL.close();
+				outDataU.close();
 				break;
 			}
 
@@ -2197,19 +2207,23 @@ void idle()
 			///////////////////////////////////
 			
 			indexDB++;
-			if(indexDB == 1) 
-				outData.open("outData.txt");
+			if (indexDB == 1) {
+				outDataL.open("pointData\\outDataDBL.txt");
+				outDataU.open("pointData\\outDataDBU.txt");
+			}
 			lDB_data[indexDB][0] = 1.0;
 			lDB_data[indexDB][1] = TransfBodyQuat1._x;
 			lDB_data[indexDB][2] = TransfBodyQuat1._y;
 			lDB_data[indexDB][3] = TransfBodyQuat1._z;
 			
-			outData << lDB_data[indexDB][1] << "\t" << lDB_data[indexDB][2] << "\t" << lDB_data[indexDB][3] << endl;
+			outDataL << lDB_data[indexDB][1] << "\t" << lDB_data[indexDB][2] << "\t" << lDB_data[indexDB][3] << endl;
 
 			uDB_data[indexDB][0] = 1.0;
 			uDB_data[indexDB][1] = TransfBodyQuat2._x;
 			uDB_data[indexDB][2] = TransfBodyQuat2._y;
 			uDB_data[indexDB][3] = TransfBodyQuat2._z;
+
+			outDataU << uDB_data[indexDB][1] << "\t" << uDB_data[indexDB][2] << "\t" << uDB_data[indexDB][3] << endl;
 					
 			idbsize++;
 			break;
