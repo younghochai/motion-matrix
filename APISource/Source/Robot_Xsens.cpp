@@ -505,7 +505,7 @@ void torso()
 	glPushMatrix();
 		glTranslatef(0.0, 0.0, 0.0);
 		glRotatef(90, 1, 0, 0);
-		glutSolidCone(1.0, 0.75, 5, 5);
+		glutSolidCone(1.0, 0.75, 6, 6);
 	glPopMatrix();
 
 	//Belly Center joint Circle
@@ -538,7 +538,7 @@ void torso()
 	glPushMatrix();
 		glTranslatef(0.0, 5.75, 0.0);
 		glRotatef(90, 1, 0, 0);
-		glutSolidCone(0.8, 5.5, 5, 5);
+		glutSolidCone(0.8, 5.5, 6,6);
 	glPopMatrix();
 
 
@@ -551,7 +551,7 @@ void head()
 		glPushMatrix();
 		glTranslatef(-0.1, 0.25, 0);
 		glRotatef(-90, 1, 0, 0);
-		glutSolidCone(0.55, 2.05, 5, 5);
+		glutSolidCone(0.55, 2.05, 6,6);
 	glPopMatrix();
 
 
@@ -564,7 +564,7 @@ void neck()
 	glPushMatrix();
 		glRotatef(-90.0, 1.0, 0.0, 0.0);
 		glTranslatef(0.0, 0.0, 0.0);
-		glutSolidCone(0.55, 1.05, 5, 5);
+		glutSolidCone(0.55, 1.05, 6, 6);
 	glPopMatrix();
 
 	//Neck Joint Circle
@@ -583,7 +583,7 @@ void rightShoulder()
 	glPushMatrix();
 		glTranslatef(-1.85, 0.10, 0);
 		glRotatef(90, 0.12, 1, 0);
-		glutSolidCone(0.35, 2.25, 5, 5);
+		glutSolidCone(0.35, 2.25, 6, 6);
 	glPopMatrix();
 
 
@@ -606,7 +606,7 @@ void leftShoulder()
 	glPushMatrix();
 		glTranslatef(1.85, 0.125, 0);
 		glRotatef(-90, -0.1, 1, 0.0);
-		glutSolidCone(0.35, 2.25, 5, 5);
+		glutSolidCone(0.35, 2.25, 6, 6);
 	glPopMatrix();
 
 
@@ -669,7 +669,7 @@ void leftFoot()
 	glPushMatrix();
 		glTranslatef(0.0, 0.8, 0);
 		glRotatef(90, 1, 0, 0);
-		glutSolidCone(0.75, 0.75, 5, 5);
+		glutSolidCone(0.75, 0.75, 6, 6);
 	glPopMatrix();
 
 	//Left Foot Joint Circle
@@ -690,7 +690,7 @@ void rightFoot()
 	glPushMatrix();
 		glTranslatef(0.15, 0.8, 0);
 		glRotatef(90, 1, 0, 0);
-		glutSolidCone(0.75, 0.75, 5, 5);
+		glutSolidCone(0.75, 0.75, 6, 6);
 	glPopMatrix();
 
 	//Right Foot Joint Circle
@@ -843,7 +843,7 @@ void right_lower_arm()
 
 void left_upper_leg()
 {
-	//Left Upper Leg Cap
+	//Left Upper Leg 
 	glColor3f(0.98, 0.14, 0.21);
 	glPushMatrix();
 		glTranslatef(0.0, 1.0, 0);
@@ -851,7 +851,7 @@ void left_upper_leg()
 		glutSolidCone(UPPER_LEG_RADIUS - 0.1, UPPER_LEG_HEIGHT, 10, 10);
 	glPopMatrix();
 
-	//Left Upper Leg
+	//Left Upper Leg Cap
 	glColor3f(0.98, 0.14, 0.21);
 	glPushMatrix();
 		glTranslatef(0.0, 1.0, 0);
@@ -1380,7 +1380,7 @@ void Robotdisplay(void)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glLoadIdentity();
 	//glScalef(zoominout, zoominout, zoominout);
-	DrawGrid();
+	//DrawGrid();
 	glColor3f(0.8, 0.4, 0.2);
 	traverse(&torso_node);
 	
