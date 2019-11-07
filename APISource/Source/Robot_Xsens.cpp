@@ -48,13 +48,19 @@ struct TVec3 {
 };
 
 
+struct Avatar {
+	quaternion b0, b1, b2, b3, b4, b5, b6, b7, b8, b9 ;
+	quaternion prv_b0, prv_b1, prv_b2, prv_b3, prv_b4, 
+			   prv_b5, prv_b6, prv_b7, prv_b8, prv_b9;
+};
+quaternion qInit = { 0,0,0,1 };
+struct Avatar avatar = { qInit,qInit,qInit,qInit,qInit,qInit,qInit,qInit,qInit,qInit };
 
-int option = -1;
+int option = -1, subOption = -1;
 int animation = -3; //teleytaio animation
 int done = 0; //an oloklirwthike to teleytaio animation
 double rotate_ = 0;
-double horizontal = 0;
-double zoominout = 1.2;
+
 double xr = 0, yr = 0, zr = 0;
 
 void head();
@@ -80,7 +86,7 @@ typedef struct treenode
 }treenode;
 
 typedef treenode* t_ptr;
-
+							//0 , 1 , 2 ,   3 , 4 ,  5  , 6 ,  7  , 8 ,  9  ,10
 static GLfloat theta[11] = { 0.0,0.0,0.0,180.0,0.0,180.0,0.0,180.0,0.0,180.0,0.0 }; /* initial joint angles */
 
 static GLint angle = 2;
@@ -97,7 +103,7 @@ rsh_node, lsh_node;
 
 //Output to file
 ofstream L_rawqfile, U_rawqfile, P_rawfile ,LatLongfile;
-ofstream L_qfile1, L_rfile2, L_sfqfile, U_sfqfile, Calibfile, RPY_lowpass, outDataL, outDataU;
+ofstream L_qfile1, L_rfile2, L_sfqfile, U_sfqfile, Calibfile, RPY_lowpass, outDataL, outDataU, LeftL_sfqfile, LeftU_sfqfile;
 
 bool fileClose = false;
 float** uqdata;
@@ -114,9 +120,13 @@ int idbsize = 0;
 bool startAnim = false;
 double prevDegree = 0;
 
-quaternion QuatData_U, QuatData_L, QuatData_C;
-quaternion firstInvQuat_U, firstInvQuat_L, firstInvQuat_C;
-quaternion qPA, qPrevPA, qPrevInvsPA, firstPlvCalib;
+quaternion QuatData_RightUpperArm, QuatData_RightLowerArm, QuatData_Pelvis, QuatData_LeftUpperArm, QuatData_LeftLowerArm;
+quaternion QuatData_RightUpperLeg, QuatData_RightLowerLeg, QuatData_head, QuatData_LeftUpperLeg, QuatData_LeftLowerLeg;
+quaternion firstInvQuat_RightUpperArm, firstInvQuat_RightLowerArm, firstInvQuat_C;
+quaternion firstInvQuat_RightUpperLeg, firstInvQuat_RightLowerLeg, firstInvQuat_head;
+quaternion firstInvQuat_LeftUpperArm, firstInvQuat_LeftLowerArm;
+quaternion firstInvQuat_LeftUpperLeg, firstInvQuat_LeftLowerLeg;
+quaternion qPA, qPrevPA, qPrevInvsPA, firstPlvCalib, firstHeadCalib;
 quaternion uqPA,uqPrevPA, uqPrevInvsPA;
 quaternion currentQuat, nextQuat, firstQuat;
 quaternion QuatFirstVect1, QuatFirstVect2, QuatAxis;
@@ -133,6 +143,7 @@ bool startCalib = false;
 TVector3 V0, V1;
 TVector3 avgRPY;
 int indexP = 0;
+int LindexP = 0;
 int indexDB = 0;
 int centerindexP = 1;
 int averageIndexP = 0;
@@ -166,6 +177,8 @@ bool mouseDown = false;
 
 float PA_data[20014][4];
 float uPA_data[20014][4];
+float LeftLower_data[20014][4];
+float LeftUpper_data[20014][4];
 float drawGrid[20014][4];
 
 
@@ -195,7 +208,6 @@ int stdPercent, closePercent, widePercent;
 float threshold = 0.15f;
 float color[4] = { 0, 0, 0, 1 };
 float mcolor[4] = { 1, 0, 0, 1 };
-float rotAngle_upper = 0, rotAngle_lower = 0;
 
 //Texturemapping
 
@@ -539,7 +551,7 @@ void torso()
 	glPushMatrix();
 		glTranslatef(0.0, 5.75, 0.0);
 		glRotatef(90, 1, 0, 0);
-		glutSolidCone(0.8, 5.5, 6,6);
+		glutSolidCone(0.8, 5.5, 6, 6);
 	glPopMatrix();
 
 
@@ -552,7 +564,7 @@ void head()
 		glPushMatrix();
 		glTranslatef(-0.1, 0.25, 0);
 		glRotatef(-90, 1, 0, 0);
-		glutSolidCone(0.55, 2.05, 6,6);
+		glutSolidCone(0.55, 2.05, 6, 6);
 	glPopMatrix();
 
 
@@ -844,7 +856,7 @@ void right_lower_arm()
 
 void left_upper_leg()
 {
-	//Left Upper Leg 
+	//Left Upper Leg Cap
 	glColor3f(0.98, 0.14, 0.21);
 	glPushMatrix();
 		glTranslatef(0.0, 1.0, 0);
@@ -852,7 +864,7 @@ void left_upper_leg()
 		glutSolidCone(UPPER_LEG_RADIUS - 0.1, UPPER_LEG_HEIGHT, 10, 10);
 	glPopMatrix();
 
-	//Left Upper Leg Cap
+	//Left Upper Leg
 	glColor3f(0.98, 0.14, 0.21);
 	glPushMatrix();
 		glTranslatef(0.0, 1.0, 0);
@@ -1163,9 +1175,7 @@ void showInfo(/*std::stringstream &ss, int tWidth, int tHeight*/)
 	//float angle = RAD2DEG * acosf(v1.dot(v2) / (v1.length() * v2.length()));
 
 	// for print infos
-
-	//std::stringstream ss;
-	//ss << "Standard : (" << connectXS.ax[0] << ", " << connectXS.ax[1] << ", " << connectXS.ax[2] << ", " << connectXS.ax[3] << ")";
+		
 	
 	
 	/////////////////////
@@ -1381,7 +1391,7 @@ void Robotdisplay(void)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glLoadIdentity();
 	//glScalef(zoominout, zoominout, zoominout);
-	//DrawGrid();
+	DrawGrid();
 	glColor3f(0.8, 0.4, 0.2);
 	traverse(&torso_node);
 	
@@ -1408,7 +1418,7 @@ void Robotdisplay(void)
 
 	//glutSwapBuffers();
 }
-void PrincipalAxis(void)
+void drawTrajectory(void)
 {
 	
 	//glDisable(GL_SMOOTH);
@@ -1506,6 +1516,24 @@ void PrincipalAxis(void)
 		drawQuads(PA_data[i][1] / fnorm, PA_data[i][2] / fnorm, PA_data[i][3] / fnorm);
 		glPopMatrix();*/
 		//draw quads end
+		glColor3f(0.2, 0.2, 0.8);
+		fnorm = sqrt(LeftLower_data[i][1] * LeftLower_data[i][1] + LeftLower_data[i][2] * LeftLower_data[i][2] + LeftLower_data[i][3] * LeftLower_data[i][3]);
+		glPushMatrix();
+		glTranslatef(1.011*LeftLower_data[i][1] / fnorm, 1.011*LeftLower_data[i][2] / fnorm, 1.011*LeftLower_data[i][3] / fnorm);
+		glutSolidSphere(0.009, 30, 30);
+		/*glRotatef(PA_data[i][0],PA_data[i][1], PA_data[i][2], PA_data[i][3]);
+		drawCoordinate(0.1);*/
+		glPopMatrix();
+
+		glColor3f(0.4, 0.6, 0.4);
+
+		fnorm = sqrt(LeftUpper_data[i][1] * LeftUpper_data[i][1] + LeftUpper_data[i][2] * LeftUpper_data[i][2] + LeftUpper_data[i][3] * LeftUpper_data[i][3]);
+		glPushMatrix();
+		glTranslatef(1.011*LeftUpper_data[i][1] / fnorm, 1.011*LeftUpper_data[i][2] / fnorm, 1.011*LeftUpper_data[i][3] / fnorm);
+		glutSolidSphere(0.009, 30, 30);
+		/*glRotatef(PA_data[i][0],PA_data[i][1], PA_data[i][2], PA_data[i][3]);
+		drawCoordinate(0.1);*/
+		glPopMatrix();
 
 	}
 
@@ -1515,6 +1543,13 @@ void PrincipalAxis(void)
 		glPushMatrix();
 		//drawQuads(drawGrid[0][1], drawGrid[0][2], drawGrid[0][3]);
 		glTranslatef(1.011*drawGrid[0][1], 1.011*drawGrid[0][2], 1.011*drawGrid[0][3]);
+		glutSolidSphere(0.025, 30, 30);
+		glPopMatrix();
+
+		glColor3f(0, 0, 0);
+		glPushMatrix();
+		//drawQuads(drawGrid[0][1], drawGrid[0][2], drawGrid[0][3]);
+		glTranslatef(1.011*drawGrid[1][1], 1.011*drawGrid[1][2], 1.011*drawGrid[1][3]);
 		glutSolidSphere(0.025, 30, 30);
 		glPopMatrix();
 	}
@@ -1591,17 +1626,8 @@ void PrincipalAxis(void)
 
 	}
 
-	// draw quads
-	
-
-
 	glPopMatrix();
-	/*glDisable(GL_LIGHTING);
-	glEnable(GL_LIGHTING);
-	glEnable(GL_SMOOTH);
-	glEnable(GL_LIGHTING);
-	glEnable(GL_LIGHT0);
-	glEnable(GL_DEPTH_TEST);*/
+	
 }
 
 void Display(void)
@@ -1616,7 +1642,7 @@ void Display(void)
 	Robotdisplay();
 
 	//glDisable(GL_COLOR_MATERIAL);
-	PrincipalAxis();
+	drawTrajectory();
 	//glEnable(GL_COLOR_MATERIAL);
 	/*fourSphere();
 	TextDispaly();*/
@@ -1656,78 +1682,143 @@ void matchDBTrajectory(char * Ufile, char * Lfile)
 	if (diff3 < diff1)
 	{
 		diff = diff3;
-	}
-	
-	//if (diff < 0.1 && diff==diff1)
-	//{
-	//	std::stringstream ss;
-	//	ss << "Standard Curl: (" << diff1 << "[Match])";
-	//	showInfo(ss, width / 4 + 150, height / 2 + 250);
-	//	printf("Standard Curl:%f (Match)\n", diff1);
-	//	isMatched = true;
-	//}
-	//else
-	//{
-	//	std::stringstream ss;
-	//	ss << "Standard Curl: (" << diff1 << "[No-Match])";
-	//	showInfo(ss, width / 4 + 150, height / 2 + 250);
-	//	printf("Standard Curl:%f (No-Match)\n", diff1);
-	//}
-
-	//
-
-	////if (!isMatched)
-	//{
-	//	
-
-	//	if (diff < 0.1 && diff == diff2)
-	//	{
-	//		std::stringstream ss;
-	//		ss << "Close Curl: (" << diff2 << "[Match])";
-	//		showInfo(ss, width / 4 + 150, height / 2 + 250-(2*TEXT_HEIGHT));
-	//		printf("Close Curl:%f (Match)\n", diff2);
-	//		isMatched = true;
-	//	}
-	//	else
-	//	{
-	//		std::stringstream ss;
-	//		ss << "Close Curl: (" << diff2 << "[No-Match])";
-	//		showInfo(ss, width / 4 + 150, height / 2 + 250 - (2 * TEXT_HEIGHT));
-	//		printf("Close Curl:%f (No-Match)\n", diff2);
-	//	}
-	//}
-	//
-	////if (!isMatched)
-	//{
-	//	
-
-	//	if (diff < 0.1 && diff == diff3)
-	//	{
-	//		std::stringstream ss;
-	//		ss << "Wide Curl: (" << diff3 << "[Match])";
-	//		showInfo(ss, width / 4 + 150, height / 2 + 250 - (3 * TEXT_HEIGHT));
-	//		printf("Wide Curl:%f (Match)\n", diff3);
-	//		isMatched = true;
-	//	}
-	//	else
-	//	{
-	//		std::stringstream ss;
-	//		ss << "Wide Curl: (" << diff3 << "[No-Match])";
-	//		showInfo(ss, width / 4 + 150, height / 2 + 250 - (3 * TEXT_HEIGHT));
-	//		printf("Wide Curl:%f (not-Match)\n", diff3);
-	//	}
-	//}
-	//
-
-	//if (!isMatched)
-	//{
-	//	std::stringstream ss;
-	//	ss << "No match found!!";
-	//	showInfo(ss, width / 4 + 150, height / 2 + 250 - (4 * TEXT_HEIGHT));
-	//	printf("No match found");
-	//}
+	}	
 }
 
+void rotateBone( quaternion q, treenode &joint, float tX, float tY, float tZ)
+{
+	double q0, q1, q2, q3;
+	double angle_rad, angle_deg;
+	double x, y, z, fnorm;
+
+	q0 = q.mData[3];
+	q1 = q.mData[0];
+	q2 = q.mData[2];
+	q3 = -q.mData[1];
+
+
+	angle_rad = acos(q0) * 2;
+	angle_deg = angle_rad * 180 / PI;
+
+	x = q1 / sin(angle_rad / 2);
+	y = q2 / sin(angle_rad / 2);
+	z = q3 / sin(angle_rad / 2);
+	fnorm = sqrt(x*x + y*y + z*z);
+
+
+	glLoadIdentity();
+	glTranslatef(tX, tY, tZ);
+	//glGetFloatv(GL_MODELVIEW_MATRIX, joint.m);
+	glRotatef(angle_deg, x / fnorm, y / fnorm, z / fnorm);
+	glGetFloatv(GL_MODELVIEW_MATRIX, joint.m);
+}
+
+void rotateJoint(treenode &joint, float tX, float tY, float tZ)
+{
+	glLoadIdentity();
+	glTranslatef(tX, tY, tZ);
+	glGetFloatv(GL_MODELVIEW_MATRIX, joint.m);
+
+}
+
+void rotateBody(struct Avatar &avatar)
+{
+	glPushMatrix();
+		rotateBone(avatar.b0, torso_node, 0.0, 0.0, 0.0);
+	glPopMatrix();
+		glPushMatrix();//Head
+			rotateJoint(nk_node, 0.0, TORSO_HEIGHT - 0.25*NECK_HEIGHT, 0.0);
+			rotateBone(avatar.b1, head_node, 0.0, 0.75*NECK_HEIGHT, 0.0);
+		glPopMatrix();
+	
+		glPushMatrix();//Right Arm
+		//rotateBone(avatar.b0, torso_node, 0.0, 0.0, 0.0);
+			rotateJoint(lsh_node, -(TORSO_RADIUS + UPPER_ARM_RADIUS), 0.9*TORSO_HEIGHT, 0.0);
+			rotateBone(avatar.b2, lua_node, 0.0, 0.0, 0.0);
+			rotateJoint(lelb_node, 0.0, -UPPER_ARM_HEIGHT, 0.0);
+			rotateBone(avatar.b3, lla_node, 0.0, -ELBOW_RADIUS / 2, 0.0);
+			rotateJoint(lhand_node, 0.0, -LOWER_ARM_HEIGHT, 0.0);
+		glPopMatrix();
+	
+		glPushMatrix();//Left Arm
+			//rotateBone(avatar.b0, torso_node, 0.0, 0.0, 0.0);
+			rotateJoint(rsh_node, TORSO_RADIUS + UPPER_ARM_RADIUS, 0.9*TORSO_HEIGHT, 0.0);
+			rotateBone(avatar.b4, rua_node, 0.0, 0.0, 0.0);
+			rotateJoint(relb_node, 0.0, -UPPER_ARM_HEIGHT, 0.0);
+			rotateBone(avatar.b5, rla_node, 0.0, -ELBOW_RADIUS / 2, 0.0);
+			rotateJoint(rhand_node, 0.0, -LOWER_ARM_HEIGHT, 0.0);
+		glPopMatrix();
+	
+		glPushMatrix();//Right Leg
+			//rotateBone(avatar.b0, torso_node, 0.0, 0.0, 0.0);
+			rotateBone(avatar.b6.mutiplication(quaternion(1,0,0,0)), lul_node, -TORSO_RADIUS / 2, 0.1*UPPER_LEG_HEIGHT, 0.0);
+			rotateJoint(lknee_node, 0.0, UPPER_LEG_HEIGHT, 0.0);
+			rotateBone(avatar.b7, lll_node, 0.0, KNEE_RADIUS / 2, 0.0);
+			rotateJoint(lfoot_node, 0.0, LOWER_LEG_HEIGHT, 0.0);
+		glPopMatrix();
+	
+		glPushMatrix();//Left Leg
+			//rotateBone(avatar.b0, torso_node, 0.0, 0.0, 0.0);
+			rotateBone(avatar.b8.mutiplication(quaternion(1, 0, 0, 0)), rul_node, TORSO_RADIUS / 2, 0.1*UPPER_LEG_HEIGHT, 0.0);
+			rotateJoint(rknee_node, 0.0, UPPER_LEG_HEIGHT, 0.0);
+			rotateBone(avatar.b9, rll_node, 0.0, KNEE_RADIUS / 2, 0.0);
+			rotateJoint(rfoot_node, 0.0, LOWER_LEG_HEIGHT, 0.0);
+		glPopMatrix();
+	//glPopMatrix();
+}
+
+bool isNotSameQuat(quaternion currentQuat, quaternion previousQuat)
+{
+	if (!isFirst)
+	{
+		qPA = currentQuat.mutiplication(previousQuat.Inverse());		
+	}
+	else
+	{
+		isFirst = false;
+		return false;
+	}
+
+	if (qPA.mData[3] >= 0.99999 && uqPA.mData[3] >= 0.99999)
+	{
+		return false;
+	}
+
+	//if (qPA.mData[3] >= 0.99999)
+	//{
+	//	child = qPrevInvsPA.Inverse();
+	//	//printf("Skip lower arm\n");
+	//}
+
+	//if (uqPA.mData[3] >= 0.99999)
+	//{
+	//	parent = uqPrevInvsPA.Inverse();
+	//	//printf("Skip upper arm\n");
+	//}
+	return true;
+}
+
+void calaculateTrajectory(quaternion parent, quaternion child, TVec3 &parentVec, TVec3 &childVec )
+{
+	TVec3 trajVec;
+	quaternion tempQuat2 = BodyQuat.mutiplication(parent);
+
+	quaternion tempQuat1 = tempQuat2.mutiplication(child);//Case-2 usf_q
+
+
+	quaternion lTransfBodyQuat = tempQuat1;
+	quaternion uTransfBodyQuat = tempQuat2;
+	quaternion vQuat(tempVec._x, tempVec._y, tempVec._z, 0);
+
+	lTransfBodyQuat = lTransfBodyQuat.mutiplication(vQuat.mutiplication(lTransfBodyQuat.Inverse()));
+	uTransfBodyQuat = uTransfBodyQuat.mutiplication(vQuat.mutiplication(uTransfBodyQuat.Inverse()));
+		
+	L_sfqfile << child.mData[3] << "," << child.mData[0] << "," << child.mData[1] << "," << child.mData[2] << "\n";
+	U_sfqfile << parent.mData[3] << "," << parent.mData[0] << "," << parent.mData[1] << "," << parent.mData[2] << "\n";
+
+	parentVec = { (float)uTransfBodyQuat.mData[0], (float)uTransfBodyQuat.mData[1], (float)uTransfBodyQuat.mData[2]};
+	childVec = { (float)lTransfBodyQuat.mData[0], (float)lTransfBodyQuat.mData[1], (float)lTransfBodyQuat.mData[2] };	
+}
 
 void idle()
 {
@@ -1755,198 +1846,403 @@ void idle()
 
 		if (DataAvailable && startAnim)
 		{
-			QuatData_U = quaternion(connectXS.ax[0], connectXS.ax[1], connectXS.ax[2], connectXS.ax[3]);
-			QuatData_L = quaternion(connectXS.ax2[0], connectXS.ax2[1], connectXS.ax2[2], connectXS.ax2[3]);
-			QuatData_C = quaternion(connectXS.r_ax3[0], connectXS.r_ax3[1], connectXS.r_ax3[2], connectXS.r_ax3[3]);
-
-			double q0 , q1, q2, q3;
-			double angle_rad, angle_deg;
-			double x, y, z, fnorm;
-
-			if (First_calibrate  /*&& fileClose*/) {
-
-				std::cout << "AttentionPose:" << std::endl;
-
-				firstInvQuat_U = QuatData_U.Inverse();
-				std::cout << "Upper-Arm Quat:\t" << firstInvQuat_U.mData[3] << "\t" << firstInvQuat_U.mData[0] << "\t" << firstInvQuat_U.mData[1] << "\t" << firstInvQuat_U.mData[2] << std::endl;
-
-				firstInvQuat_L = QuatData_L;
-				std::cout << "Lower-Arm Quat:\t" << firstInvQuat_L.mData[3] << "\t" << firstInvQuat_L.mData[0] << "\t" << firstInvQuat_L.mData[1] << "\t" << firstInvQuat_L.mData[2] << std::endl;
-				firstInvQuat_L = QuatData_L.Inverse();
-
-				firstPlvCalib = QuatData_C.Inverse();
-				std::cout << "Pelvis Quat:\t" << QuatData_C.mData[3] << "\t" << QuatData_C.mData[0] << "\t" << QuatData_C.mData[1] << "\t" << QuatData_C.mData[2] << std::endl;
-
-				time_t curr_time;
-				curr_time = time(NULL);
-				tm *tm_local = localtime(&curr_time);
-
-				/*sprintf_s(fileName, "CData\\CalibFile-00%d-%d%d%d.csv", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
-				Calibfile.open(fileName);
-				Calibfile << QuatData_U.mData[3] << "," << QuatData_U.mData[0] << "," << QuatData_U.mData[1] << "," << QuatData_U.mData[2] << "," << "UpperArm" << "\n";
-				Calibfile << QuatData_L.mData[3] << "," << QuatData_L.mData[0] << "," << QuatData_L.mData[1] << "," << QuatData_L.mData[2] << "," << "LowerArm" << "\n";
-				Calibfile << QuatData_C.mData[3] << "," << QuatData_C.mData[0] << "," << QuatData_C.mData[1] << "," << QuatData_C.mData[2] << "," << "Pelvis" << "\n";
-				Calibfile.close();*/
-				First_calibrate = false;
-
-				/*time_t curr_time;
-				curr_time = time(NULL);
-				tm *tm_local = localtime(&curr_time);*/
-
-				/*sprintf_s(fileName, "CData\\BodyFixPoint-00%d-%d%d%d.csv", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
-				Calibfile.open(fileName);
-				Calibfile << QuatData_C.mData[3] << "," << QuatData_C.mData[0] << "," << QuatData_C.mData[1] << "," << QuatData_C.mData[2] << "," << "ForeArm" << "\n";
-				Calibfile.close();*/
-			}
-
-			firstInvQuat_C = QuatData_C.mutiplication(firstPlvCalib);
-			
-			quaternion reset_U = firstInvQuat_C.Inverse().mutiplication(QuatData_U.mutiplication(firstInvQuat_U));
-			reset_U.normalize();
-			quaternion usf_q = reset_U;
-			quaternion reset_L = QuatData_U.mutiplication(firstInvQuat_U).Inverse().mutiplication(QuatData_L.mutiplication(firstInvQuat_L));
-			reset_L.normalize();
-			quaternion lsf_q = reset_L;
-
-			q0 = reset_U.mData[3];
-			q1 = reset_U.mData[0];
-			q2 = reset_U.mData[2];
-			q3 = -reset_U.mData[1];
-
-
-			angle_rad = acos(q0) * 2;
-			angle_deg = angle_rad * 180 / PI;
-
-			x = q1 / sin(angle_rad / 2);
-			y = q2 / sin(angle_rad / 2);
-			z = q3 / sin(angle_rad / 2);
-			fnorm = sqrt(x*x + y*y + z*z);
-			
-			//............Right Arm.............//
-
-			glPushMatrix();
-			glGetFloatv(GL_MODELVIEW_MATRIX, lua_node.m);
-			glRotatef(angle_deg, x / fnorm, y / fnorm, z / fnorm);
-			glGetFloatv(GL_MODELVIEW_MATRIX, lua_node.m);
-			
-			////Right elbow
-			glLoadIdentity();
-			glTranslatef(0.0, -UPPER_ARM_HEIGHT, 0.0);
-			glGetFloatv(GL_MODELVIEW_MATRIX, lelb_node.m);
-
-			//Right lower arm
-			glGetFloatv(GL_MODELVIEW_MATRIX, lla_node.m);
-			
-			q0 = lsf_q.mData[3];
-			q1 = lsf_q.mData[0];
-			q2 = lsf_q.mData[2];
-			q3 = -lsf_q.mData[1];
-
-
-			angle_rad = acos(q0) * 2;
-			angle_deg = angle_rad * 180 / PI;
-			x = q1 / sin(angle_rad / 2);
-			y = q2 / sin(angle_rad / 2);
-			z = q3 / sin(angle_rad / 2);
-			
-			fnorm = sqrt(x*x + y*y + z*z);
-
-			
-			glLoadIdentity();
-			glTranslatef(0.0, 0.0, 0.0);
-			glRotatef(angle_deg, x / fnorm, y / fnorm, z / fnorm);
-			glGetFloatv(GL_MODELVIEW_MATRIX, lla_node.m);
-			glPopMatrix();
-
-
-			/////////////////////////
-			
-			
-			//quaternion tempQuat1 = BodyQuat.mutiplication(lsf_q);//Case-1
-
-			//quaternion tempQuat1 = BodyQuat.mutiplication(usf_q.mutiplication(lsf_q));//Case-3
-
-			quaternion tempQuat2 = BodyQuat.mutiplication(usf_q);
-
-			quaternion tempQuat1 = tempQuat2.mutiplication(lsf_q);//Case-2 usf_q
-
-			
-			quaternion lTransfBodyQuat = tempQuat1;
-			quaternion uTransfBodyQuat = tempQuat2;
-			quaternion vQuat(tempVec._x, tempVec._y, tempVec._z, 0);
-			
-			lTransfBodyQuat = lTransfBodyQuat.mutiplication(vQuat.mutiplication(lTransfBodyQuat.Inverse()));
-			uTransfBodyQuat = uTransfBodyQuat.mutiplication(vQuat.mutiplication(uTransfBodyQuat.Inverse()));
-
-			///////////////////////////////////////////////////////
-			if (fileClose)
+			switch (subOption)
 			{
-				uqPrevInvsPA = uqPrevPA;
-				uqPrevPA = usf_q.Inverse();
+			case 1:
+			{
+				QuatData_Pelvis = connectXS.xsIMU.b0;
 
-				qPrevInvsPA = qPrevPA;
-				qPrevPA = lsf_q.Inverse();
-				if (!isFirst)
+				QuatData_head = connectXS.xsIMU.b1;
+
+				QuatData_RightUpperArm = connectXS.xsIMU.b2;
+				QuatData_RightLowerArm = connectXS.xsIMU.b3;
+
+				QuatData_LeftUpperArm = connectXS.xsIMU.b4;
+				QuatData_LeftLowerArm = connectXS.xsIMU.b5;
+
+				QuatData_RightUpperLeg = connectXS.xsIMU.b6;
+				QuatData_RightLowerLeg = connectXS.xsIMU.b7;
+
+				QuatData_LeftUpperLeg = connectXS.xsIMU.b8;
+				QuatData_LeftLowerLeg = connectXS.xsIMU.b9;
+
+
+				if (First_calibrate  /*&& fileClose*/)
 				{
-					qPA = lsf_q.mutiplication(qPrevInvsPA);
-					uqPA = usf_q.mutiplication(uqPrevInvsPA);
-				}
-				else
-				{
-					isFirst = false;
-					break;
+
+					std::cout << "AttentionPose:" << std::endl;
+
+					firstPlvCalib = QuatData_Pelvis.Inverse();
+					std::cout << "Pelvis Quat:\t" << QuatData_Pelvis.mData[3] << "\t" << QuatData_Pelvis.mData[0] << "\t" << QuatData_Pelvis.mData[1] << "\t" << QuatData_Pelvis.mData[2] << std::endl;
+
+					firstHeadCalib = QuatData_head.Inverse();
+					std::cout << "Head Quat:\t" << QuatData_head.mData[3] << "\t" << QuatData_head.mData[0] << "\t" << QuatData_head.mData[1] << "\t" << QuatData_head.mData[2] << std::endl;
+
+					firstInvQuat_RightUpperArm = QuatData_RightUpperArm.Inverse();
+					std::cout << "Right Upper-Arm Quat:\t" << firstInvQuat_RightUpperArm.mData[3] << "\t" << firstInvQuat_RightUpperArm.mData[0] << "\t" << firstInvQuat_RightUpperArm.mData[1] << "\t" << firstInvQuat_RightUpperArm.mData[2] << std::endl;
+
+					firstInvQuat_RightLowerArm = QuatData_RightLowerArm.Inverse();
+					std::cout << "Right Lower-Arm Quat:\t" << firstInvQuat_RightLowerArm.mData[3] << "\t" << firstInvQuat_RightLowerArm.mData[0] << "\t" << firstInvQuat_RightLowerArm.mData[1] << "\t" << firstInvQuat_RightLowerArm.mData[2] << std::endl;
+
+					firstInvQuat_LeftUpperArm = QuatData_LeftUpperArm.Inverse();
+					std::cout << "Left Upper-Arm Quat:\t" << firstInvQuat_LeftUpperArm.mData[3] << "\t" << firstInvQuat_LeftUpperArm.mData[0] << "\t" << firstInvQuat_LeftUpperArm.mData[1] << "\t" << firstInvQuat_LeftUpperArm.mData[2] << std::endl;
+
+					firstInvQuat_LeftLowerArm = QuatData_LeftLowerArm.Inverse();
+					std::cout << "Left Lower-Arm Quat:\t" << firstInvQuat_LeftLowerArm.mData[3] << "\t" << firstInvQuat_LeftLowerArm.mData[0] << "\t" << firstInvQuat_LeftLowerArm.mData[1] << "\t" << firstInvQuat_LeftLowerArm.mData[2] << std::endl;
+
+					firstInvQuat_RightUpperLeg = QuatData_RightUpperLeg.Inverse();
+					std::cout << "Right Upper-Leg Quat:\t" << QuatData_RightUpperLeg.mData[3] << "\t" << QuatData_RightUpperLeg.mData[0] << "\t" << QuatData_RightUpperLeg.mData[1] << "\t" << QuatData_RightUpperLeg.mData[2] << std::endl;
+
+					firstInvQuat_RightLowerLeg = QuatData_RightLowerLeg.Inverse();
+					std::cout << "Right Lower-Leg Quat:\t" << QuatData_RightLowerLeg.mData[3] << "\t" << QuatData_RightLowerLeg.mData[0] << "\t" << QuatData_RightLowerLeg.mData[1] << "\t" << QuatData_RightLowerLeg.mData[2] << std::endl;
+
+					firstInvQuat_LeftUpperLeg = QuatData_LeftUpperLeg.Inverse();
+					std::cout << "Left Upper-Arm Quat:\t" << QuatData_LeftUpperLeg.mData[3] << "\t" << QuatData_LeftUpperLeg.mData[0] << "\t" << QuatData_LeftUpperLeg.mData[1] << "\t" << QuatData_LeftUpperLeg.mData[2] << std::endl;
+
+					firstInvQuat_LeftLowerLeg = QuatData_LeftLowerLeg.Inverse();
+					std::cout << "Left Lower-Arm Quat:\t" << QuatData_LeftLowerLeg.mData[3] << "\t" << QuatData_LeftLowerLeg.mData[0] << "\t" << QuatData_LeftLowerLeg.mData[1] << "\t" << firstInvQuat_LeftLowerArm.mData[2] << std::endl;
+
+					First_calibrate = false;
 				}
 
-				if (qPA.mData[3] >= 0.99999 && uqPA.mData[3] >= 0.99999)
-				{
-					//printf("qP > 0.9999\n");
-					//printf("Skip both\n");
-					break;
-				}
+				firstInvQuat_C = QuatData_Pelvis.mutiplication(firstPlvCalib);
 
-				if (qPA.mData[3] >= 0.99999)
-				{
-					lsf_q = qPrevInvsPA.Inverse();
-					//printf("Skip lower arm\n");
-				}
-
-				if (uqPA.mData[3] >= 0.99999)
-				{
-					usf_q = uqPrevInvsPA.Inverse();
-					//printf("Skip upper arm\n");
-				}
-
-				/*U_rawqfile << connectXS.ax[3] << "," << connectXS.ax[0] << "," << connectXS.ax[1] << "," << connectXS.ax[2] << "\n";
-				L_rawqfile << connectXS.ax2[3] << "," << connectXS.ax2[0] << "," << connectXS.ax2[1] << "," << connectXS.ax2[2] << "\n";
-				P_rawfile << connectXS.r_ax3[3] << "," << connectXS.r_ax3[0] << "," << connectXS.r_ax3[1] << "," << connectXS.r_ax3[2] << "\n";*/
-				L_sfqfile << lsf_q.mData[3] << "," << lsf_q.mData[0] << "," << lsf_q.mData[1] << "," << lsf_q.mData[2] << "\n";
-				U_sfqfile << usf_q.mData[3] << "," << usf_q.mData[0] << "," << usf_q.mData[1] << "," << usf_q.mData[2] << "\n";
-					
+				quaternion reset_head = firstInvQuat_C.Inverse().mutiplication(QuatData_head.mutiplication(firstHeadCalib));
+				reset_head.normalize();
 				
-				indexP++;
-				PA_data[indexP][0] = 1;// TransfBodyQuat.mData[3];
-				PA_data[indexP][1] = lTransfBodyQuat.mData[0];
-				PA_data[indexP][2] = lTransfBodyQuat.mData[1];
-				PA_data[indexP][3] = lTransfBodyQuat.mData[2];
+				quaternion reset_RUA = firstInvQuat_C.Inverse().mutiplication(QuatData_RightUpperArm.mutiplication(firstInvQuat_RightUpperArm));
+				reset_RUA.normalize();
+				
+				quaternion reset_RLA = QuatData_RightUpperArm.mutiplication(firstInvQuat_RightUpperArm).Inverse().mutiplication(QuatData_RightLowerArm.mutiplication(firstInvQuat_RightLowerArm));
+				reset_RLA.normalize();
+				
+				quaternion reset_RUL = firstInvQuat_C.Inverse().mutiplication(QuatData_RightUpperLeg.mutiplication(firstInvQuat_RightUpperLeg));
+				reset_RUL.normalize();
+				
+				quaternion reset_RLL = QuatData_RightUpperLeg.mutiplication(firstInvQuat_RightUpperLeg).Inverse().mutiplication(QuatData_RightLowerLeg.mutiplication(firstInvQuat_RightLowerLeg));
+				reset_RLL.normalize();
+				
+				quaternion reset_LUA = firstInvQuat_C.Inverse().mutiplication(QuatData_LeftUpperArm.mutiplication(firstInvQuat_LeftUpperArm));
+				reset_LUA.normalize();
 
-				uPA_data[indexP][0] = 1;// TransfBodyQuat.mData[3];
-				uPA_data[indexP][1] = uTransfBodyQuat.mData[0];
-				uPA_data[indexP][2] = uTransfBodyQuat.mData[1];
-				uPA_data[indexP][3] = uTransfBodyQuat.mData[2];
+				quaternion reset_LLA = QuatData_LeftUpperArm.mutiplication(firstInvQuat_LeftUpperArm).Inverse().mutiplication(QuatData_LeftLowerArm.mutiplication(firstInvQuat_LeftLowerArm));
+				reset_LLA.normalize();
+				
+				quaternion reset_LUL = firstInvQuat_C.Inverse().mutiplication(QuatData_LeftUpperLeg.mutiplication(firstInvQuat_LeftUpperLeg));
+				reset_LUL.normalize();
 
-				break;
-							
-				//std::cout << "printf: " << duration << '\n';
-				//printf(" AxisAngle: %f \t %f \t %.15f\n", dot(a, b) / (mag(a)*mag(b)), Axis_Angle * 180 / PI, q0);
+				quaternion reset_LLL = QuatData_LeftUpperLeg.mutiplication(firstInvQuat_LeftUpperLeg).Inverse().mutiplication(QuatData_LeftLowerLeg.mutiplication(firstInvQuat_LeftLowerLeg));
+
+
+				avatar.b0 = firstInvQuat_C;
+				avatar.b1 = reset_head;
+				avatar.b2 = reset_RUA;
+				avatar.b3 = reset_RLA;
+				avatar.b4 = reset_LUA;
+				avatar.b5 = reset_LLA;
+				avatar.b6 = reset_RUL;
+				avatar.b7 = reset_RLL;				
+				avatar.b8 = reset_LUL;
+				avatar.b9 = reset_LLL;
+
+				rotateBody(avatar);
+
+				
+				if (fileClose)
+				{			
+					if (isNotSameQuat(avatar.b2, avatar.prv_b2) || isNotSameQuat(avatar.b3, avatar.prv_b3))
+					{
+						TVec3 b2Vec, b3Vec;
+						calaculateTrajectory(avatar.b2, avatar.b3, b2Vec, b3Vec);
+
+						indexP++;
+						uPA_data[indexP][0] = 1;
+						uPA_data[indexP][1] = b2Vec._x;
+						uPA_data[indexP][2] = b2Vec._y;
+						uPA_data[indexP][3] = b2Vec._z;
+
+						PA_data[indexP][0] = 1;
+						PA_data[indexP][1] = b3Vec._x;
+						PA_data[indexP][2] = b3Vec._y;
+						PA_data[indexP][3] = b3Vec._z;
+
+						avatar.prv_b2 = avatar.b2;
+						avatar.prv_b3 = avatar.b3;
+					}
+					else
+					{
+						avatar.prv_b2 = avatar.b2;
+						avatar.prv_b3 = avatar.b3;
+						break;
+					}
+
+					if (isNotSameQuat(avatar.b4, avatar.prv_b4) || isNotSameQuat(avatar.b5, avatar.prv_b5))
+					{
+						TVec3 b4Vec, b5Vec;
+						calaculateTrajectory(avatar.b4, avatar.b5, b4Vec, b5Vec);
+
+						LindexP++;
+						LeftLower_data[LindexP][0] = 1;
+						LeftLower_data[LindexP][1] = b4Vec._x;
+						LeftLower_data[LindexP][2] = b4Vec._y;
+						LeftLower_data[LindexP][3] = b4Vec._z;
+
+						LeftUpper_data[LindexP][0] = 1;
+						LeftUpper_data[LindexP][1] = b5Vec._x;
+						LeftUpper_data[LindexP][2] = b5Vec._y;
+						LeftUpper_data[LindexP][3] = b5Vec._z;
+
+						avatar.prv_b4 = avatar.b4;
+						avatar.prv_b5 = avatar.b5;
+					}
+					else
+					{
+						avatar.prv_b4 = avatar.b4;
+						avatar.prv_b5 = avatar.b5;
+						break;
+					}
+				}
 			}
-			else
+			break;
+			case 2:
+				{
+					QuatData_Pelvis = connectXS.xsIMU.b0;
+
+					QuatData_RightUpperArm = connectXS.xsIMU.b1;
+					QuatData_RightLowerArm = connectXS.xsIMU.b2;
+
+					QuatData_LeftUpperArm = connectXS.xsIMU.b3;
+					QuatData_LeftLowerArm = connectXS.xsIMU.b4;
+
+					if (First_calibrate  /*&& fileClose*/)
+					{
+
+						std::cout << "AttentionPose:" << std::endl;
+
+						firstPlvCalib = QuatData_Pelvis.Inverse();
+						std::cout << "Pelvis Quat:\t\t" << QuatData_Pelvis.mData[3] << "\t" << QuatData_Pelvis.mData[0] << "\t" << QuatData_Pelvis.mData[1] << "\t" << QuatData_Pelvis.mData[2] << std::endl;
+
+						firstInvQuat_RightUpperArm = QuatData_RightUpperArm.Inverse();
+						std::cout << "Right Upper-Arm Quat:\t" << firstInvQuat_RightUpperArm.mData[3] << "\t" << firstInvQuat_RightUpperArm.mData[0] << "\t" << firstInvQuat_RightUpperArm.mData[1] << "\t" << firstInvQuat_RightUpperArm.mData[2] << std::endl;
+
+						firstInvQuat_RightLowerArm = QuatData_RightLowerArm.Inverse();
+						std::cout << "Right Lower-Arm Quat:\t" << firstInvQuat_RightLowerArm.mData[3] << "\t" << firstInvQuat_RightLowerArm.mData[0] << "\t" << firstInvQuat_RightLowerArm.mData[1] << "\t" << firstInvQuat_RightLowerArm.mData[2] << std::endl;
+
+						firstInvQuat_LeftUpperArm = QuatData_LeftUpperArm.Inverse();
+						std::cout << "Left Upper-Arm Quat:\t" << firstInvQuat_LeftUpperArm.mData[3] << "\t" << firstInvQuat_LeftUpperArm.mData[0] << "\t" << firstInvQuat_LeftUpperArm.mData[1] << "\t" << firstInvQuat_LeftUpperArm.mData[2] << std::endl;
+
+						firstInvQuat_LeftLowerArm = QuatData_LeftLowerArm.Inverse();
+						std::cout << "Left Lower-Arm Quat:\t" << firstInvQuat_LeftLowerArm.mData[3] << "\t" << firstInvQuat_LeftLowerArm.mData[0] << "\t" << firstInvQuat_LeftLowerArm.mData[1] << "\t" << firstInvQuat_LeftLowerArm.mData[2] << std::endl;
+
+						
+						First_calibrate = false;
+					}
+
+					firstInvQuat_C = QuatData_Pelvis.mutiplication(firstPlvCalib);
+
+					quaternion reset_RUA = firstInvQuat_C.Inverse().mutiplication(QuatData_RightUpperArm.mutiplication(firstInvQuat_RightUpperArm));
+					reset_RUA.normalize();
+					
+					quaternion reset_RLA = QuatData_RightUpperArm.mutiplication(firstInvQuat_RightUpperArm).Inverse().mutiplication(QuatData_RightLowerArm.mutiplication(firstInvQuat_RightLowerArm));
+					reset_RLA.normalize();
+					
+													
+
+					quaternion reset_LUA = firstInvQuat_C.Inverse().mutiplication(QuatData_LeftUpperArm.mutiplication(firstInvQuat_LeftUpperArm));
+					reset_LUA.normalize();
+				
+					quaternion reset_LLA = QuatData_LeftUpperArm.mutiplication(firstInvQuat_LeftUpperArm).Inverse().mutiplication(QuatData_LeftLowerArm.mutiplication(firstInvQuat_LeftLowerArm));
+					reset_LLA.normalize();
+					
+								
+
+					avatar.b0 = firstInvQuat_C;
+					avatar.b2 = reset_RUA;
+					avatar.b3 = reset_RLA;
+					avatar.b4 = reset_LUA;
+					avatar.b5 = reset_LLA;
+					
+					rotateBody(avatar);
+
+
+					if (fileClose)
+					{
+						if (isNotSameQuat(avatar.b2, avatar.prv_b2) || isNotSameQuat(avatar.b3, avatar.prv_b3))
+						{
+							TVec3 b2Vec, b3Vec;
+							calaculateTrajectory(avatar.b2, avatar.b3, b2Vec, b3Vec);
+
+							indexP++;
+							uPA_data[indexP][0] = 1;
+							uPA_data[indexP][1] = b2Vec._x;
+							uPA_data[indexP][2] = b2Vec._y;
+							uPA_data[indexP][3] = b2Vec._z;
+
+							PA_data[indexP][0] = 1;
+							PA_data[indexP][1] = b3Vec._x;
+							PA_data[indexP][2] = b3Vec._y;
+							PA_data[indexP][3] = b3Vec._z;
+
+							avatar.prv_b2 = avatar.b2;
+							avatar.prv_b3 = avatar.b3;
+						}
+						else
+						{
+							avatar.prv_b2 = avatar.b2;
+							avatar.prv_b3 = avatar.b3;
+							break;
+						}
+
+						if (isNotSameQuat(avatar.b4, avatar.prv_b4) || isNotSameQuat(avatar.b5, avatar.prv_b5))
+						{
+							TVec3 b4Vec, b5Vec;
+							calaculateTrajectory(avatar.b4, avatar.b5, b4Vec, b5Vec);
+
+							LindexP++;
+							LeftLower_data[LindexP][0] = 1;
+							LeftLower_data[LindexP][1] = b4Vec._x;
+							LeftLower_data[LindexP][2] = b4Vec._y;
+							LeftLower_data[LindexP][3] = b4Vec._z;
+
+							LeftUpper_data[LindexP][0] = 1;
+							LeftUpper_data[LindexP][1] = b5Vec._x;
+							LeftUpper_data[LindexP][2] = b5Vec._y;
+							LeftUpper_data[LindexP][3] = b5Vec._z;
+
+							avatar.prv_b4 = avatar.b4;
+							avatar.prv_b5 = avatar.b5;
+						}
+						else
+						{
+							avatar.prv_b4 = avatar.b4;
+							avatar.prv_b5 = avatar.b5;
+							break;
+						}
+					}
+
+			} 
+			break;
+
+			case 3:
 			{
-				drawGrid[0][0] = 1;// TransfBodyQuat.mData[3];
-				drawGrid[0][1] = lTransfBodyQuat.mData[0];
-				drawGrid[0][2] = lTransfBodyQuat.mData[1];
-				drawGrid[0][3] = lTransfBodyQuat.mData[2];
+				QuatData_Pelvis = connectXS.xsIMU.b0;
+
+				QuatData_RightUpperLeg = connectXS.xsIMU.b1;
+				QuatData_RightLowerLeg = connectXS.xsIMU.b2;
+
+				QuatData_LeftUpperLeg = connectXS.xsIMU.b3;
+				QuatData_LeftLowerLeg = connectXS.xsIMU.b4;
+
+				if (First_calibrate  /*&& fileClose*/)
+				{
+
+					std::cout << "AttentionPose:" << std::endl;
+
+					firstPlvCalib = QuatData_Pelvis.Inverse();
+					std::cout << "Pelvis Quat:\t" << QuatData_Pelvis.mData[3] << "\t" << QuatData_Pelvis.mData[0] << "\t" << QuatData_Pelvis.mData[1] << "\t" << QuatData_Pelvis.mData[2] << std::endl;
+
+					firstInvQuat_RightUpperLeg = QuatData_RightUpperLeg.Inverse();
+					std::cout << "Right Upper-Leg Quat:\t" << QuatData_RightUpperLeg.mData[3] << "\t" << QuatData_RightUpperLeg.mData[0] << "\t" << QuatData_RightUpperLeg.mData[1] << "\t" << QuatData_RightUpperLeg.mData[2] << std::endl;
+
+					firstInvQuat_RightLowerLeg = QuatData_RightLowerLeg.Inverse();
+					std::cout << "Right Lower-Leg Quat:\t" << QuatData_RightLowerLeg.mData[3] << "\t" << QuatData_RightLowerLeg.mData[0] << "\t" << QuatData_RightLowerLeg.mData[1] << "\t" << QuatData_RightLowerLeg.mData[2] << std::endl;
+
+					firstInvQuat_LeftUpperLeg = QuatData_LeftUpperLeg.Inverse();
+					std::cout << "Left Upper-Arm Quat:\t" << QuatData_LeftUpperLeg.mData[3] << "\t" << QuatData_LeftUpperLeg.mData[0] << "\t" << QuatData_LeftUpperLeg.mData[1] << "\t" << QuatData_LeftUpperLeg.mData[2] << std::endl;
+
+					firstInvQuat_LeftLowerLeg = QuatData_LeftLowerLeg.Inverse();
+					std::cout << "Left Lower-Arm Quat:\t" << QuatData_LeftLowerLeg.mData[3] << "\t" << QuatData_LeftLowerLeg.mData[0] << "\t" << QuatData_LeftLowerLeg.mData[1] << "\t" << firstInvQuat_LeftLowerArm.mData[2] << std::endl;
+
+					First_calibrate = false;
+				}
+
+				firstInvQuat_C = QuatData_Pelvis.mutiplication(firstPlvCalib);
+
+				quaternion reset_RUL = firstInvQuat_C.Inverse().mutiplication(QuatData_RightUpperLeg.mutiplication(firstInvQuat_RightUpperLeg));
+				reset_RUL.normalize();
+				//quaternion usf_q = reset_RUL;
+				quaternion reset_RLL = QuatData_RightUpperLeg.mutiplication(firstInvQuat_RightUpperLeg).Inverse().mutiplication(QuatData_RightLowerLeg.mutiplication(firstInvQuat_RightLowerLeg));
+				reset_RLL.normalize();
+				//quaternion lsf_q = reset_RLL;
+							
+
+				quaternion reset_LUL = firstInvQuat_C.Inverse().mutiplication(QuatData_LeftUpperLeg.mutiplication(firstInvQuat_LeftUpperLeg));
+				reset_LUL.normalize();
+				//usf_q = reset_LUL;
+				quaternion reset_LLL = QuatData_LeftUpperLeg.mutiplication(firstInvQuat_LeftUpperLeg).Inverse().mutiplication(QuatData_LeftLowerLeg.mutiplication(firstInvQuat_LeftLowerLeg));
+				reset_LLL.normalize();
+
+				avatar.b0 = firstInvQuat_C;
+				avatar.b6 = reset_RUL;
+				avatar.b7 = reset_RLL;
+				avatar.b8 = reset_LUL;
+				avatar.b9 = reset_LLL;
+
+				rotateBody(avatar);
+
+
+				if (fileClose)
+				{
+					if (isNotSameQuat(avatar.b6, avatar.prv_b6) || isNotSameQuat(avatar.b7, avatar.prv_b7))
+					{
+						TVec3 b6Vec, b7Vec;
+						calaculateTrajectory(avatar.b6, avatar.b7, b6Vec, b7Vec);
+
+						indexP++;
+						uPA_data[indexP][0] = 1;
+						uPA_data[indexP][1] = b6Vec._x;
+						uPA_data[indexP][2] = b6Vec._y;
+						uPA_data[indexP][3] = b6Vec._z;
+
+						PA_data[indexP][0] = 1;
+						PA_data[indexP][1] = b7Vec._x;
+						PA_data[indexP][2] = b7Vec._y;
+						PA_data[indexP][3] = b7Vec._z;
+
+						avatar.prv_b6 = avatar.b6;
+						avatar.prv_b7 = avatar.b7;
+					}
+					else
+					{
+						avatar.prv_b6 = avatar.b6;
+						avatar.prv_b7 = avatar.b7;
+						break;
+					}
+
+					if (isNotSameQuat(avatar.b8, avatar.prv_b8) || isNotSameQuat(avatar.b9, avatar.prv_b9))
+					{
+						TVec3 b8Vec, b9Vec;
+						calaculateTrajectory(avatar.b8, avatar.b9, b8Vec, b9Vec);
+
+						LindexP++;
+						LeftLower_data[LindexP][0] = 1;
+						LeftLower_data[LindexP][1] = b8Vec._x;
+						LeftLower_data[LindexP][2] = b8Vec._y;
+						LeftLower_data[LindexP][3] = b8Vec._z;
+
+						LeftUpper_data[LindexP][0] = 1;
+						LeftUpper_data[LindexP][1] = b9Vec._x;
+						LeftUpper_data[LindexP][2] = b9Vec._y;
+						LeftUpper_data[LindexP][3] = b9Vec._z;
+
+						avatar.prv_b8 = avatar.b8;
+						avatar.prv_b9 = avatar.b9;
+					}
+					else
+					{
+						avatar.prv_b8 = avatar.b8;
+						avatar.prv_b9 = avatar.b9;
+						break;
+					}
+				}
 
 			}
+			break;
+
+			default:
+				break;
+			}
+			
 
 		}
 	}
@@ -1974,12 +2270,9 @@ void idle()
 
 	case 8:
 	{
-		
 		if (bReadFile)
 		{
 			//............Right Arm.............//
-
-			
 			if (isize >= dsize)
 			{
 				bReadFile = false;
@@ -1989,9 +2282,6 @@ void idle()
 				outDataL.close();
 				outDataU.close();
 				matchDBTrajectory("Load\\UFormFile.csv", "Load\\LFormFile.csv");
-
-				cout << "Upper: " << rotAngle_upper << endl;
-				cout << "Lower: " << rotAngle_lower << endl;
 				break;
 			}
 		
@@ -2017,7 +2307,7 @@ void idle()
 			float fnorm = sqrt(x*x + y*y + z*z);
 			
 			glRotatef(angle_deg, x / fnorm, y / fnorm, z / fnorm);
-			rotAngle_upper += angle_rad;
+
 			glGetFloatv(GL_MODELVIEW_MATRIX, lua_node.m);
 			
 			glLoadIdentity();
@@ -2059,7 +2349,7 @@ void idle()
 			glRotatef(angle_deg, x / fnorm, y / fnorm, z / fnorm);
 			glGetFloatv(GL_MODELVIEW_MATRIX, lla_node.m);
 			glPopMatrix();
-			rotAngle_lower += angle_rad;
+			
 			/*qPrevInvsPA = qPrevPA;
 			qPrevPA = sf_q.Inverse();
 			if (!isFirst)
@@ -2120,11 +2410,7 @@ void idle()
 		bool DataAvailable = connectXS.newDataAvailable;
 		if (DataAvailable && startCalib)
 		{
-			if (AttAxisCalib)
-				Calib_att = quaternion(connectXS.ax2[0], connectXS.ax2[1], connectXS.ax2[2], connectXS.ax2[3]);
-
-			if (TposAxisCalib)
-				Calib_tpos = quaternion(connectXS.ax2[0], connectXS.ax2[1], connectXS.ax2[2], connectXS.ax2[3]);
+			
 		}
 	}
 	break;
@@ -2248,15 +2534,7 @@ void idle()
 	glutPostRedisplay();
 }
 
-void menu(int id)
-{
-	option = id;
-	done = 0;
-	if (id == 3) { rotate_ = 90; xr = 0; yr = 1; zr = 0; }
-	if (id == 4) { rotate_ = 0;  xr = 0; yr = 1; zr = 0; }
-	if (id == 5) { rotate_ = 30; xr = 0; yr = 1; zr = 0; }
-	if (id == 6) { rotate_ = 90; xr = 1; yr = 0; zr = 0; }
-}
+
 
 void myReshape(int w, int h)
 {
@@ -2418,16 +2696,16 @@ void myinit()
 	relb_node.child = &rla_node;
 
 	glLoadIdentity();
-	glTranslatef(-TORSO_RADIUS / 2, 0.1*UPPER_LEG_HEIGHT, 0.0);
-	glRotatef(theta[7], 1.0, 0.0, 0.0);
+	glTranslatef(-TORSO_RADIUS / 2, 0.1*UPPER_LEG_HEIGHT, 0.0);//glTranslatef(-TORSO_RADIUS / 2, 0.1*UPPER_LEG_HEIGHT, 0.0);
+	glRotatef(theta[7], 1.0, 0.0, 0.0);//glRotatef(theta[7], 1.0, 0.0, 0.0);
 	glGetFloatv(GL_MODELVIEW_MATRIX, lul_node.m);
 	lul_node.f = left_upper_leg;
 	lul_node.sibling = &rul_node;
 	lul_node.child = &lknee_node;
 
 	glLoadIdentity();
-	glTranslatef(TORSO_RADIUS / 2, 0.1*UPPER_LEG_HEIGHT, 0.0);
-	glRotatef(theta[9], 1.0, 0.0, 0.0);
+	glTranslatef(TORSO_RADIUS / 2, 0.1*UPPER_LEG_HEIGHT, 0.0);//glTranslatef(TORSO_RADIUS / 2, 0.1*UPPER_LEG_HEIGHT, 0.0);
+	glRotatef(theta[9], 1.0, 0.0, 0.0);//glRotatef(theta[9], 1.0, 0.0, 0.0);
 	glGetFloatv(GL_MODELVIEW_MATRIX, rul_node.m);
 	rul_node.f = right_upper_leg;
 	rul_node.sibling = NULL;
@@ -2661,6 +2939,8 @@ void keyBoardEvent(unsigned char key, int x, int y)
 		startAnim = !startAnim;
 		First_calibrate = true;
 		isRQFirst = true;
+		connectXS.xsIMU = { qInit,qInit,qInit,qInit,qInit,qInit,qInit,qInit,qInit,qInit };
+		avatar = { qInit,qInit,qInit,qInit,qInit,qInit,qInit,qInit,qInit,qInit };
 		std::cout << "\n Ready for recording...!" << std::endl;
 	}
 
@@ -2691,17 +2971,24 @@ void keyBoardEvent(unsigned char key, int x, int y)
 			L_qfile1.open(fileName);*/
 			/*sprintf_s(fileName, "CData\\AxisAngleFile-00%d-%d%d%d.csv", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
 			L_rfile2.open(fileName);*/
-			sprintf_s(LfileName, "CData\\LFormFile-00%d-%d%d%d.csv", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
+			sprintf_s(LfileName, "CData\\2RightLFormFile-00%d-%d%d%d.csv", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
 			L_sfqfile.open(LfileName);
 
-			sprintf_s(UfileName, "CData\\UFormFile-00%d-%d%d%d.csv", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
+			sprintf_s(UfileName, "CData\\3RightUFormFile-00%d-%d%d%d.csv", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
 			U_sfqfile.open(UfileName);
 			/*sprintf_s(fileName, "CData\\TransBodyFile-00%d-%d%d%d.csv", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
 			LatLongfile.open(fileName);*/
 			//printf("File Open\n");
 
+			sprintf_s(LfileName, "CData\\4LeftLFormFile-00%d-%d%d%d.csv", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
+			LeftL_sfqfile.open(LfileName);
+
+			sprintf_s(UfileName, "CData\\5LeftUFormFile-00%d-%d%d%d.csv", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
+			LeftU_sfqfile.open(UfileName);
+
 			fileCount++;
 			indexP = 0;
+			LindexP = 0;
 			memset(PA_data, 0, 80056 * (sizeof(float)));
 			memset(uPA_data, 0, 80056 * (sizeof(float)));
 			//First_calibrate = true;
@@ -2722,6 +3009,8 @@ void keyBoardEvent(unsigned char key, int x, int y)
 			P_rawfile.close();*/
 			L_sfqfile.close();
 			U_sfqfile.close();
+			LeftL_sfqfile.close();
+			LeftU_sfqfile.close();
 			matchDBTrajectory(UfileName, LfileName);
 			
 		}
@@ -2732,7 +3021,7 @@ void keyBoardEvent(unsigned char key, int x, int y)
 	if (key == 49) //Key-1
 	{
 		std::ifstream infile;
-		infile.open("./Load/LFormFile.csv");
+		infile.open("./Load/4LeftLFormFile.csv");
 
 		infile.unsetf(std::ios_base::skipws);
 
@@ -2754,7 +3043,7 @@ void keyBoardEvent(unsigned char key, int x, int y)
 		int i = 0;
 
 		std::ifstream infileu;
-		infileu.open("./Load/LFormFile.csv");
+		infileu.open("./Load/4LeftLFormFile.csv");
 
 		if (!infileu) { cout << "Cannot open input file.\n"; }
 		else { cout << "C4 data\n"; }
@@ -2783,7 +3072,7 @@ void keyBoardEvent(unsigned char key, int x, int y)
 		}
 			
 		std::ifstream infilep;
-		infilep.open("./Load/UFormFile.csv");
+		infilep.open("./Load/5LeftUFormFile.csv");
 
 		if (!infilep) { cout << "Cannot open input file.\n"; }
 		else { cout << "Plv data\n"; }
@@ -2824,8 +3113,6 @@ void keyBoardEvent(unsigned char key, int x, int y)
 		memset(uPA_data, 0, 8 * (sizeof(int)));
 		start = std::clock();
 		Comparision::resetDiagnosis();
-	rotAngle_upper = 0, rotAngle_lower = 0;
-
 	}
 
 	if (key == '7')
@@ -3125,6 +3412,23 @@ void keyBoardEvent(unsigned char key, int x, int y)
 	if (key == 'q') { exit(0); }
 }
 
+void menu(int id)
+{
+	option = id;
+	
+	if (id == 3) { rotate_ = 90; xr = 0; yr = 1; zr = 0; }
+	if (id == 4) { rotate_ = 0;  xr = 0; yr = 1; zr = 0; }
+	if (id == 5) { rotate_ = 30; xr = 0; yr = 1; zr = 0; }
+	if (id == 6) { rotate_ = 90; xr = 1; yr = 0; zr = 0; }
+}
+
+void dataCapture(int id)
+{
+	option = 1;
+	subOption = id; 	
+}
+
+
 int targc;
 char** targv;
 
@@ -3143,12 +3447,19 @@ DWORD WINAPI RoboticArm(LPVOID lpParam)
 	glutMouseFunc(mouseEvent);
 	glutMotionFunc(mouseMotion);
 	glutMouseWheelFunc(mouseWheel);
+	
+	int dataCaptureSub = glutCreateMenu(dataCapture);
+	glutAddMenuEntry("Full Body", 1);
+	glutAddMenuEntry("Upper Body", 2);
+	glutAddMenuEntry("Lower Body", 3);
+	
 	glutCreateMenu(menu);
 	glutAddMenuEntry(" Start Xsens ", 0);
-	glutAddMenuEntry(" Data Capture", 1);
+	glutAddSubMenu(" Data Capture", dataCaptureSub);
+	
 	glutAddMenuEntry(" Read file ", 8);
 	glutAddMenuEntry(" Read DB file ", 10);
-	glutAddMenuEntry(" Calibration ", 9);
+	//glutAddMenuEntry(" Calibration ", 9);
 	glutAddMenuEntry(" Reset ", 2);
 	glutAddMenuEntry(" Side View ", 3);
 	glutAddMenuEntry(" Front View ", 4);
