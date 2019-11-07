@@ -195,6 +195,7 @@ int stdPercent, closePercent, widePercent;
 float threshold = 0.15f;
 float color[4] = { 0, 0, 0, 1 };
 float mcolor[4] = { 1, 0, 0, 1 };
+float rotAngle_upper = 0, rotAngle_lower = 0;
 
 //Texturemapping
 
@@ -1629,9 +1630,16 @@ void matchDBTrajectory(char * Ufile, char * Lfile)
 	diff = 0;
 	
 	diff1 = Comparision::getDiffBtwTrajectory("Load\\Standard\\UFormFile.csv", "Load\\Standard\\LFormFile.csv", Ufile, Lfile, stdPercent, curveProperty);
-	diff2 = Comparision::getDiffBtwTrajectory("Load\\Close\\UFormFile.csv", "Load\\Close\\LFormFile.csv", Ufile, Lfile, closePercent, curveProperty);
-	diff3 = Comparision::getDiffBtwTrajectory("Load\\Wide\\UFormFile.csv", "Load\\Wide\\LFormFile.csv", Ufile, Lfile, widePercent, curveProperty);
-	
+	if(stdPercent < 90)
+	{
+		Comparision::resetDiagnosis();
+	   diff2 = Comparision::getDiffBtwTrajectory("Load\\Close\\UFormFile.csv", "Load\\Close\\LFormFile.csv", Ufile, Lfile, closePercent, curveProperty);
+	}
+	if (stdPercent < 90 && closePercent < 90)
+	{
+		Comparision::resetDiagnosis();
+		diff3 = Comparision::getDiffBtwTrajectory("Load\\Wide\\UFormFile.csv", "Load\\Wide\\LFormFile.csv", Ufile, Lfile, widePercent, curveProperty);
+	}
 	cout << diff1 << "," << diff2 << "," << diff3 << endl;
 
 	if (diff1 < diff2)
@@ -1966,9 +1974,12 @@ void idle()
 
 	case 8:
 	{
+		
 		if (bReadFile)
 		{
 			//............Right Arm.............//
+
+			
 			if (isize >= dsize)
 			{
 				bReadFile = false;
@@ -1978,6 +1989,9 @@ void idle()
 				outDataL.close();
 				outDataU.close();
 				matchDBTrajectory("Load\\UFormFile.csv", "Load\\LFormFile.csv");
+
+				cout << "Upper: " << rotAngle_upper << endl;
+				cout << "Lower: " << rotAngle_lower << endl;
 				break;
 			}
 		
@@ -1988,7 +2002,7 @@ void idle()
 			glGetFloatv(GL_MODELVIEW_MATRIX, lua_node.m);
 
 			quaternion reset_U(uqdata[isize][0], uqdata[isize][1], uqdata[isize][2], uqdata[isize][3]);
-			quaternion reset_L(-lqdata[isize][1], -lqdata[isize][2], lqdata[isize][0], lqdata[isize][3]);
+			quaternion reset_L(lqdata[isize][0], lqdata[isize][1], lqdata[isize][2], lqdata[isize][3]);
 			float q0 = reset_U.mData[3];
 			float q1 = reset_U.mData[0];
 			float q2 = reset_U.mData[2];
@@ -2003,7 +2017,7 @@ void idle()
 			float fnorm = sqrt(x*x + y*y + z*z);
 			
 			glRotatef(angle_deg, x / fnorm, y / fnorm, z / fnorm);
-
+			rotAngle_upper += angle_rad;
 			glGetFloatv(GL_MODELVIEW_MATRIX, lua_node.m);
 			
 			glLoadIdentity();
@@ -2045,7 +2059,7 @@ void idle()
 			glRotatef(angle_deg, x / fnorm, y / fnorm, z / fnorm);
 			glGetFloatv(GL_MODELVIEW_MATRIX, lla_node.m);
 			glPopMatrix();
-			
+			rotAngle_lower += angle_rad;
 			/*qPrevInvsPA = qPrevPA;
 			qPrevPA = sf_q.Inverse();
 			if (!isFirst)
@@ -2810,6 +2824,8 @@ void keyBoardEvent(unsigned char key, int x, int y)
 		memset(uPA_data, 0, 8 * (sizeof(int)));
 		start = std::clock();
 		Comparision::resetDiagnosis();
+	rotAngle_upper = 0, rotAngle_lower = 0;
+
 	}
 
 	if (key == '7')
