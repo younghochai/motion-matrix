@@ -52,6 +52,7 @@ struct Avatar {
 	quaternion b0, b1, b2, b3, b4, b5, b6, b7, b8, b9 ;
 	quaternion prv_b0, prv_b1, prv_b2, prv_b3, prv_b4, 
 			   prv_b5, prv_b6, prv_b7, prv_b8, prv_b9;
+	ofstream fb0, fb1, fb2, fb3, fb4, fb5, fb6, fb7, fb8, fb9;
 };
 quaternion qInit = { 0,0,0,1 };
 struct Avatar avatar = { qInit,qInit,qInit,qInit,qInit,qInit,qInit,qInit,qInit,qInit };
@@ -1685,6 +1686,65 @@ void matchDBTrajectory(char * Ufile, char * Lfile)
 	}	
 }
 
+void openFile()
+{
+	time_t curr_time;
+	curr_time = time(NULL);
+	tm *tm_local = localtime(&curr_time);
+
+	sprintf_s(LfileName, "CData\\fb0-00%d-%d%d%d.csv", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
+	avatar.fb0.open(LfileName);
+	sprintf_s(LfileName, "CData\\fb1-00%d-%d%d%d.csv", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
+	avatar.fb1.open(LfileName);
+	sprintf_s(LfileName, "CData\\fb2-00%d-%d%d%d.csv", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
+	avatar.fb2.open(LfileName);
+	sprintf_s(LfileName, "CData\\fb3-00%d-%d%d%d.csv", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
+	avatar.fb3.open(LfileName);
+	sprintf_s(LfileName, "CData\\fb4-00%d-%d%d%d.csv", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
+	avatar.fb4.open(LfileName);
+	sprintf_s(LfileName, "CData\\fb5-00%d-%d%d%d.csv", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
+	avatar.fb5.open(LfileName);
+	sprintf_s(LfileName, "CData\\fb6-00%d-%d%d%d.csv", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
+	avatar.fb6.open(LfileName);
+	sprintf_s(LfileName, "CData\\fb7-00%d-%d%d%d.csv", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
+	avatar.fb7.open(LfileName);
+	sprintf_s(LfileName, "CData\\fb8-00%d-%d%d%d.csv", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
+	avatar.fb8.open(LfileName);
+	sprintf_s(LfileName, "CData\\fb9-00%d-%d%d%d.csv", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
+	avatar.fb9.open(LfileName);
+
+	fileCount++;
+}
+
+void closeFile()
+{
+	avatar.fb0.close();
+	avatar.fb1.close();
+	avatar.fb2.close();
+	avatar.fb3.close();
+	avatar.fb4.close();
+	avatar.fb5.close();
+	avatar.fb6.close();
+	avatar.fb7.close();
+	avatar.fb8.close();
+	avatar.fb9.close();
+}
+
+void writeData()
+{
+	avatar.fb0 << avatar.b0.mData[3] << "," << avatar.b0.mData[0] << "," << avatar.b0.mData[1] << "," << avatar.b0.mData[2] << "\n";
+	avatar.fb1 << avatar.b1.mData[3] << "," << avatar.b1.mData[0] << "," << avatar.b1.mData[1] << "," << avatar.b1.mData[2] << "\n";
+	avatar.fb2 << avatar.b2.mData[3] << "," << avatar.b2.mData[0] << "," << avatar.b2.mData[1] << "," << avatar.b2.mData[2] << "\n";
+	avatar.fb3 << avatar.b3.mData[3] << "," << avatar.b3.mData[0] << "," << avatar.b3.mData[1] << "," << avatar.b3.mData[2] << "\n";
+	avatar.fb4 << avatar.b4.mData[3] << "," << avatar.b4.mData[0] << "," << avatar.b4.mData[1] << "," << avatar.b4.mData[2] << "\n";
+	avatar.fb5 << avatar.b5.mData[3] << "," << avatar.b5.mData[0] << "," << avatar.b5.mData[1] << "," << avatar.b5.mData[2] << "\n";
+	avatar.fb6 << avatar.b6.mData[3] << "," << avatar.b6.mData[0] << "," << avatar.b6.mData[1] << "," << avatar.b6.mData[2] << "\n";
+	avatar.fb7 << avatar.b7.mData[3] << "," << avatar.b7.mData[0] << "," << avatar.b7.mData[1] << "," << avatar.b7.mData[2] << "\n";
+	avatar.fb8 << avatar.b8.mData[3] << "," << avatar.b8.mData[0] << "," << avatar.b8.mData[1] << "," << avatar.b8.mData[2] << "\n";
+	avatar.fb9 << avatar.b9.mData[3] << "," << avatar.b9.mData[0] << "," << avatar.b9.mData[1] << "," << avatar.b9.mData[2] << "\n";
+
+}
+
 void rotateBone( quaternion q, treenode &joint, float tX, float tY, float tZ)
 {
 	double q0, q1, q2, q3;
@@ -1779,7 +1839,7 @@ bool isNotSameQuat(quaternion currentQuat, quaternion previousQuat)
 		return false;
 	}
 
-	if (qPA.mData[3] >= 0.99999 && uqPA.mData[3] >= 0.99999)
+	if (qPA.mData[3] >= 0.99999)
 	{
 		return false;
 	}
@@ -1798,7 +1858,7 @@ bool isNotSameQuat(quaternion currentQuat, quaternion previousQuat)
 	return true;
 }
 
-void calaculateTrajectory(quaternion parent, quaternion child, TVec3 &parentVec, TVec3 &childVec )
+void calaculateTrajectory(quaternion parent, quaternion child, TVec3 &parentVec, TVec3 &childVec)
 {
 	TVec3 trajVec;
 	quaternion tempQuat2 = BodyQuat.mutiplication(parent);
@@ -1812,10 +1872,8 @@ void calaculateTrajectory(quaternion parent, quaternion child, TVec3 &parentVec,
 
 	lTransfBodyQuat = lTransfBodyQuat.mutiplication(vQuat.mutiplication(lTransfBodyQuat.Inverse()));
 	uTransfBodyQuat = uTransfBodyQuat.mutiplication(vQuat.mutiplication(uTransfBodyQuat.Inverse()));
-		
-	L_sfqfile << child.mData[3] << "," << child.mData[0] << "," << child.mData[1] << "," << child.mData[2] << "\n";
-	U_sfqfile << parent.mData[3] << "," << parent.mData[0] << "," << parent.mData[1] << "," << parent.mData[2] << "\n";
-
+	
+	
 	parentVec = { (float)uTransfBodyQuat.mData[0], (float)uTransfBodyQuat.mData[1], (float)uTransfBodyQuat.mData[2]};
 	childVec = { (float)lTransfBodyQuat.mData[0], (float)lTransfBodyQuat.mData[1], (float)lTransfBodyQuat.mData[2] };	
 }
@@ -1873,10 +1931,10 @@ void idle()
 					std::cout << "AttentionPose:" << std::endl;
 
 					firstPlvCalib = QuatData_Pelvis.Inverse();
-					std::cout << "Pelvis Quat:\t" << QuatData_Pelvis.mData[3] << "\t" << QuatData_Pelvis.mData[0] << "\t" << QuatData_Pelvis.mData[1] << "\t" << QuatData_Pelvis.mData[2] << std::endl;
+					std::cout << "Pelvis Quat:\t\t" << QuatData_Pelvis.mData[3] << "\t" << QuatData_Pelvis.mData[0] << "\t" << QuatData_Pelvis.mData[1] << "\t" << QuatData_Pelvis.mData[2] << std::endl;
 
 					firstHeadCalib = QuatData_head.Inverse();
-					std::cout << "Head Quat:\t" << QuatData_head.mData[3] << "\t" << QuatData_head.mData[0] << "\t" << QuatData_head.mData[1] << "\t" << QuatData_head.mData[2] << std::endl;
+					std::cout << "Head Quat:\t\t" << QuatData_head.mData[3] << "\t" << QuatData_head.mData[0] << "\t" << QuatData_head.mData[1] << "\t" << QuatData_head.mData[2] << std::endl;
 
 					firstInvQuat_RightUpperArm = QuatData_RightUpperArm.Inverse();
 					std::cout << "Right Upper-Arm Quat:\t" << firstInvQuat_RightUpperArm.mData[3] << "\t" << firstInvQuat_RightUpperArm.mData[0] << "\t" << firstInvQuat_RightUpperArm.mData[1] << "\t" << firstInvQuat_RightUpperArm.mData[2] << std::endl;
@@ -1897,10 +1955,10 @@ void idle()
 					std::cout << "Right Lower-Leg Quat:\t" << QuatData_RightLowerLeg.mData[3] << "\t" << QuatData_RightLowerLeg.mData[0] << "\t" << QuatData_RightLowerLeg.mData[1] << "\t" << QuatData_RightLowerLeg.mData[2] << std::endl;
 
 					firstInvQuat_LeftUpperLeg = QuatData_LeftUpperLeg.Inverse();
-					std::cout << "Left Upper-Arm Quat:\t" << QuatData_LeftUpperLeg.mData[3] << "\t" << QuatData_LeftUpperLeg.mData[0] << "\t" << QuatData_LeftUpperLeg.mData[1] << "\t" << QuatData_LeftUpperLeg.mData[2] << std::endl;
+					std::cout << "Left Upper-Leg Quat:\t" << QuatData_LeftUpperLeg.mData[3] << "\t" << QuatData_LeftUpperLeg.mData[0] << "\t" << QuatData_LeftUpperLeg.mData[1] << "\t" << QuatData_LeftUpperLeg.mData[2] << std::endl;
 
 					firstInvQuat_LeftLowerLeg = QuatData_LeftLowerLeg.Inverse();
-					std::cout << "Left Lower-Arm Quat:\t" << QuatData_LeftLowerLeg.mData[3] << "\t" << QuatData_LeftLowerLeg.mData[0] << "\t" << QuatData_LeftLowerLeg.mData[1] << "\t" << firstInvQuat_LeftLowerArm.mData[2] << std::endl;
+					std::cout << "Left Lower-Leg Quat:\t" << QuatData_LeftLowerLeg.mData[3] << "\t" << QuatData_LeftLowerLeg.mData[0] << "\t" << QuatData_LeftLowerLeg.mData[1] << "\t" << firstInvQuat_LeftLowerArm.mData[2] << std::endl;
 
 					First_calibrate = false;
 				}
@@ -1949,7 +2007,16 @@ void idle()
 
 				
 				if (fileClose)
-				{			
+				{	
+					if (isNotSameQuat(avatar.b2, avatar.prv_b2) || isNotSameQuat(avatar.b3, avatar.prv_b3) ||
+						isNotSameQuat(avatar.b4, avatar.prv_b4) || isNotSameQuat(avatar.b5, avatar.prv_b5) ||
+						isNotSameQuat(avatar.b6, avatar.prv_b6) || isNotSameQuat(avatar.b7, avatar.prv_b7) ||
+						isNotSameQuat(avatar.b8, avatar.prv_b8) || isNotSameQuat(avatar.b9, avatar.prv_b9) ||
+						isNotSameQuat(avatar.b0, avatar.prv_b0) || isNotSameQuat(avatar.b1, avatar.prv_b1) )
+					{
+						writeData();
+					}
+
 					if (isNotSameQuat(avatar.b2, avatar.prv_b2) || isNotSameQuat(avatar.b3, avatar.prv_b3))
 					{
 						TVec3 b2Vec, b3Vec;
@@ -1966,15 +2033,17 @@ void idle()
 						PA_data[indexP][2] = b3Vec._y;
 						PA_data[indexP][3] = b3Vec._z;
 
-						avatar.prv_b2 = avatar.b2;
-						avatar.prv_b3 = avatar.b3;
+						/*avatar.prv_b2 = avatar.b2;
+						avatar.prv_b3 = avatar.b3;*/
 					}
 					else
 					{
-						avatar.prv_b2 = avatar.b2;
-						avatar.prv_b3 = avatar.b3;
+						/*avatar.prv_b2 = avatar.b2;
+						avatar.prv_b3 = avatar.b3;*/
 						break;
 					}
+
+					
 
 					if (isNotSameQuat(avatar.b4, avatar.prv_b4) || isNotSameQuat(avatar.b5, avatar.prv_b5))
 					{
@@ -1992,15 +2061,73 @@ void idle()
 						LeftUpper_data[LindexP][2] = b5Vec._y;
 						LeftUpper_data[LindexP][3] = b5Vec._z;
 
-						avatar.prv_b4 = avatar.b4;
-						avatar.prv_b5 = avatar.b5;
+						/*avatar.prv_b4 = avatar.b4;
+						avatar.prv_b5 = avatar.b5;*/
 					}
 					else
 					{
-						avatar.prv_b4 = avatar.b4;
-						avatar.prv_b5 = avatar.b5;
+						/*avatar.prv_b4 = avatar.b4;
+						avatar.prv_b5 = avatar.b5;*/
 						break;
 					}
+
+					avatar.prv_b2 = avatar.b2;
+					avatar.prv_b3 = avatar.b3;
+					avatar.prv_b4 = avatar.b4;
+					avatar.prv_b5 = avatar.b5;
+
+					/*if (isNotSameQuat(avatar.b6, avatar.prv_b6) || isNotSameQuat(avatar.b7, avatar.prv_b7))
+					{
+						TVec3 b6Vec, b7Vec;
+						calaculateTrajectory(avatar.b6, avatar.b7, b6Vec, b7Vec);
+
+						indexP++;
+						uPA_data[indexP][0] = 1;
+						uPA_data[indexP][1] = b6Vec._x;
+						uPA_data[indexP][2] = b6Vec._y;
+						uPA_data[indexP][3] = b6Vec._z;
+
+						PA_data[indexP][0] = 1;
+						PA_data[indexP][1] = b7Vec._x;
+						PA_data[indexP][2] = b7Vec._y;
+						PA_data[indexP][3] = b7Vec._z;
+						
+					}
+					else
+					{
+						
+						break;
+					}
+
+					if (isNotSameQuat(avatar.b8, avatar.prv_b8) || isNotSameQuat(avatar.b9, avatar.prv_b9))
+					{
+						TVec3 b8Vec, b9Vec;
+						calaculateTrajectory(avatar.b8, avatar.b9, b8Vec, b9Vec);
+
+						LindexP++;
+						LeftLower_data[LindexP][0] = 1;
+						LeftLower_data[LindexP][1] = b8Vec._x;
+						LeftLower_data[LindexP][2] = b8Vec._y;
+						LeftLower_data[LindexP][3] = b8Vec._z;
+
+						LeftUpper_data[LindexP][0] = 1;
+						LeftUpper_data[LindexP][1] = b9Vec._x;
+						LeftUpper_data[LindexP][2] = b9Vec._y;
+						LeftUpper_data[LindexP][3] = b9Vec._z;
+
+						
+					}
+					else
+					{
+						
+						break;
+					}
+
+					avatar.prv_b6 = avatar.b6;
+					avatar.prv_b7 = avatar.b7;
+					avatar.prv_b8 = avatar.b8;
+					avatar.prv_b9 = avatar.b9;*/
+					
 				}
 			}
 			break;
@@ -2054,8 +2181,6 @@ void idle()
 					quaternion reset_LLA = QuatData_LeftUpperArm.mutiplication(firstInvQuat_LeftUpperArm).Inverse().mutiplication(QuatData_LeftLowerArm.mutiplication(firstInvQuat_LeftLowerArm));
 					reset_LLA.normalize();
 					
-								
-
 					avatar.b0 = firstInvQuat_C;
 					avatar.b2 = reset_RUA;
 					avatar.b3 = reset_RLA;
@@ -2118,6 +2243,7 @@ void idle()
 							avatar.prv_b5 = avatar.b5;
 							break;
 						}
+
 					}
 
 			} 
@@ -2950,43 +3076,9 @@ void keyBoardEvent(unsigned char key, int x, int y)
 		if (fileClose)
 		{
 			std::cout << "\n Recording....!" << std::endl;
-
-			time_t curr_time;
-			curr_time = time(NULL);
-			tm *tm_local = localtime(&curr_time);
-			/*char dirName[1024];
-			sprintf_s(dirName,"%d-%d%d%d", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
-			string dir = {dirName};
-			CreateDirectory(dir.c_str, NULL);*/
-			//fileClose = true;
 			
-			/*sprintf_s(fileName, "CData\\LRawFile-00%d-%d%d%d.csv", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
-			L_rawqfile.open(fileName);
-			sprintf_s(fileName, "CData\\URawFile-00%d-%d%d%d.csv", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
-			U_rawqfile.open(fileName);
-			sprintf_s(fileName, "CData\\PRawFile-00%d-%d%d%d.csv", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
-			P_rawfile.open(fileName);*/
+			openFile();
 			
-			/*sprintf_s(fileName, "LFormFile-00%d-%d%d%d.csv", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
-			L_qfile1.open(fileName);*/
-			/*sprintf_s(fileName, "CData\\AxisAngleFile-00%d-%d%d%d.csv", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
-			L_rfile2.open(fileName);*/
-			sprintf_s(LfileName, "CData\\2RightLFormFile-00%d-%d%d%d.csv", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
-			L_sfqfile.open(LfileName);
-
-			sprintf_s(UfileName, "CData\\3RightUFormFile-00%d-%d%d%d.csv", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
-			U_sfqfile.open(UfileName);
-			/*sprintf_s(fileName, "CData\\TransBodyFile-00%d-%d%d%d.csv", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
-			LatLongfile.open(fileName);*/
-			//printf("File Open\n");
-
-			sprintf_s(LfileName, "CData\\4LeftLFormFile-00%d-%d%d%d.csv", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
-			LeftL_sfqfile.open(LfileName);
-
-			sprintf_s(UfileName, "CData\\5LeftUFormFile-00%d-%d%d%d.csv", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
-			LeftU_sfqfile.open(UfileName);
-
-			fileCount++;
 			indexP = 0;
 			LindexP = 0;
 			memset(PA_data, 0, 80056 * (sizeof(float)));
@@ -3002,16 +3094,8 @@ void keyBoardEvent(unsigned char key, int x, int y)
 		}
 		else
 		{
-
-			//fileClose = false;
-			/*L_rawqfile.close();
-			U_rawqfile.close();
-			P_rawfile.close();*/
-			L_sfqfile.close();
-			U_sfqfile.close();
-			LeftL_sfqfile.close();
-			LeftU_sfqfile.close();
-			matchDBTrajectory(UfileName, LfileName);
+			closeFile();			
+			//matchDBTrajectory(UfileName, LfileName);
 			
 		}
 
