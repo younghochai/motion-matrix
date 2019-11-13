@@ -52,10 +52,12 @@ struct Avatar {
 	quaternion b0, b1, b2, b3, b4, b5, b6, b7, b8, b9;
 	quaternion prv_b0, prv_b1, prv_b2, prv_b3, prv_b4,
 		prv_b5, prv_b6, prv_b7, prv_b8, prv_b9;
-	ofstream fb0, fb1, fb2, fb3, fb4, fb5, fb6, fb7, fb8, fb9;
+	//ofstream fb0/*, fb1, fb2, fb3, fb4, fb5, fb6, fb7, fb8, fb9*/;
 };
 quaternion qInit = { 0,0,0,1 };
 struct Avatar avatar = { qInit,qInit,qInit,qInit,qInit,qInit,qInit,qInit,qInit,qInit };
+
+struct Avatar avatarData[1024];
 
 int option = -1, subOption = -1;
 double rotate_ = 0;
@@ -117,7 +119,7 @@ bool startAnim = false;
 
 quaternion QuatData_RightUpperArm, QuatData_RightLowerArm, QuatData_Pelvis, QuatData_LeftUpperArm, QuatData_LeftLowerArm;
 quaternion QuatData_RightUpperLeg, QuatData_RightLowerLeg, QuatData_head, QuatData_LeftUpperLeg, QuatData_LeftLowerLeg;
-quaternion firstInvQuat_RightUpperArm, firstInvQuat_RightLowerArm, firstInvQuat_C;
+quaternion firstInvQuat_RightUpperArm, firstInvQuat_RightLowerArm, sfq_Pelvis;
 quaternion firstInvQuat_RightUpperLeg, firstInvQuat_RightLowerLeg, firstInvQuat_head;
 quaternion firstInvQuat_LeftUpperArm, firstInvQuat_LeftLowerArm;
 quaternion firstInvQuat_LeftUpperLeg, firstInvQuat_LeftLowerLeg;
@@ -1422,31 +1424,10 @@ void drawTrajectory(void)
 
 	drawcenterCoordinate();
 	float r = 1, g = 0, b = 0;
-	/*if (!fileClose && trajCount > 0) {*/
+
 	int j = 0;
 	for (int i = 0; i < trajCount; i++)
 	{
-		/*if (traj_b3[i][0] == 0)
-			continue;*/
-
-			//glColor3f(r, g, b);
-
-			/*if (traj_b3[i][0] == 9) {
-				r = 0;
-				g = 1;
-				b = 0;
-
-				if (j == 1)
-				{
-					b = 1;
-					g = 0;
-				}
-				j++;
-				glColor3f(r, g, b);
-
-				continue;
-			}*/
-
 		drawTrajectorySphere(i, traj_b0, 0.0, 0.0, 0.0); //black
 		drawTrajectorySphere(i, traj_b1, 1.0, 0.0, 0.0); //red
 		drawTrajectorySphere(i, traj_b2, 1.0, 0.5, 0.0); //orange
@@ -1456,34 +1437,7 @@ void drawTrajectory(void)
 		drawTrajectorySphere(i, traj_b6, 0.0, 0.0, 1.0); //Blue
 		drawTrajectorySphere(i, traj_b7, 0.5, 0.0, 1.0); //Voilet
 		drawTrajectorySphere(i, traj_b8, 1.0, 0.0, 1.0); //Magenta
-		drawTrajectorySphere(i, traj_b9, 0.4, 0.5, 0.8); //Indigo
-
-		/*float fnorm = sqrt(traj_b3[i][1] * traj_b3[i][1] + traj_b3[i][2] * traj_b3[i][2] + traj_b3[i][3] * traj_b3[i][3]);
-		glPushMatrix();
-		glTranslatef(1.011*traj_b3[i][1] / fnorm, 1.011*traj_b3[i][2] / fnorm, 1.011*traj_b3[i][3] / fnorm);
-		glutSolidSphere(0.009, 30, 30);
-		glPopMatrix();
-
-		glColor3f(r, g + 0.64, b);
-		fnorm = sqrt(traj_b2[i][1] * traj_b2[i][1] + traj_b2[i][2] * traj_b2[i][2] + traj_b2[i][3] * traj_b2[i][3]);
-		glPushMatrix();
-		glTranslatef(1.011*traj_b2[i][1] / fnorm, 1.011*traj_b2[i][2] / fnorm, 1.011*traj_b2[i][3] / fnorm);
-		glutSolidSphere(0.009, 30, 30);
-		glPopMatrix();
-
-		glColor3f(0.2, 0.2, 0.8);
-		fnorm = sqrt(traj_b5[i][1] * traj_b5[i][1] + traj_b5[i][2] * traj_b5[i][2] + traj_b5[i][3] * traj_b5[i][3]);
-		glPushMatrix();
-		glTranslatef(1.011*traj_b5[i][1] / fnorm, 1.011*traj_b5[i][2] / fnorm, 1.011*traj_b5[i][3] / fnorm);
-		glutSolidSphere(0.009, 30, 30);
-		glPopMatrix();
-
-		glColor3f(0.4, 0.6, 0.4);
-		fnorm = sqrt(traj_b4[i][1] * traj_b4[i][1] + traj_b4[i][2] * traj_b4[i][2] + traj_b4[i][3] * traj_b4[i][3]);
-		glPushMatrix();
-		glTranslatef(1.011*traj_b4[i][1] / fnorm, 1.011*traj_b4[i][2] / fnorm, 1.011*traj_b4[i][3] / fnorm);
-		glutSolidSphere(0.009, 30, 30);
-		glPopMatrix();*/
+		drawTrajectorySphere(i, traj_b9, 0.4, 0.5, 0.8); //Indigo		
 	}
 
 	for (int i = 0; i < dbCount; i++)
@@ -1593,63 +1547,121 @@ void matchDBTrajectory(char * Ufile, char * Lfile)
 	}
 }
 
-void openFile()
+void writeData()
 {
 	time_t curr_time;
 	curr_time = time(NULL);
 	tm *tm_local = localtime(&curr_time);
 
-	sprintf_s(fileName, "CData\\fb0-00%d-%d%d%d.csv", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
-	avatar.fb0.open(fileName);
-	sprintf_s(fileName, "CData\\fb1-00%d-%d%d%d.csv", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
-	avatar.fb1.open(fileName);
-	sprintf_s(fileName, "CData\\fb2-00%d-%d%d%d.csv", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
-	avatar.fb2.open(fileName);
-	sprintf_s(fileName, "CData\\fb3-00%d-%d%d%d.csv", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
-	avatar.fb3.open(fileName);
-	sprintf_s(fileName, "CData\\fb4-00%d-%d%d%d.csv", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
-	avatar.fb4.open(fileName);
-	sprintf_s(fileName, "CData\\fb5-00%d-%d%d%d.csv", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
-	avatar.fb5.open(fileName);
-	sprintf_s(fileName, "CData\\fb6-00%d-%d%d%d.csv", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
-	avatar.fb6.open(fileName);
-	sprintf_s(fileName, "CData\\fb7-00%d-%d%d%d.csv", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
-	avatar.fb7.open(fileName);
-	sprintf_s(fileName, "CData\\fb8-00%d-%d%d%d.csv", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
-	avatar.fb8.open(fileName);
-	sprintf_s(fileName, "CData\\fb9-00%d-%d%d%d.csv", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
-	avatar.fb9.open(fileName);
+	ofstream avatarDataFile;
 
-	fileCount++;
+	sprintf_s(fileName, "CData\\AvatarData-00%d-%d%d%d.txt", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
+	avatarDataFile.open(fileName);
+
+	avatarDataFile << "FULLBODY\t" << 1 << "\n" << "Frames:" << "\t" << trajCount << "\n";
+
+	for (int tCount = 0; tCount < trajCount; tCount++)
+	{
+		avatarDataFile << avatarData[tCount].b0.mData[3] << "\t" << avatarData[tCount].b0.mData[0] << "\t" << avatarData[tCount].b0.mData[1] << "\t" << avatarData[tCount].b0.mData[2] << "\t"
+			<< avatarData[tCount].b1.mData[3] << "\t" << avatarData[tCount].b1.mData[0] << "\t" << avatarData[tCount].b1.mData[1] << "\t" << avatarData[tCount].b1.mData[2] << "\t"
+			<< avatarData[tCount].b2.mData[3] << "\t" << avatarData[tCount].b2.mData[0] << "\t" << avatarData[tCount].b2.mData[1] << "\t" << avatarData[tCount].b2.mData[2] << "\t"
+			<< avatarData[tCount].b3.mData[3] << "\t" << avatarData[tCount].b3.mData[0] << "\t" << avatarData[tCount].b3.mData[1] << "\t" << avatarData[tCount].b3.mData[2] << "\t"
+			<< avatarData[tCount].b4.mData[3] << "\t" << avatarData[tCount].b4.mData[0] << "\t" << avatarData[tCount].b4.mData[1] << "\t" << avatarData[tCount].b4.mData[2] << "\t"
+			<< avatarData[tCount].b5.mData[3] << "\t" << avatarData[tCount].b5.mData[0] << "\t" << avatarData[tCount].b5.mData[1] << "\t" << avatarData[tCount].b5.mData[2] << "\t"
+			<< avatarData[tCount].b6.mData[3] << "\t" << avatarData[tCount].b6.mData[0] << "\t" << avatarData[tCount].b6.mData[1] << "\t" << avatarData[tCount].b6.mData[2] << "\t"
+			<< avatarData[tCount].b7.mData[3] << "\t" << avatarData[tCount].b7.mData[0] << "\t" << avatarData[tCount].b7.mData[1] << "\t" << avatarData[tCount].b7.mData[2] << "\t"
+			<< avatarData[tCount].b8.mData[3] << "\t" << avatarData[tCount].b8.mData[0] << "\t" << avatarData[tCount].b8.mData[1] << "\t" << avatarData[tCount].b8.mData[2] << "\t"
+			<< avatarData[tCount].b9.mData[3] << "\t" << avatarData[tCount].b9.mData[0] << "\t" << avatarData[tCount].b9.mData[1] << "\t" << avatarData[tCount].b9.mData[2] << "\n";
+	}
+	avatarDataFile.close();
 }
 
-void closeFile()
+void writeAvatarData(int tCount)
 {
-	avatar.fb0.close();
-	avatar.fb1.close();
-	avatar.fb2.close();
-	avatar.fb3.close();
-	avatar.fb4.close();
-	avatar.fb5.close();
-	avatar.fb6.close();
-	avatar.fb7.close();
-	avatar.fb8.close();
-	avatar.fb9.close();
+	avatarData[tCount].b0 = avatar.b0;
+	avatarData[tCount].b1 = avatar.b1;
+	avatarData[tCount].b2 = avatar.b2;
+	avatarData[tCount].b3 = avatar.b3;
+	avatarData[tCount].b4 = avatar.b4;
+	avatarData[tCount].b5 = avatar.b5;
+	avatarData[tCount].b6 = avatar.b6;
+	avatarData[tCount].b7 = avatar.b7;
+	avatarData[tCount].b8 = avatar.b8;
+	avatarData[tCount].b9 = avatar.b9;
 }
 
-void writeData()
+void readAvatarData()
 {
-	avatar.fb0 << avatar.b0.mData[3] << "," << avatar.b0.mData[0] << "," << avatar.b0.mData[1] << "," << avatar.b0.mData[2] << "\n";
-	avatar.fb1 << avatar.b1.mData[3] << "," << avatar.b1.mData[0] << "," << avatar.b1.mData[1] << "," << avatar.b1.mData[2] << "\n";
-	avatar.fb2 << avatar.b2.mData[3] << "," << avatar.b2.mData[0] << "," << avatar.b2.mData[1] << "," << avatar.b2.mData[2] << "\n";
-	avatar.fb3 << avatar.b3.mData[3] << "," << avatar.b3.mData[0] << "," << avatar.b3.mData[1] << "," << avatar.b3.mData[2] << "\n";
-	avatar.fb4 << avatar.b4.mData[3] << "," << avatar.b4.mData[0] << "," << avatar.b4.mData[1] << "," << avatar.b4.mData[2] << "\n";
-	avatar.fb5 << avatar.b5.mData[3] << "," << avatar.b5.mData[0] << "," << avatar.b5.mData[1] << "," << avatar.b5.mData[2] << "\n";
-	avatar.fb6 << avatar.b6.mData[3] << "," << avatar.b6.mData[0] << "," << avatar.b6.mData[1] << "," << avatar.b6.mData[2] << "\n";
-	avatar.fb7 << avatar.b7.mData[3] << "," << avatar.b7.mData[0] << "," << avatar.b7.mData[1] << "," << avatar.b7.mData[2] << "\n";
-	avatar.fb8 << avatar.b8.mData[3] << "," << avatar.b8.mData[0] << "," << avatar.b8.mData[1] << "," << avatar.b8.mData[2] << "\n";
-	avatar.fb9 << avatar.b9.mData[3] << "," << avatar.b9.mData[0] << "," << avatar.b9.mData[1] << "," << avatar.b9.mData[2] << "\n";
+	int count = 0;
+	int tCount = 0;
 
+	std::ifstream _filestream("./Load/FormFile.txt");
+	std::string _line;
+	int _option;
+	std::string _dummy;
+	int lineCount = 0;
+
+	while (std::getline(_filestream, _line))
+	{
+		std::stringstream _linestream;
+		_linestream << _line;
+		if (count == 0)
+		{
+			_linestream >> _line >> _option; subOption = _option;  count++; continue;
+		}
+
+		if (count == 1)
+		{
+			_linestream >> _line >> tCount; dsize = tCount;  count++; continue;
+		}
+
+		switch (_option)
+		{
+		case 1:
+
+			_linestream
+				>> avatarData[lineCount].b0.mData[3] >> avatarData[lineCount].b0.mData[0] >> avatarData[lineCount].b0.mData[1] >> avatarData[lineCount].b0.mData[2]
+				>> avatarData[lineCount].b1.mData[3] >> avatarData[lineCount].b1.mData[0] >> avatarData[lineCount].b1.mData[1] >> avatarData[lineCount].b1.mData[2]
+				>> avatarData[lineCount].b2.mData[3] >> avatarData[lineCount].b2.mData[0] >> avatarData[lineCount].b2.mData[1] >> avatarData[lineCount].b2.mData[2]
+				>> avatarData[lineCount].b3.mData[3] >> avatarData[lineCount].b3.mData[0] >> avatarData[lineCount].b3.mData[1] >> avatarData[lineCount].b3.mData[2]
+				>> avatarData[lineCount].b4.mData[3] >> avatarData[lineCount].b4.mData[0] >> avatarData[lineCount].b4.mData[1] >> avatarData[lineCount].b4.mData[2]
+				>> avatarData[lineCount].b5.mData[3] >> avatarData[lineCount].b5.mData[0] >> avatarData[lineCount].b5.mData[1] >> avatarData[lineCount].b5.mData[2]
+				>> avatarData[lineCount].b6.mData[3] >> avatarData[lineCount].b6.mData[0] >> avatarData[lineCount].b6.mData[1] >> avatarData[lineCount].b6.mData[2]
+				>> avatarData[lineCount].b7.mData[3] >> avatarData[lineCount].b7.mData[0] >> avatarData[lineCount].b7.mData[1] >> avatarData[lineCount].b7.mData[2]
+				>> avatarData[lineCount].b8.mData[3] >> avatarData[lineCount].b8.mData[0] >> avatarData[lineCount].b8.mData[1] >> avatarData[lineCount].b8.mData[2]
+				>> avatarData[lineCount].b9.mData[3] >> avatarData[lineCount].b9.mData[0] >> avatarData[lineCount].b9.mData[1] >> avatarData[lineCount].b9.mData[2];
+
+			lineCount++;
+			break;
+
+		case 2:
+
+			_linestream
+				>> avatarData[lineCount].b0.mData[3] >> avatarData[lineCount].b0.mData[0] >> avatarData[lineCount].b0.mData[1] >> avatarData[lineCount].b0.mData[2]
+				>> avatarData[lineCount].b2.mData[3] >> avatarData[lineCount].b2.mData[0] >> avatarData[lineCount].b2.mData[1] >> avatarData[lineCount].b2.mData[2]
+				>> avatarData[lineCount].b3.mData[3] >> avatarData[lineCount].b3.mData[0] >> avatarData[lineCount].b3.mData[1] >> avatarData[lineCount].b3.mData[2]
+				>> avatarData[lineCount].b4.mData[3] >> avatarData[lineCount].b4.mData[0] >> avatarData[lineCount].b4.mData[1] >> avatarData[lineCount].b4.mData[2]
+				>> avatarData[lineCount].b5.mData[3] >> avatarData[lineCount].b5.mData[0] >> avatarData[lineCount].b5.mData[1] >> avatarData[lineCount].b5.mData[2];
+			lineCount++;
+			break;
+
+		case 3:
+
+			_linestream
+				>> avatarData[lineCount].b0.mData[3] >> avatarData[lineCount].b0.mData[0] >> avatarData[lineCount].b0.mData[1] >> avatarData[lineCount].b0.mData[2]
+				>> avatarData[lineCount].b6.mData[3] >> avatarData[lineCount].b6.mData[0] >> avatarData[lineCount].b6.mData[1] >> avatarData[lineCount].b6.mData[2]
+				>> avatarData[lineCount].b7.mData[3] >> avatarData[lineCount].b7.mData[0] >> avatarData[lineCount].b7.mData[1] >> avatarData[lineCount].b7.mData[2]
+				>> avatarData[lineCount].b8.mData[3] >> avatarData[lineCount].b8.mData[0] >> avatarData[lineCount].b8.mData[1] >> avatarData[lineCount].b8.mData[2]
+				>> avatarData[lineCount].b9.mData[3] >> avatarData[lineCount].b9.mData[0] >> avatarData[lineCount].b9.mData[1] >> avatarData[lineCount].b9.mData[2];
+
+			lineCount++;
+			break;
+
+		default:
+			break;
+
+		}
+	}
 }
 
 void rotateBone(quaternion q, treenode &joint, float tX, float tY, float tZ)
@@ -1870,45 +1882,45 @@ void idle()
 					firstCalib = false;
 				}
 
-				firstInvQuat_C = QuatData_Pelvis.mutiplication(firstPlvCalib);
+				sfq_Pelvis = QuatData_Pelvis.mutiplication(firstPlvCalib);
 
-				quaternion reset_head = firstInvQuat_C.Inverse().mutiplication(QuatData_head.mutiplication(firstHeadCalib));
-				reset_head.normalize();
+				quaternion sfq_Head = sfq_Pelvis.Inverse().mutiplication(QuatData_head.mutiplication(firstHeadCalib));
+				sfq_Head.normalize();
 
-				quaternion reset_RUA = firstInvQuat_C.Inverse().mutiplication(QuatData_RightUpperArm.mutiplication(firstInvQuat_RightUpperArm));
-				reset_RUA.normalize();
+				quaternion sfq_RUA = sfq_Pelvis.Inverse().mutiplication(QuatData_RightUpperArm.mutiplication(firstInvQuat_RightUpperArm));
+				sfq_RUA.normalize();
 
-				quaternion reset_RLA = QuatData_RightUpperArm.mutiplication(firstInvQuat_RightUpperArm).Inverse().mutiplication(QuatData_RightLowerArm.mutiplication(firstInvQuat_RightLowerArm));
-				reset_RLA.normalize();
+				quaternion sfq_RLA = QuatData_RightUpperArm.mutiplication(firstInvQuat_RightUpperArm).Inverse().mutiplication(QuatData_RightLowerArm.mutiplication(firstInvQuat_RightLowerArm));
+				sfq_RLA.normalize();
 
-				quaternion reset_RUL = firstInvQuat_C.Inverse().mutiplication(QuatData_RightUpperLeg.mutiplication(firstInvQuat_RightUpperLeg));
-				reset_RUL.normalize();
+				quaternion sfq_RUL = sfq_Pelvis.Inverse().mutiplication(QuatData_RightUpperLeg.mutiplication(firstInvQuat_RightUpperLeg));
+				sfq_RUL.normalize();
 
-				quaternion reset_RLL = QuatData_RightUpperLeg.mutiplication(firstInvQuat_RightUpperLeg).Inverse().mutiplication(QuatData_RightLowerLeg.mutiplication(firstInvQuat_RightLowerLeg));
-				reset_RLL.normalize();
+				quaternion sfq_RLL = QuatData_RightUpperLeg.mutiplication(firstInvQuat_RightUpperLeg).Inverse().mutiplication(QuatData_RightLowerLeg.mutiplication(firstInvQuat_RightLowerLeg));
+				sfq_RLL.normalize();
 
-				quaternion reset_LUA = firstInvQuat_C.Inverse().mutiplication(QuatData_LeftUpperArm.mutiplication(firstInvQuat_LeftUpperArm));
-				reset_LUA.normalize();
+				quaternion sfq_LUA = sfq_Pelvis.Inverse().mutiplication(QuatData_LeftUpperArm.mutiplication(firstInvQuat_LeftUpperArm));
+				sfq_LUA.normalize();
 
-				quaternion reset_LLA = QuatData_LeftUpperArm.mutiplication(firstInvQuat_LeftUpperArm).Inverse().mutiplication(QuatData_LeftLowerArm.mutiplication(firstInvQuat_LeftLowerArm));
-				reset_LLA.normalize();
+				quaternion sfq_LLA = QuatData_LeftUpperArm.mutiplication(firstInvQuat_LeftUpperArm).Inverse().mutiplication(QuatData_LeftLowerArm.mutiplication(firstInvQuat_LeftLowerArm));
+				sfq_LLA.normalize();
 
-				quaternion reset_LUL = firstInvQuat_C.Inverse().mutiplication(QuatData_LeftUpperLeg.mutiplication(firstInvQuat_LeftUpperLeg));
-				reset_LUL.normalize();
+				quaternion sfq_LUL = sfq_Pelvis.Inverse().mutiplication(QuatData_LeftUpperLeg.mutiplication(firstInvQuat_LeftUpperLeg));
+				sfq_LUL.normalize();
 
-				quaternion reset_LLL = QuatData_LeftUpperLeg.mutiplication(firstInvQuat_LeftUpperLeg).Inverse().mutiplication(QuatData_LeftLowerLeg.mutiplication(firstInvQuat_LeftLowerLeg));
+				quaternion sfq_LLL = QuatData_LeftUpperLeg.mutiplication(firstInvQuat_LeftUpperLeg).Inverse().mutiplication(QuatData_LeftLowerLeg.mutiplication(firstInvQuat_LeftLowerLeg));
 
 
-				avatar.b0 = firstInvQuat_C;
-				avatar.b1 = reset_head;
-				avatar.b2 = reset_RUA;
-				avatar.b3 = reset_RLA;
-				avatar.b4 = reset_LUA;
-				avatar.b5 = reset_LLA;
-				avatar.b6 = reset_RUL;
-				avatar.b7 = reset_RLL;
-				avatar.b8 = reset_LUL;
-				avatar.b9 = reset_LLL;
+				avatar.b0 = sfq_Pelvis;
+				avatar.b1 = sfq_Head;
+				avatar.b2 = sfq_RUA;
+				avatar.b3 = sfq_RLA;
+				avatar.b4 = sfq_LUA;
+				avatar.b5 = sfq_LLA;
+				avatar.b6 = sfq_RUL;
+				avatar.b7 = sfq_RLL;
+				avatar.b8 = sfq_LUL;
+				avatar.b9 = sfq_LLL;
 
 				rotateBody(avatar);
 
@@ -1921,7 +1933,7 @@ void idle()
 						isNotSameQuat(avatar.b8, avatar.prv_b8) || isNotSameQuat(avatar.b9, avatar.prv_b9) ||
 						isNotSameQuat(avatar.b0, avatar.prv_b0) || isNotSameQuat(avatar.b1, avatar.prv_b1))
 					{
-						writeData();
+						writeAvatarData(trajCount);
 					}
 
 					if (isNotSameQuat(avatar.b0, avatar.prv_b0))
@@ -2086,27 +2098,27 @@ void idle()
 					firstCalib = false;
 				}
 
-				firstInvQuat_C = QuatData_Pelvis.mutiplication(firstPlvCalib);
+				sfq_Pelvis = QuatData_Pelvis.mutiplication(firstPlvCalib);
 
-				quaternion reset_RUA = firstInvQuat_C.Inverse().mutiplication(QuatData_RightUpperArm.mutiplication(firstInvQuat_RightUpperArm));
-				reset_RUA.normalize();
+				quaternion sfq_RUA = sfq_Pelvis.Inverse().mutiplication(QuatData_RightUpperArm.mutiplication(firstInvQuat_RightUpperArm));
+				sfq_RUA.normalize();
 
-				quaternion reset_RLA = QuatData_RightUpperArm.mutiplication(firstInvQuat_RightUpperArm).Inverse().mutiplication(QuatData_RightLowerArm.mutiplication(firstInvQuat_RightLowerArm));
-				reset_RLA.normalize();
+				quaternion sfq_RLA = QuatData_RightUpperArm.mutiplication(firstInvQuat_RightUpperArm).Inverse().mutiplication(QuatData_RightLowerArm.mutiplication(firstInvQuat_RightLowerArm));
+				sfq_RLA.normalize();
 
 
 
-				quaternion reset_LUA = firstInvQuat_C.Inverse().mutiplication(QuatData_LeftUpperArm.mutiplication(firstInvQuat_LeftUpperArm));
-				reset_LUA.normalize();
+				quaternion sfq_LUA = sfq_Pelvis.Inverse().mutiplication(QuatData_LeftUpperArm.mutiplication(firstInvQuat_LeftUpperArm));
+				sfq_LUA.normalize();
 
-				quaternion reset_LLA = QuatData_LeftUpperArm.mutiplication(firstInvQuat_LeftUpperArm).Inverse().mutiplication(QuatData_LeftLowerArm.mutiplication(firstInvQuat_LeftLowerArm));
-				reset_LLA.normalize();
+				quaternion sfq_LLA = QuatData_LeftUpperArm.mutiplication(firstInvQuat_LeftUpperArm).Inverse().mutiplication(QuatData_LeftLowerArm.mutiplication(firstInvQuat_LeftLowerArm));
+				sfq_LLA.normalize();
 
-				avatar.b0 = firstInvQuat_C;
-				avatar.b2 = reset_RUA;
-				avatar.b3 = reset_RLA;
-				avatar.b4 = reset_LUA;
-				avatar.b5 = reset_LLA;
+				avatar.b0 = sfq_Pelvis;
+				avatar.b2 = sfq_RUA;
+				avatar.b3 = sfq_RLA;
+				avatar.b4 = sfq_LUA;
+				avatar.b5 = sfq_LLA;
 
 				rotateBody(avatar);
 
@@ -2229,27 +2241,27 @@ void idle()
 					firstCalib = false;
 				}
 
-				firstInvQuat_C = QuatData_Pelvis.mutiplication(firstPlvCalib);
+				sfq_Pelvis = QuatData_Pelvis.mutiplication(firstPlvCalib);
 
-				quaternion reset_RUL = firstInvQuat_C.Inverse().mutiplication(QuatData_RightUpperLeg.mutiplication(firstInvQuat_RightUpperLeg));
-				reset_RUL.normalize();
-				//quaternion usf_q = reset_RUL;
-				quaternion reset_RLL = QuatData_RightUpperLeg.mutiplication(firstInvQuat_RightUpperLeg).Inverse().mutiplication(QuatData_RightLowerLeg.mutiplication(firstInvQuat_RightLowerLeg));
-				reset_RLL.normalize();
-				//quaternion lsf_q = reset_RLL;
+				quaternion sfq_RUL = sfq_Pelvis.Inverse().mutiplication(QuatData_RightUpperLeg.mutiplication(firstInvQuat_RightUpperLeg));
+				sfq_RUL.normalize();
+
+				quaternion sfq_RLL = QuatData_RightUpperLeg.mutiplication(firstInvQuat_RightUpperLeg).Inverse().mutiplication(QuatData_RightLowerLeg.mutiplication(firstInvQuat_RightLowerLeg));
+				sfq_RLL.normalize();
 
 
-				quaternion reset_LUL = firstInvQuat_C.Inverse().mutiplication(QuatData_LeftUpperLeg.mutiplication(firstInvQuat_LeftUpperLeg));
-				reset_LUL.normalize();
-				//usf_q = reset_LUL;
-				quaternion reset_LLL = QuatData_LeftUpperLeg.mutiplication(firstInvQuat_LeftUpperLeg).Inverse().mutiplication(QuatData_LeftLowerLeg.mutiplication(firstInvQuat_LeftLowerLeg));
-				reset_LLL.normalize();
 
-				avatar.b0 = firstInvQuat_C;
-				avatar.b6 = reset_RUL;
-				avatar.b7 = reset_RLL;
-				avatar.b8 = reset_LUL;
-				avatar.b9 = reset_LLL;
+				quaternion sfq_LUL = sfq_Pelvis.Inverse().mutiplication(QuatData_LeftUpperLeg.mutiplication(firstInvQuat_LeftUpperLeg));
+				sfq_LUL.normalize();
+
+				quaternion sfq_LLL = QuatData_LeftUpperLeg.mutiplication(firstInvQuat_LeftUpperLeg).Inverse().mutiplication(QuatData_LeftLowerLeg.mutiplication(firstInvQuat_LeftLowerLeg));
+				sfq_LLL.normalize();
+
+				avatar.b0 = sfq_Pelvis;
+				avatar.b6 = sfq_RUL;
+				avatar.b7 = sfq_RLL;
+				avatar.b8 = sfq_LUL;
+				avatar.b9 = sfq_LLL;
 
 				rotateBody(avatar);
 
@@ -2365,133 +2377,242 @@ void idle()
 	{
 		if (bReadFile)
 		{
-			//............Right Arm.............//
-			if (isize >= dsize)
+			switch (subOption)
 			{
-				bReadFile = false;
-				isize = 0;
-				outDataL.close();
-				outDataU.close();
-				matchDBTrajectory("Load\\UFormFile.csv", "Load\\LFormFile.csv");
-				break;
-			}
-
-			///////////////
-			quaternion qutObj;
-			glPushMatrix();
-			glLoadIdentity();
-			glGetFloatv(GL_MODELVIEW_MATRIX, lua_node.m);
-
-			quaternion reset_U(uqdata[isize][0], uqdata[isize][1], uqdata[isize][2], uqdata[isize][3]);
-			quaternion reset_L(lqdata[isize][0], lqdata[isize][1], lqdata[isize][2], lqdata[isize][3]);
-			float q0 = reset_U.mData[3];
-			float q1 = reset_U.mData[0];
-			float q2 = reset_U.mData[2];
-			float q3 = -reset_U.mData[1];
-
-			float angle_rad = acos(q0) * 2;
-			float angle_deg = angle_rad * 180 / PI;
-
-			float x = q1 / sin(angle_rad / 2);
-			float y = q2 / sin(angle_rad / 2);
-			float z = q3 / sin(angle_rad / 2);
-			float fnorm = sqrt(x*x + y*y + z*z);
-
-			glRotatef(angle_deg, x / fnorm, y / fnorm, z / fnorm);
-
-			glGetFloatv(GL_MODELVIEW_MATRIX, lua_node.m);
-
-			glLoadIdentity();
-			glTranslatef(0.0, -UPPER_ARM_HEIGHT, 0.0);
-			glGetFloatv(GL_MODELVIEW_MATRIX, lelb_node.m);
-
-			glGetFloatv(GL_MODELVIEW_MATRIX, lla_node.m);
-
-			q0 = lqdata[isize][3];
-			q1 = lqdata[isize][0];
-			q2 = lqdata[isize][2];
-			q3 = -lqdata[isize][1];
-
-
-
-			if (q0 == 9)
+			case 1:
 			{
+				if (trajCount >= dsize)
+				{
+					bReadFile = false;
+					isize = 0;
+					outDataL.close();
+					outDataU.close();
+					matchDBTrajectory("Load\\UFormFile.csv", "Load\\LFormFile.csv");
+					break;
+				}
+
+				avatar.b0 = avatarData[trajCount].b0;
+				avatar.b1 = avatarData[trajCount].b1;
+				avatar.b2 = avatarData[trajCount].b2;
+				avatar.b3 = avatarData[trajCount].b3;
+				avatar.b4 = avatarData[trajCount].b4;
+				avatar.b5 = avatarData[trajCount].b5;
+				avatar.b6 = avatarData[trajCount].b6;
+				avatar.b7 = avatarData[trajCount].b7;
+				avatar.b8 = avatarData[trajCount].b8;
+				avatar.b9 = avatarData[trajCount].b9;
+
+				rotateBody(avatar);
+
+				TVec3 b0Vec, b1Vec;
+
+				quaternion vQuat(tempVec._x, tempVec._y, tempVec._z, 0);
+
+				quaternion uTransfBodyQuat = avatar.b0.mutiplication(vQuat.mutiplication(avatar.b0.Inverse()));
+
+				traj_b0[trajCount][0] = 1;
+				traj_b0[trajCount][1] = uTransfBodyQuat.mData[0];
+				traj_b0[trajCount][2] = uTransfBodyQuat.mData[1];
+				traj_b0[trajCount][3] = uTransfBodyQuat.mData[2];
+
+				calaculateTrajectory(avatar.b1, avatar.b1, b0Vec, b1Vec);
+
+				traj_b1[trajCount][0] = 1;
+				traj_b1[trajCount][1] = b0Vec._x;
+				traj_b1[trajCount][2] = b0Vec._y;
+				traj_b1[trajCount][3] = b0Vec._z;
+
+
+				TVec3 b2Vec, b3Vec;
+				calaculateTrajectory(avatar.b2, avatar.b3, b2Vec, b3Vec);
+
+				traj_b2[trajCount][0] = 1;
+				traj_b2[trajCount][1] = b2Vec._x;
+				traj_b2[trajCount][2] = b2Vec._y;
+				traj_b2[trajCount][3] = b2Vec._z;
+
+				traj_b3[trajCount][0] = 1;
+				traj_b3[trajCount][1] = b3Vec._x;
+				traj_b3[trajCount][2] = b3Vec._y;
+				traj_b3[trajCount][3] = b3Vec._z;
+
+				TVec3 b4Vec, b5Vec;
+				calaculateTrajectory(avatar.b4, avatar.b5, b4Vec, b5Vec);
+
+				traj_b4[trajCount][0] = 1;
+				traj_b4[trajCount][1] = b4Vec._x;
+				traj_b4[trajCount][2] = b4Vec._y;
+				traj_b4[trajCount][3] = b4Vec._z;
+
+				traj_b5[trajCount][0] = 1;
+				traj_b5[trajCount][1] = b5Vec._x;
+				traj_b5[trajCount][2] = b5Vec._y;
+				traj_b5[trajCount][3] = b5Vec._z;
+
+				TVec3 b6Vec, b7Vec;
+				calaculateTrajectory(avatar.b6, avatar.b7, b6Vec, b7Vec);
+
+				traj_b6[trajCount][0] = 1;
+				traj_b6[trajCount][1] = b6Vec._x;
+				traj_b6[trajCount][2] = b6Vec._y;
+				traj_b6[trajCount][3] = b6Vec._z;
+
+				traj_b7[trajCount][0] = 1;
+				traj_b7[trajCount][1] = b7Vec._x;
+				traj_b7[trajCount][2] = b7Vec._y;
+				traj_b7[trajCount][3] = b7Vec._z;
+
+				TVec3 b8Vec, b9Vec;
+				calaculateTrajectory(avatar.b8, avatar.b9, b8Vec, b9Vec);
+
+				traj_b8[trajCount][0] = 1;
+				traj_b8[trajCount][1] = b8Vec._x;
+				traj_b8[trajCount][2] = b8Vec._y;
+				traj_b8[trajCount][3] = b8Vec._z;
+
+				traj_b9[trajCount][0] = 1;
+				traj_b9[trajCount][1] = b9Vec._x;
+				traj_b9[trajCount][2] = b9Vec._y;
+				traj_b9[trajCount][3] = b9Vec._z;
+				
 				trajCount++;
-				traj_b3[trajCount][0] = 9;
-				traj_b3[trajCount][1] = 0;
-				traj_b3[trajCount][2] = 0;
-				traj_b3[trajCount][3] = 0;
-				isize++;
-				glPopMatrix();
-
-				break;
 			}
-
-			angle_rad = acos(q0) * 2;
-			angle_deg = angle_rad * 180 / PI;
-			x = q1 / sin(angle_rad / 2);
-			y = q2 / sin(angle_rad / 2);
-			z = q3 / sin(angle_rad / 2);
-
-			fnorm = sqrt(x*x + y*y + z*z);
-
-			glLoadIdentity();
-			glTranslatef(0.0, 0.0, 0.0);
-			glRotatef(angle_deg, x / fnorm, y / fnorm, z / fnorm);
-			glGetFloatv(GL_MODELVIEW_MATRIX, lla_node.m);
-			glPopMatrix();
-
-			/*qPrevInvsPA = qPrevPA;
-			qPrevPA = sf_q.Inverse();
-			if (!isFirst)
-				qPA = sf_q.mutiplication(qPrevInvsPA);
-			else
-			{
-				isFirst = false;
-				isize++;
-				break;
-			}
-
-			if (qPA.mData[3] >= 0.99999 || isinf(x) || isnan(x)) {
-
-				isize++;
-				break;
-			}*/
-
-			quaternion tempQuat1 = BodyQuat.mutiplication(reset_U);
-			quaternion tempQuat2 = tempQuat1.mutiplication(reset_L);
-
-			TVector3 TransfBodyQuat1 = tempQuat2.quternionMatrices(tempQuat2, tempVec);
-			TVector3 TransfBodyQuat2 = tempQuat1.quternionMatrices(tempQuat1, tempVec);
-
-			///////////////////////////////////
-			trajCount++;
-
-			if (trajCount == 1)
-			{
-				outDataL.open("pointData\\StandarduserDataL.txt");
-				outDataU.open("pointData\\StandarduserDataU.txt");
-			}
-			traj_b3[trajCount][0] = 1.0;
-			traj_b3[trajCount][1] = TransfBodyQuat1._x;
-			traj_b3[trajCount][2] = TransfBodyQuat1._y;
-			traj_b3[trajCount][3] = TransfBodyQuat1._z;
-
-			outDataL << traj_b3[trajCount][1] << "\t" << traj_b3[trajCount][2] << "\t" << traj_b3[trajCount][3] << endl;
-
-			traj_b2[trajCount][0] = 1.0;
-			traj_b2[trajCount][1] = TransfBodyQuat2._x;
-			traj_b2[trajCount][2] = TransfBodyQuat2._y;
-			traj_b2[trajCount][3] = TransfBodyQuat2._z;
-
-			outDataU << traj_b2[trajCount][1] << "\t" << traj_b2[trajCount][2] << "\t" << traj_b2[trajCount][3] << endl;
-			//traj_b3[trajCount][0] = 1;// TransfBodyQuat.mData[3];
-			//traj_b3[trajCount][1] = TransfBodyQuat.mData[0];
-			//traj_b3[trajCount][2] = TransfBodyQuat.mData[1];
-			//traj_b3[trajCount][3] = TransfBodyQuat.mData[2];
-
-			isize++;
 			break;
+			case 2:
+			{
+
+
+				if (trajCount >= dsize)
+				{
+					bReadFile = false;
+					isize = 0;
+					outDataL.close();
+					outDataU.close();
+					matchDBTrajectory("Load\\UFormFile.csv", "Load\\LFormFile.csv");
+					break;
+				}
+
+				avatar.b0 = avatarData[trajCount].b0;
+				avatar.b2 = avatarData[trajCount].b2;
+				avatar.b3 = avatarData[trajCount].b3;
+				avatar.b4 = avatarData[trajCount].b4;
+				avatar.b5 = avatarData[trajCount].b5;
+
+				rotateBody(avatar);
+				
+				TVec3 b0Vec, b1Vec;
+
+				quaternion vQuat(tempVec._x, tempVec._y, tempVec._z, 0);
+
+				quaternion uTransfBodyQuat = avatar.b0.mutiplication(vQuat.mutiplication(avatar.b0.Inverse()));
+
+				traj_b0[trajCount][0] = 1;
+				traj_b0[trajCount][1] = uTransfBodyQuat.mData[0];
+				traj_b0[trajCount][2] = uTransfBodyQuat.mData[1];
+				traj_b0[trajCount][3] = uTransfBodyQuat.mData[2];
+
+				TVec3 b2Vec, b3Vec;
+				calaculateTrajectory(avatar.b2, avatar.b3, b2Vec, b3Vec);
+
+				traj_b2[trajCount][0] = 1;
+				traj_b2[trajCount][1] = b2Vec._x;
+				traj_b2[trajCount][2] = b2Vec._y;
+				traj_b2[trajCount][3] = b2Vec._z;
+
+				traj_b3[trajCount][0] = 1;
+				traj_b3[trajCount][1] = b3Vec._x;
+				traj_b3[trajCount][2] = b3Vec._y;
+				traj_b3[trajCount][3] = b3Vec._z;
+
+				TVec3 b4Vec, b5Vec;
+				calaculateTrajectory(avatar.b4, avatar.b5, b4Vec, b5Vec);
+				
+				traj_b4[trajCount][0] = 1;
+				traj_b4[trajCount][1] = b4Vec._x;
+				traj_b4[trajCount][2] = b4Vec._y;
+				traj_b4[trajCount][3] = b4Vec._z;
+
+				traj_b5[trajCount][0] = 1;
+				traj_b5[trajCount][1] = b5Vec._x;
+				traj_b5[trajCount][2] = b5Vec._y;
+				traj_b5[trajCount][3] = b5Vec._z;
+				
+				trajCount++;
+
+			}
+
+			break;
+
+			case 3:
+			{
+
+				if (trajCount >= dsize)
+				{
+					bReadFile = false;
+					isize = 0;
+					outDataL.close();
+					outDataU.close();
+					matchDBTrajectory("Load\\UFormFile.csv", "Load\\LFormFile.csv");
+					break;
+				}
+
+				avatar.b0 = avatarData[trajCount].b0;
+				avatar.b6 = avatarData[trajCount].b6;
+				avatar.b7 = avatarData[trajCount].b7;
+				avatar.b8 = avatarData[trajCount].b8;
+				avatar.b9 = avatarData[trajCount].b9;
+
+				rotateBody(avatar);
+
+
+				TVec3 b0Vec, b1Vec;
+
+				quaternion vQuat(tempVec._x, tempVec._y, tempVec._z, 0);
+
+				quaternion uTransfBodyQuat = avatar.b0.mutiplication(vQuat.mutiplication(avatar.b0.Inverse()));
+
+				traj_b0[trajCount][0] = 1;
+				traj_b0[trajCount][1] = uTransfBodyQuat.mData[0];
+				traj_b0[trajCount][2] = uTransfBodyQuat.mData[1];
+				traj_b0[trajCount][3] = uTransfBodyQuat.mData[2];
+
+				TVec3 b6Vec, b7Vec;
+				calaculateTrajectory(avatar.b6, avatar.b7, b6Vec, b7Vec);
+
+				traj_b6[trajCount][0] = 1;
+				traj_b6[trajCount][1] = b6Vec._x;
+				traj_b6[trajCount][2] = b6Vec._y;
+				traj_b6[trajCount][3] = b6Vec._z;
+
+				traj_b7[trajCount][0] = 1;
+				traj_b7[trajCount][1] = b7Vec._x;
+				traj_b7[trajCount][2] = b7Vec._y;
+				traj_b7[trajCount][3] = b7Vec._z;
+
+
+
+				TVec3 b8Vec, b9Vec;
+				calaculateTrajectory(avatar.b8, avatar.b9, b8Vec, b9Vec);
+
+				traj_b8[trajCount][0] = 1;
+				traj_b8[trajCount][1] = b8Vec._x;
+				traj_b8[trajCount][2] = b8Vec._y;
+				traj_b8[trajCount][3] = b8Vec._z;
+
+				traj_b9[trajCount][0] = 1;
+				traj_b9[trajCount][1] = b9Vec._x;
+				traj_b9[trajCount][2] = b9Vec._y;
+				traj_b9[trajCount][3] = b9Vec._z;
+
+
+				trajCount++;
+
+			}
+			break;
+
+			default:
+				break;
+			}
 		}
 	}
 	break;
@@ -3010,7 +3131,6 @@ void keyBoardEvent(unsigned char key, int x, int y)
 		{
 			std::cout << "\n Recording....!" << std::endl;
 
-			openFile();
 
 			trajCount = 0;
 			LindexP = 0;
@@ -3033,7 +3153,7 @@ void keyBoardEvent(unsigned char key, int x, int y)
 		}
 		else
 		{
-			closeFile();
+			writeData();
 			//matchDBTrajectory(UfileName, LfileName);
 
 		}
@@ -3043,95 +3163,22 @@ void keyBoardEvent(unsigned char key, int x, int y)
 
 	if (key == 49) //Key-1
 	{
-		std::ifstream infile;
-		infile.open("./Load/4LeftLFormFile.csv");
-
-		infile.unsetf(std::ios_base::skipws);
-
-		unsigned line_count = std::count(
-			std::istream_iterator<char>(infile),
-			std::istream_iterator<char>(),
-			'\n');
-
-		const int icount = (const int)line_count;
-		dsize = icount;
-		uqdata = new float*[icount];
-		lqdata = new float*[icount];
-		for (int i = 0; i < icount; ++i)
-		{
-			uqdata[i] = new float[4];
-			lqdata[i] = new float[4];
-		}
-
-		int i = 0;
-
-		std::ifstream infileu;
-		infileu.open("./Load/4LeftLFormFile.csv");
-
-		if (!infileu) { cout << "Cannot open input file.\n"; }
-		else { cout << "C4 data\n"; }
-		int j = 0;
-		for (std::string line; getline(infileu, line); )
-		{
-			std::istringstream iss(line);
-
-			std::string delimiter = ",";
-			size_t pos = 0;
-			std::string token;
-			int i = 3;
-			while ((pos = line.find(delimiter)) != std::string::npos) {
-				token = line.substr(0, pos);
-				//std::cout << token << std::endl;
-				line.erase(0, pos + delimiter.length());
-
-				lqdata[j][i] = stod(token);
-				if (i == 3) { i = -1; }
-				if (i == 1) {
-					lqdata[j][i + 1] = stod(line);
-				}
-				i++;
-			}
-			j++;
-		}
-
-		std::ifstream infilep;
-		infilep.open("./Load/5LeftUFormFile.csv");
-
-		if (!infilep) { cout << "Cannot open input file.\n"; }
-		else { cout << "Plv data\n"; }
-		j = 0;
-		for (std::string line; getline(infilep, line); )
-		{
-			std::istringstream iss(line);
-
-			std::string delimiter = ",";
-			size_t pos = 0;
-			std::string token;
-			int i = 3;
-			while ((pos = line.find(delimiter)) != std::string::npos) {
-				token = line.substr(0, pos);
-				//std::cout << token << std::endl;
-				line.erase(0, pos + delimiter.length());
-
-				uqdata[j][i] = stod(token);
-				if (i == 3) { i = -1; }
-				if (i == 1) {
-					uqdata[j][i + 1] = stod(line);
-				}
-				i++;
-
-			}
-			j++;
-
-		}
-
-		infile.close();
-		infileu.close();
+		readAvatarData();
 
 		bReadFile = true;
 		trajCount = 0;
-		memset(traj_b3, 0, 8056 * (sizeof(int)));
-		memset(traj_b2, 0, 8 * (sizeof(int)));
+
+		memset(traj_b0, 0, 80056 * (sizeof(float)));
+		memset(traj_b1, 0, 80056 * (sizeof(float)));
+		memset(traj_b2, 0, 80056 * (sizeof(float)));
+		memset(traj_b3, 0, 80056 * (sizeof(float)));
+		memset(traj_b4, 0, 80056 * (sizeof(float)));
+		memset(traj_b5, 0, 80056 * (sizeof(float)));
+		memset(traj_b6, 0, 80056 * (sizeof(float)));
+		memset(traj_b7, 0, 80056 * (sizeof(float)));
+		memset(traj_b8, 0, 80056 * (sizeof(float)));
+		memset(traj_b9, 0, 80056 * (sizeof(float)));
+
 		start = std::clock();
 		Comparision::resetDiagnosis();
 	}
