@@ -14,22 +14,7 @@ XsDevicePtr mtwDevice;
 
 
 void XsensConnection::Intialize()
-{
-	/*isRunning = false;
-	bxMTdisconnect = true;
-	stop_and_restart_everything = false;*/
-	/*ax[4] = { 90.0, 0.0,-1.0,0.0 };
-	ax2[4] = { 90.0, 0.0,0.0,0.0 };
-	ax3[4] = { 0.0, 0.0,0.0,0.0 };
-
-	r_ax[4] = { 0, 0,0,0 };
-	r_ax2[4] = { 0, 0,0,0 };
-	r_ax3[4] = { 0, 0,0,0 };*/
-
-
-	/*waitForConnections = true;
-	newDataAvailable = false;
-	closeMtW_Succes = false;*/
+{	
 
 }
 
@@ -367,7 +352,13 @@ bool XsensConnection::xmtConnect()
 				//mtwDevice->resetOrientation(XRM_Heading);
 				std::string mtw_id = mtwDevice->deviceId().toString().toStdString();
 
-				if (mtw_id == "00B438C7" || mtw_id == "00B4391F" || mtw_id == "00B43808")//00B438AE & 00B43926
+
+				/*pelvis ------> "00B43808" 
+				rightUpperArm -> "00B438AE" 
+				rightLowerArm -> "00B438C7" || mtw_id == "00B4391F" || mtw_id == "00B43923"*/
+
+				if (mtw_id == "00B4391F" || mtw_id == "00B43808" || mtw_id == "00B438C7" || mtw_id == "00B438AE" || mtw_id == "00B43923" ||
+					mtw_id == "00B43926" || mtw_id == "00B4278B" || mtw_id == "00B42790" || mtw_id == "00B42799" || mtw_id == "00B4279F")//00B438AE & 00B43926
 				{
 					mtwDevices.push_back(mtwDevice);
 					XsFilterProfileArray filters;
@@ -380,7 +371,7 @@ bool XsensConnection::xmtConnect()
 						
 					}
 					
-					std::cout << "\n reset:" << mtwDevice->resetOrientation(XRM_Alignment) << std::endl;
+					std::cout << "\n reset->" << mtw_id <<":"<< mtwDevice->resetOrientation(XRM_Alignment) << std::endl;
 					//std::cout << "AHS:" << mtwDevice->setDeviceOptionFlags(XDOF_EnableAhs, XDOF_None) << std::endl;
 					/*std::cout << "\n switch to Config:" << wirelessMasterDevice->gotoConfig() << std::endl;
 					std::cout << "\n switch to Config:" << mtwDevice->gotoConfig() << std::endl;
@@ -426,15 +417,7 @@ bool XsensConnection::xmtConnect()
 					newDataAvailable = true;
 					XsDataPacket const * packet = mtwCallbacks[i]->getOldestPacket();
 					quaterdata[i] = packet->orientationQuaternion();
-					mtwCallbacks[i]->deleteOldestPacket();
-					/*if (i==0 && onetime) {
-						std::cout << "Id:" << i << "Xsens : W:" << quaterdata[i].w() << "X:" << quaterdata[i].x() << "Y:" << quaterdata[i].y() << "Z:" << quaterdata[i].z() << std::endl;
-						onetime = false;
-					}
-					if (i == 0 && onetime) {
-						std::cout << "Id:" << i << "Xsens : W:" << quaterdata[i].w() << "X:" << quaterdata[i].x() << "Y:" << quaterdata[i].y() << "Z:" << quaterdata[i].z() << std::endl;
-						onetime = false;
-					}*/
+					mtwCallbacks[i]->deleteOldestPacket();					
 				}
 			}
 
@@ -442,91 +425,63 @@ bool XsensConnection::xmtConnect()
 			if (newDataAvailable)
 			{
 				
-				for (size_t i = 0; i < mtwCallbacks.size(); ++i)
+				for (size_t id = 0; id < mtwCallbacks.size(); ++id)
 				{
-					Qut_x = quaterdata[i].x();
-					Qut_y = quaterdata[i].y();
-					Qut_z = quaterdata[i].z();
-					Qut_w = quaterdata[i].w();
-
+					Quat.mData[0] = quaterdata[id].x();
+					Quat.mData[1] = quaterdata[id].y();
+					Quat.mData[2] = quaterdata[id].z();
+					Quat.mData[3] = quaterdata[id].w();
 					
-					
-					Quat = quaternion(Qut_x, Qut_y, Qut_z, Qut_w);
-
-					//if (calibrate  /*&& i == mtw_count*/) {
-					//	InvQuat = Quat.Inverse();
-					//	calibrate = false;
-					//	//++mtw_count;
-					//}
-
-					//quaternion reset = InvQuat.mutiplication(Quat);
-
-					/*if (std::isnan(reset.mData[0]))
-					{
-						calibrate = true;
-					}*/
-					quaternion reset = (Quat);
-
-					/*std::cout << "Id :"<< std::setw(2) << std::fixed << std::setprecision(2) <<i
-					<< ", Roll: " << std::setw(7) << std::fixed << std::setprecision(2) << reset.mData[0]
-					<< ", Pitch: " << std::setw(7) << std::fixed << std::setprecision(2) << reset.mData[1]
-					<< ", Yaw: " << std::setw(7) << std::fixed << std::setprecision(2) << reset.mData[2]
-					<< "  W: " << std::setw(7) << std::fixed << std::setprecision(2) << reset.mData[3]
-					<< "\n";*/
-					
-					if (i == 0) {
-
-						/*double axis[3];
-						double quatActor[4];
-						float fPI = 3.14159;*/
-
-						ax[0] = reset.mData[0];
-						ax[1] = reset.mData[1];
-						ax[2] = reset.mData[2];
-						ax[3] = reset.mData[3];
+										
+					if (id == 0)
+					{ 
+						xsIMU.b0 = Quat;
 					}
 				
-					if (i == 1) {
-						ax2[0] = reset.mData[0];
-						ax2[1] = reset.mData[1];
-						ax2[2] = reset.mData[2];
-						ax2[3] = reset.mData[3];
-
-						//std::cout << "Xsens : W" << ax2[3] << "X:" << ax2[0] << "Y:" << ax2[1] << "Z:" << ax2[2] << std::endl;
+					if (id == 1)
+					{
+						xsIMU.b1 = Quat;						
 					}
 
-					if (i == 2) {
-					r_ax3[0] = reset.mData[0];
-					r_ax3[1] = reset.mData[1];
-					r_ax3[2] = reset.mData[2];
-					r_ax3[3] = reset.mData[3];}
-
-					/*if (i == 2) {
-						r_ax[0] = reset.mData[0];
-						r_ax[1] = reset.mData[1];
-						r_ax[2] = reset.mData[2];
-						r_ax[3] = reset.mData[3];
+					if (id == 2) 
+					{
+						xsIMU.b2 = Quat;
 					}
-					if (i == 3) {
-						r_ax2[0] = reset.mData[0];
-						r_ax2[1] = reset.mData[1];
-						r_ax2[2] = reset.mData[2];
-						r_ax2[3] = reset.mData[3];
-					}*/
 
-					/*if (i == 2) {
-					r_ax3[0] = reset.mData[0];
-					r_ax3[1] = reset.mData[1];
-					r_ax3[2] = reset.mData[2];
-					r_ax3[3] = reset.mData[3];
-					}*/
-					/*Transform_PointCloud = Eigen::Affine3f::Identity();
-					Transform_PointCloud.rotate(Eigen::Quaternionf(reset.mData[3], -reset.mData[0], reset.mData[1], reset.mData[2]));
+					if (id == 3) 
+					{
+						xsIMU.b3 = Quat;
+					}
 
-					cout << "---------------------" << endl;
-					cout << Transform_PointCloud.matrix() << endl;
-					cout << "A1: " << Transform_PointCloud(0, 0) << "A2: " << Transform_PointCloud(0, 1) << "A3: " << Transform_PointCloud(1, 0) << "A4: " << Transform_PointCloud(1, 1) << endl;*/
+					if (id == 4) 
+					{
+						xsIMU.b4 = Quat;
+					}
+					if (id == 5) 
+					{
+						xsIMU.b5 = Quat;
+					}
+					
+					if (id == 6)
+					{
+						xsIMU.b6 = Quat;
+					}
 
+					if (id == 7)
+					{
+						xsIMU.b7 = Quat;
+					}
+
+					if (id == 8) 
+					{
+						xsIMU.b8 = Quat;
+					}
+
+					if (id == 9) 
+					{
+						xsIMU.b9 = Quat;
+					}
+										
 					if (bxMTdisconnect)
 					{
 						std::cout << "Closing XsControl..." << std::endl;

@@ -48,13 +48,20 @@ struct TVec3 {
 };
 
 
+struct Avatar {
+	quaternion b0, b1, b2, b3, b4, b5, b6, b7, b8, b9;
+	quaternion prv_b0, prv_b1, prv_b2, prv_b3, prv_b4,
+		prv_b5, prv_b6, prv_b7, prv_b8, prv_b9;
+	//ofstream fb0/*, fb1, fb2, fb3, fb4, fb5, fb6, fb7, fb8, fb9*/;
+};
+quaternion qInit = { 0,0,0,1 };
+struct Avatar avatar = { qInit,qInit,qInit,qInit,qInit,qInit,qInit,qInit,qInit,qInit };
 
-int option = -1;
-int animation = -3; //teleytaio animation
-int done = 0; //an oloklirwthike to teleytaio animation
+struct Avatar avatarData[1024];
+
+int option = -1, subOption = -1;
 double rotate_ = 0;
-double horizontal = 0;
-double zoominout = 1.2;
+
 double xr = 0, yr = 0, zr = 0;
 
 void head();
@@ -63,8 +70,6 @@ void left_upper_arm();
 void right_upper_arm();
 void left_upper_leg();
 void right_upper_leg();
-
-typedef float point[3];
 
 XsensConnection connectXS;
 
@@ -80,7 +85,7 @@ typedef struct treenode
 }treenode;
 
 typedef treenode* t_ptr;
-
+//0 , 1 , 2 ,   3 , 4 ,  5  , 6 ,  7  , 8 ,  9  ,10
 static GLfloat theta[11] = { 0.0,0.0,0.0,180.0,0.0,180.0,0.0,180.0,0.0,180.0,0.0 }; /* initial joint angles */
 
 static GLint angle = 2;
@@ -96,8 +101,7 @@ relb_node, lelb_node, rknee_node, lknee_node, nk_node, lhand_node, rhand_node, l
 rsh_node, lsh_node;
 
 //Output to file
-ofstream L_rawqfile, U_rawqfile, P_rawfile ,LatLongfile;
-ofstream L_qfile1, L_rfile2, L_sfqfile, U_sfqfile, Calibfile, RPY_lowpass, outDataL, outDataU;
+ofstream outDataL, outDataU;
 
 bool fileClose = false;
 float** uqdata;
@@ -112,37 +116,25 @@ int isize = 0;
 int dsize = 0;
 int idbsize = 0;
 bool startAnim = false;
-double prevDegree = 0;
 
-quaternion QuatData_U, QuatData_L, QuatData_C;
-quaternion firstInvQuat_U, firstInvQuat_L, firstInvQuat_C;
-quaternion qPA, qPrevPA, qPrevInvsPA, firstPlvCalib;
-quaternion uqPA,uqPrevPA, uqPrevInvsPA;
-quaternion currentQuat, nextQuat, firstQuat;
-quaternion QuatFirstVect1, QuatFirstVect2, QuatAxis;
-float prev_angle = 0.0;
+quaternion QuatData_RightUpperArm, QuatData_RightLowerArm, QuatData_Pelvis, QuatData_LeftUpperArm, QuatData_LeftLowerArm;
+quaternion QuatData_RightUpperLeg, QuatData_RightLowerLeg, QuatData_head, QuatData_LeftUpperLeg, QuatData_LeftLowerLeg;
+quaternion firstInvQuat_RightUpperArm, firstInvQuat_RightLowerArm, sfq_Pelvis;
+quaternion firstInvQuat_RightUpperLeg, firstInvQuat_RightLowerLeg, firstInvQuat_head;
+quaternion firstInvQuat_LeftUpperArm, firstInvQuat_LeftLowerArm;
+quaternion firstInvQuat_LeftUpperLeg, firstInvQuat_LeftLowerLeg;
+quaternion qPA, qPrevInvsPA, firstPlvCalib, firstHeadCalib;
+
 struct CurveProperty curveProperty;
 
 quaternion BodyQuat(1.29947E-16, 0.707106781, -0.707106781, 1.41232E-32);
 
-quaternion Calib_att, Calib_tpos, Calib_cal(1.00, 0.00, 0.00, 0.00);
-quaternion Calib_xe(0.71, 0.71, 0.00, 0.00);
-quaternion Calib_ye(0.71, 0.00, 0.71, 0.00);
-bool startCalib = false;
-
-TVector3 V0, V1;
-TVector3 avgRPY;
-int indexP = 0;
+int trajCount = 0;
+int LindexP = 0;
 int indexDB = 0;
-int centerindexP = 1;
-int averageIndexP = 0;
-int Counterindex = 0;
-bool First_calibrate = true;  // Reset Quaternion
-bool AttAxisCalib = false;
-bool TposAxisCalib = false;
-bool isCalib = false;
+bool firstCalib = true;  // Reset Quaternion
+
 bool isFirst = true;
-bool isRQFirst = true;
 int width = 1800;
 int height = 900;
 
@@ -164,9 +156,17 @@ int lastMouseX, lastMouseY;
 
 bool mouseDown = false;
 
-float PA_data[20014][4];
-float uPA_data[20014][4];
-float drawGrid[20014][4];
+
+float traj_b0[20014][4];
+float traj_b1[20014][4];
+float traj_b2[20014][4];
+float traj_b3[20014][4];
+float traj_b4[20014][4];
+float traj_b5[20014][4];
+float traj_b6[20014][4];
+float traj_b7[20014][4];
+float traj_b8[20014][4];
+float traj_b9[20014][4];
 
 
 float uDB_data[20014][4];
@@ -180,8 +180,6 @@ float avgAngle = 0;
 
 int fileCount = 0;
 char fileName[1024];
-char LfileName[1024];
-char UfileName[1024];
 
 char charstring[1024];
 
@@ -197,13 +195,8 @@ float color[4] = { 0, 0, 0, 1 };
 float mcolor[4] = { 1, 0, 0, 1 };
 
 //Texturemapping
-
 GLuint texture_id[2];
 GLUquadricObj *sphere;
-GLfloat LightAmbient[] = { 1.0, 1.0, 1.0, 1.0 };
-GLfloat LightDiffuse[] = { 0.5f, 0.5f, 0.5f, 1.0f };
-GLfloat LightPosition[] = { 5.0f, 25.0f, 15.0f, 1.0f };
-GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 1.0 };
 
 const int   TEXT_WIDTH = 8;
 const int   TEXT_HEIGHT = 24;
@@ -283,7 +276,7 @@ float mag(TVec3 a)  //calculates magnitude of a
 
 void quaternionToEulerAngles(quaternion q, TVector3& RPY)
 {
-	 //roll (x-axis rotation)
+	//roll (x-axis rotation)
 	double sinr_cosp = 2.0 * (q.mData[3] * q.mData[0] + q.mData[1] * q.mData[2]);
 	double cosr_cosp = 1.0 - 2.0 * (q.mData[0] * q.mData[0] + q.mData[1] * q.mData[1]);
 	RPY._x = atan2(sinr_cosp, cosr_cosp);
@@ -298,7 +291,7 @@ void quaternionToEulerAngles(quaternion q, TVector3& RPY)
 	// yaw (z-axis rotation)
 	double siny_cosp = 2.0 * (q.mData[3] * q.mData[2] + q.mData[0] * q.mData[1]);
 	double cosy_cosp = 1.0 - 2.0 * (q.mData[1] * q.mData[1] + q.mData[2] * q.mData[2]);
-	RPY._z = atan2(siny_cosp, cosy_cosp);	
+	RPY._z = atan2(siny_cosp, cosy_cosp);
 }
 
 void drawCoordinate()
@@ -423,7 +416,7 @@ void DrawGrid()
 	quad(0, 4, 7, 3);
 	quad(1, 2, 6, 5);
 	quad(4, 5, 6, 7);
-	quad(0, 1, 5, 4);	
+	quad(0, 1, 5, 4);
 }
 
 void drawElipsoid(int SLICES, int STACKS, float SCALE_X, float SCALE_Y, float SCALE_Z) {
@@ -503,42 +496,42 @@ void torso()
 	// Belly
 	glColor3f(0.68, 0.14, 0.21);
 	glPushMatrix();
-		glTranslatef(0.0, 0.0, 0.0);
-		glRotatef(90, 1, 0, 0);
-		glutSolidCone(1.0, 0.75, 6, 6);
+	glTranslatef(0.0, 0.0, 0.0);
+	glRotatef(90, 1, 0, 0);
+	glutSolidCone(1.0, 0.75, 6, 6);
 	glPopMatrix();
 
 	//Belly Center joint Circle
 	glColor3f(0, 0, 0);
 	glPushMatrix();
-		glTranslatef(0, 0.25, 0);
-		glRotatef(180, 1, 0, 0);
-		bodyJoint_circle(0.25, 2);
+	glTranslatef(0, 0.25, 0);
+	glRotatef(180, 1, 0, 0);
+	bodyJoint_circle(0.25, 2);
 	glPopMatrix();
 
 	//Belly Left joint Circle 
 	glColor3f(0, 0, 0);
 	glPushMatrix();
-		glTranslatef(-0.75, 0, 0);
-		glRotatef(180, 1, 0, 0);
-		bodyJoint_circle(0.25, 2);
+	glTranslatef(-0.75, 0, 0);
+	glRotatef(180, 1, 0, 0);
+	bodyJoint_circle(0.25, 2);
 	glPopMatrix();
 
 
 	//Belly Right joint Circle 
 	glColor3f(0, 0, 0);
 	glPushMatrix();
-		glTranslatef(0.75, 0, 0);
-		glRotatef(180, 1, 0, 0);
-		bodyJoint_circle(0.25, 2);
+	glTranslatef(0.75, 0, 0);
+	glRotatef(180, 1, 0, 0);
+	bodyJoint_circle(0.25, 2);
 	glPopMatrix();
 
 	//Upper Body
 	glColor3f(0.68, 0.14, 0.21);
 	glPushMatrix();
-		glTranslatef(0.0, 5.75, 0.0);
-		glRotatef(90, 1, 0, 0);
-		glutSolidCone(0.8, 5.5, 6,6);
+	glTranslatef(0.0, 5.75, 0.0);
+	glRotatef(90, 1, 0, 0);
+	glutSolidCone(0.8, 5.5, 6, 6);
 	glPopMatrix();
 
 
@@ -548,10 +541,10 @@ void head()
 {
 	//Head
 	glColor3f(0.68, 0.14, 0.21);
-		glPushMatrix();
-		glTranslatef(-0.1, 0.25, 0);
-		glRotatef(-90, 1, 0, 0);
-		glutSolidCone(0.55, 2.05, 6,6);
+	glPushMatrix();
+	glTranslatef(-0.1, 0.25, 0);
+	glRotatef(-90, 1, 0, 0);
+	glutSolidCone(0.55, 2.05, 6, 6);
 	glPopMatrix();
 
 
@@ -562,16 +555,16 @@ void neck()
 	//Neck 
 	glColor3f(0.68, 0.14, 0.21);
 	glPushMatrix();
-		glRotatef(-90.0, 1.0, 0.0, 0.0);
-		glTranslatef(0.0, 0.0, 0.0);
-		glutSolidCone(0.55, 1.05, 6, 6);
+	glRotatef(-90.0, 1.0, 0.0, 0.0);
+	glTranslatef(0.0, 0.0, 0.0);
+	glutSolidCone(0.55, 1.05, 6, 6);
 	glPopMatrix();
 
 	//Neck Joint Circle
 	glPushMatrix();
-		glRotatef(180, 0, 1, 0);
-		glTranslatef(0.0, 1, 0);
-		bodyJoint_circle(0.2, 2);
+	glRotatef(180, 0, 1, 0);
+	glTranslatef(0.0, 1, 0);
+	bodyJoint_circle(0.2, 2);
 	glPopMatrix();
 
 }
@@ -581,17 +574,17 @@ void rightShoulder()
 	//Right Shoulder
 	glColor3f(0.98, 0.14, 0.21);
 	glPushMatrix();
-		glTranslatef(-1.85, 0.10, 0);
-		glRotatef(90, 0.12, 1, 0);
-		glutSolidCone(0.35, 2.25, 6, 6);
+	glTranslatef(-1.85, 0.10, 0);
+	glRotatef(90, 0.12, 1, 0);
+	glutSolidCone(0.35, 2.25, 6, 6);
 	glPopMatrix();
 
 
 	//Right Shoulder joint Circle
 	glColor3f(0.0, 0.0, 0.0);
-		glPushMatrix();
-		glTranslatef(0.0, 0.2, 0);
-		bodyJoint_circle(0.5, 2);
+	glPushMatrix();
+	glTranslatef(0.0, 0.2, 0);
+	bodyJoint_circle(0.5, 2);
 	glPopMatrix();
 
 
@@ -604,26 +597,26 @@ void leftShoulder()
 	//Left Shoulder
 	glColor3f(0.98, 0.14, 0.21);
 	glPushMatrix();
-		glTranslatef(1.85, 0.125, 0);
-		glRotatef(-90, -0.1, 1, 0.0);
-		glutSolidCone(0.35, 2.25, 6, 6);
+	glTranslatef(1.85, 0.125, 0);
+	glRotatef(-90, -0.1, 1, 0.0);
+	glutSolidCone(0.35, 2.25, 6, 6);
 	glPopMatrix();
 
 
 	//Left Shoulder Joint Circle
 	glColor3f(0.0, 0.0, 0.0);
-		glPushMatrix();
-		glTranslatef(0.0, 0.2, 0);
-		bodyJoint_circle(0.5, 2);
+	glPushMatrix();
+	glTranslatef(0.0, 0.2, 0);
+	bodyJoint_circle(0.5, 2);
 	glPopMatrix();
 }
 
 void rightElbow()
 {
 	glPushMatrix();
-		glTranslatef(0.0, 0.0, 0);
-		glRotatef(180, 1, 0, 0);
-		bodyJoint_circle(0.5, 2);
+	glTranslatef(0.0, 0.0, 0);
+	glRotatef(180, 1, 0, 0);
+	bodyJoint_circle(0.5, 2);
 	glPopMatrix();
 }
 
@@ -632,9 +625,9 @@ void leftElbow()
 	//Left Elbow
 	glColor3f(0.0, 0.0, 0.0);
 	glPushMatrix();
-		glTranslatef(0.0, 0.0, 0);
-		glRotatef(180, 1, 0, 0);
-		bodyJoint_circle(0.5, 2);
+	glTranslatef(0.0, 0.0, 0);
+	glRotatef(180, 1, 0, 0);
+	bodyJoint_circle(0.5, 2);
 	glPopMatrix();
 }
 
@@ -643,9 +636,9 @@ void rightKnee()
 	//Right Knee
 	glColor3f(0.0, 0.0, 0.0);
 	glPushMatrix();
-		glRotatef(180, 0, 1, 0);
-		glTranslatef(-0.15, 0.8, 0);
-		bodyJoint_circle(0.5, 2);
+	glRotatef(180, 0, 1, 0);
+	glTranslatef(-0.15, 0.8, 0);
+	bodyJoint_circle(0.5, 2);
 	glPopMatrix();
 
 
@@ -656,29 +649,29 @@ void leftKnee()
 	//Left Knee
 	glColor3f(0.0, 0.0, 0.0);
 	glPushMatrix();
-		glRotatef(180, 0, 1, 0);
-		glTranslatef(0.0, 0.8, 0);
-		bodyJoint_circle(0.5, 2);
+	glRotatef(180, 0, 1, 0);
+	glTranslatef(0.0, 0.8, 0);
+	bodyJoint_circle(0.5, 2);
 	glPopMatrix();
 }
 
 void leftFoot()
-{	
+{
 	//Left Foot
 	glColor3f(0.98, 0.14, 0.21);
 	glPushMatrix();
-		glTranslatef(0.0, 0.8, 0);
-		glRotatef(90, 1, 0, 0);
-		glutSolidCone(0.75, 0.75, 6, 6);
+	glTranslatef(0.0, 0.8, 0);
+	glRotatef(90, 1, 0, 0);
+	glutSolidCone(0.75, 0.75, 6, 6);
 	glPopMatrix();
 
 	//Left Foot Joint Circle
 	glColor3f(0.0, 0.0, 0.0);
 	glPushMatrix();
-		glTranslatef(0.0, 0.8, 0);
-		glRotatef(180, 0, 1, 0);
-		glTranslatef(0.0, -0.65, 0);
-		bodyJoint_circle(0.2, 2);
+	glTranslatef(0.0, 0.8, 0);
+	glRotatef(180, 0, 1, 0);
+	glTranslatef(0.0, -0.65, 0);
+	bodyJoint_circle(0.2, 2);
 	glPopMatrix();
 
 }
@@ -688,17 +681,17 @@ void rightFoot()
 	//Right Foot
 	glColor3f(0.98, 0.14, 0.21);
 	glPushMatrix();
-		glTranslatef(0.15, 0.8, 0);
-		glRotatef(90, 1, 0, 0);
-		glutSolidCone(0.75, 0.75, 6, 6);
+	glTranslatef(0.15, 0.8, 0);
+	glRotatef(90, 1, 0, 0);
+	glutSolidCone(0.75, 0.75, 6, 6);
 	glPopMatrix();
 
 	//Right Foot Joint Circle
 	glColor3f(0.0, 0.0, 0.0);
 	glPushMatrix();
-		glTranslatef(0.15, 0.15, 0);
-		glRotatef(180, 0, 1, 0);
-		bodyJoint_circle(0.2, 2);
+	glTranslatef(0.15, 0.15, 0);
+	glRotatef(180, 0, 1, 0);
+	bodyJoint_circle(0.2, 2);
 	glPopMatrix();
 }
 
@@ -707,17 +700,17 @@ void rightHand()
 	//Right Hand
 	glColor3f(0.98, 0.14, 0.21);
 	glPushMatrix();
-		glTranslatef(0.0, 0.0, 0);
-		glRotatef(-90, 1, 0, 0);
-		glutSolidCone(0.55, 0.75, 5, 5);
+	glTranslatef(0.0, 0.0, 0);
+	glRotatef(-90, 1, 0, 0);
+	glutSolidCone(0.55, 0.75, 5, 5);
 	glPopMatrix();
 
 	//Right Hand Joint Circle
 	glColor3f(0.0, 0.0, 0.0);
 	glPushMatrix();
-		glRotatef(180, 0, 1, 0);
-		glTranslatef(0.0, 0.65, 0);
-		bodyJoint_circle(0.2, 2);
+	glRotatef(180, 0, 1, 0);
+	glTranslatef(0.0, 0.65, 0);
+	bodyJoint_circle(0.2, 2);
 	glPopMatrix();
 }
 
@@ -725,17 +718,17 @@ void leftHand()
 {
 	//Left Hand
 	glPushMatrix();
-		glTranslatef(0.0, 0.0, 0);
-		glRotatef(-90, 1, 0, 0);
-		glutSolidCone(0.55, 0.75, 5, 5);
+	glTranslatef(0.0, 0.0, 0);
+	glRotatef(-90, 1, 0, 0);
+	glutSolidCone(0.55, 0.75, 5, 5);
 	glPopMatrix();
 
 	//Left Hand Joint Circle
 	glColor3f(0.0, 0.0, 0.0);
 	glPushMatrix();
-		glRotatef(180, 0, 1, 0);
-		glTranslatef(0.0, 0.65, 0);
-		bodyJoint_circle(0.2, 2);
+	glRotatef(180, 0, 1, 0);
+	glTranslatef(0.0, 0.65, 0);
+	bodyJoint_circle(0.2, 2);
 	glPopMatrix();
 }
 
@@ -744,24 +737,24 @@ void left_upper_arm()
 	//Left Upper Arm Cap
 	glColor3f(0.98, 0.14, 0.21);
 	glPushMatrix();
-		glTranslatef(0.0, 0.0, 0);
-		glRotatef(-90.0, 1.0, 0.0, 0.0);
-		glutSolidCone(UPPER_ARM_RADIUS - 0.1, 0.5, 10, 10);
+	glTranslatef(0.0, 0.0, 0);
+	glRotatef(-90.0, 1.0, 0.0, 0.0);
+	glutSolidCone(UPPER_ARM_RADIUS - 0.1, 0.5, 10, 10);
 	glPopMatrix();
-	
+
 	//Left Upper Arm
 	glColor3f(0.98, 0.14, 0.21);
 	glPushMatrix();
-		glTranslatef(0.0, 0.0, 0);
-		glRotatef(90.0, 1.0, 0.0, 0.0);
-		glutSolidCone(UPPER_ARM_RADIUS - 0.1, UPPER_ARM_HEIGHT, 10, 10);
+	glTranslatef(0.0, 0.0, 0);
+	glRotatef(90.0, 1.0, 0.0, 0.0);
+	glutSolidCone(UPPER_ARM_RADIUS - 0.1, UPPER_ARM_HEIGHT, 10, 10);
 	glPopMatrix();
 
 	//Co-ordinate
 	glPushMatrix();
-		glRotatef(180.0, 0.0, 1.0, 0.0);//-90
-		glRotatef(180.0, 1.0, 0.0, 0.0);
-		drawCoordinate();
+	glRotatef(180.0, 0.0, 1.0, 0.0);//-90
+	glRotatef(180.0, 1.0, 0.0, 0.0);
+	drawCoordinate();
 	glPopMatrix();
 }
 
@@ -770,24 +763,24 @@ void left_lower_arm()
 
 	//Left Lower Arm Cap
 	glColor3f(0.98, 0.14, 0.21);
-		glPushMatrix();
-		glRotatef(-90.0, 1.0, 0.0, 0.0);
-		glutSolidCone(LOWER_ARM_RADIUS - 0.15, 0.5, 10, 10);
+	glPushMatrix();
+	glRotatef(-90.0, 1.0, 0.0, 0.0);
+	glutSolidCone(LOWER_ARM_RADIUS - 0.15, 0.5, 10, 10);
 	glPopMatrix();
 
 	//Left Lower Arm
 	glColor3f(0.98, 0.14, 0.21);
-		glPushMatrix();
-		glTranslatef(0.0, 0.0, 0);
-		glRotatef(90.0, 1.0, 0.0, 0.0);
-		glutSolidCone(LOWER_ARM_RADIUS - 0.15, LOWER_ARM_HEIGHT, 10, 10);
+	glPushMatrix();
+	glTranslatef(0.0, 0.0, 0);
+	glRotatef(90.0, 1.0, 0.0, 0.0);
+	glutSolidCone(LOWER_ARM_RADIUS - 0.15, LOWER_ARM_HEIGHT, 10, 10);
 	glPopMatrix();
 
 
 	glPushMatrix();
-		glRotatef(180.0, 0.0, 1.0, 0.0);//-90
-		glRotatef(180.0, 1.0, 0.0, 0.0);
-		drawCoordinate();
+	glRotatef(180.0, 0.0, 1.0, 0.0);//-90
+	glRotatef(180.0, 1.0, 0.0, 0.0);
+	drawCoordinate();
 	glPopMatrix();
 }
 
@@ -796,23 +789,23 @@ void right_upper_arm()
 	//right upper Arm Cap
 	glColor3f(0.98, 0.14, 0.21);
 	glPushMatrix();
-		glTranslatef(0.0, 0.0, 0);
-		glRotatef(-90.0, 1.0, 0.0, 0.0);
-		glutSolidCone(UPPER_ARM_RADIUS - 0.1, 0.5, 10, 10);
+	glTranslatef(0.0, 0.0, 0);
+	glRotatef(-90.0, 1.0, 0.0, 0.0);
+	glutSolidCone(UPPER_ARM_RADIUS - 0.1, 0.5, 10, 10);
 	glPopMatrix();
 
 	//right upper Arm
 	glColor3f(0.98, 0.14, 0.21);
 	glPushMatrix();
-		glTranslatef(0.0, 0.0, 0);
-		glRotatef(90.0, 1.0, 0.0, 0.0);
-		glutSolidCone(UPPER_ARM_RADIUS - 0.1, UPPER_ARM_HEIGHT, 10, 10);
+	glTranslatef(0.0, 0.0, 0);
+	glRotatef(90.0, 1.0, 0.0, 0.0);
+	glutSolidCone(UPPER_ARM_RADIUS - 0.1, UPPER_ARM_HEIGHT, 10, 10);
 	glPopMatrix();
-	   
+
 	glPushMatrix();
-		glRotatef(180.0, 0.0, 1.0, 0.0);//-90
-		glRotatef(180.0, 1.0, 0.0, 0.0);
-		drawCoordinate();
+	glRotatef(180.0, 0.0, 1.0, 0.0);//-90
+	glRotatef(180.0, 1.0, 0.0, 0.0);
+	drawCoordinate();
 	glPopMatrix();
 }
 
@@ -822,41 +815,41 @@ void right_lower_arm()
 	//Right Lower Arm Cap
 	glColor3f(0.98, 0.14, 0.21);
 	glPushMatrix();
-		glRotatef(-90.0, 1.0, 0.0, 0.0);
-		glutSolidCone(LOWER_ARM_RADIUS - 0.15, 0.5, 10, 10);
+	glRotatef(-90.0, 1.0, 0.0, 0.0);
+	glutSolidCone(LOWER_ARM_RADIUS - 0.15, 0.5, 10, 10);
 	glPopMatrix();
 
 	//Right Lower Arm Cap
 	glColor3f(0.98, 0.14, 0.21);
 	glPushMatrix();
-		glTranslatef(0.0, 0.0, 0);
-		glRotatef(90.0, 1.0, 0.0, 0.0);
-		glutSolidCone(LOWER_ARM_RADIUS - 0.15, LOWER_ARM_HEIGHT, 10, 10);
+	glTranslatef(0.0, 0.0, 0);
+	glRotatef(90.0, 1.0, 0.0, 0.0);
+	glutSolidCone(LOWER_ARM_RADIUS - 0.15, LOWER_ARM_HEIGHT, 10, 10);
 	glPopMatrix();
 
 	glPushMatrix();
-		glRotatef(180.0, 0.0, 1.0, 0.0);//-90
-		glRotatef(180.0, 1.0, 0.0, 0.0);
-		drawCoordinate();
+	glRotatef(180.0, 0.0, 1.0, 0.0);//-90
+	glRotatef(180.0, 1.0, 0.0, 0.0);
+	drawCoordinate();
 	glPopMatrix();
 }
 
 void left_upper_leg()
 {
-	//Left Upper Leg 
-	glColor3f(0.98, 0.14, 0.21);
-	glPushMatrix();
-		glTranslatef(0.0, 1.0, 0);
-		glRotatef(-90.0, 1.0, 0.0, 0.0);
-		glutSolidCone(UPPER_LEG_RADIUS - 0.1, UPPER_LEG_HEIGHT, 10, 10);
-	glPopMatrix();
-
 	//Left Upper Leg Cap
 	glColor3f(0.98, 0.14, 0.21);
 	glPushMatrix();
-		glTranslatef(0.0, 1.0, 0);
-		glRotatef(90.0, 1.0, 0.0, 0.0);
-		glutSolidCone(UPPER_LEG_RADIUS - 0.1, 0.5, 10, 10);
+	glTranslatef(0.0, 1.0, 0);
+	glRotatef(-90.0, 1.0, 0.0, 0.0);
+	glutSolidCone(UPPER_LEG_RADIUS - 0.1, UPPER_LEG_HEIGHT, 10, 10);
+	glPopMatrix();
+
+	//Left Upper Leg
+	glColor3f(0.98, 0.14, 0.21);
+	glPushMatrix();
+	glTranslatef(0.0, 1.0, 0);
+	glRotatef(90.0, 1.0, 0.0, 0.0);
+	glutSolidCone(UPPER_LEG_RADIUS - 0.1, 0.5, 10, 10);
 	glPopMatrix();
 
 
@@ -867,19 +860,19 @@ void left_lower_leg()
 	//Left lower Leg Cap
 	glColor3f(0.98, 0.14, 0.21);
 	glPushMatrix();
-		glTranslatef(0.0, 0.8, 0);
-		glRotatef(-90.0, 1.0, 0.0, 0.0);
-		glutSolidCone(LOWER_LEG_RADIUS - 0.2, LOWER_LEG_HEIGHT, 10, 10);
+	glTranslatef(0.0, 0.8, 0);
+	glRotatef(-90.0, 1.0, 0.0, 0.0);
+	glutSolidCone(LOWER_LEG_RADIUS - 0.2, LOWER_LEG_HEIGHT, 10, 10);
 	glPopMatrix();
 
 
 	//Left lower Leg
 	glColor3f(0.98, 0.14, 0.21);
 	glPushMatrix();
-		glTranslatef(0.0, 0.8, 0);
-		glRotatef(90.0, 1.0, 0.0, 0.0);
-		glutSolidCone(LOWER_LEG_RADIUS - 0.2, 0.5, 10, 10);
-		glPopMatrix();
+	glTranslatef(0.0, 0.8, 0);
+	glRotatef(90.0, 1.0, 0.0, 0.0);
+	glutSolidCone(LOWER_LEG_RADIUS - 0.2, 0.5, 10, 10);
+	glPopMatrix();
 }
 
 
@@ -891,17 +884,17 @@ void right_upper_leg()
 	//right upper Leg Cap
 	glColor3f(0.98, 0.14, 0.21);
 	glPushMatrix();
-		glTranslatef(0.15, 1.0, 0);
-		glRotatef(-90.0, 1.0, 0.0, 0.0);
-		glutSolidCone(UPPER_LEG_RADIUS - 0.1, UPPER_LEG_HEIGHT, 10, 10);
+	glTranslatef(0.15, 1.0, 0);
+	glRotatef(-90.0, 1.0, 0.0, 0.0);
+	glutSolidCone(UPPER_LEG_RADIUS - 0.1, UPPER_LEG_HEIGHT, 10, 10);
 	glPopMatrix();
 
 	//right upper Leg
 	glColor3f(0.98, 0.14, 0.21);
 	glPushMatrix();
-		glTranslatef(0.15, 1.0, 0);
-		glRotatef(90.0, 1.0, 0.0, 0.0);
-		glutSolidCone(UPPER_LEG_RADIUS - 0.1, 0.5, 10, 10);
+	glTranslatef(0.15, 1.0, 0);
+	glRotatef(90.0, 1.0, 0.0, 0.0);
+	glutSolidCone(UPPER_LEG_RADIUS - 0.1, 0.5, 10, 10);
 	glPopMatrix();
 
 }
@@ -911,17 +904,17 @@ void right_lower_leg()
 	//right lower  Leg Cap
 	glColor3f(0.98, 0.14, 0.21);
 	glPushMatrix();
-		glTranslatef(0.15, 0.8, 0);
-		glRotatef(-90.0, 1.0, 0.0, 0.0);
-		glutSolidCone(LOWER_LEG_RADIUS - 0.2, LOWER_LEG_HEIGHT, 10, 10);
+	glTranslatef(0.15, 0.8, 0);
+	glRotatef(-90.0, 1.0, 0.0, 0.0);
+	glutSolidCone(LOWER_LEG_RADIUS - 0.2, LOWER_LEG_HEIGHT, 10, 10);
 	glPopMatrix();
-	
+
 	//right lower  Leg 
 	glColor3f(0.98, 0.14, 0.21);
 	glPushMatrix();
-		glTranslatef(0.15, 0.8, 0);
-		glRotatef(90.0, 1.0, 0.0, 0.0);
-		glutSolidCone(LOWER_LEG_RADIUS - 0.2, 0.5, 10, 10);
+	glTranslatef(0.15, 0.8, 0);
+	glRotatef(90.0, 1.0, 0.0, 0.0);
+	glutSolidCone(LOWER_LEG_RADIUS - 0.2, 0.5, 10, 10);
 	glPopMatrix();
 
 }
@@ -1145,8 +1138,8 @@ void renderCylinder_convenient(float x1, float y1, float z1, float x2, float y2,
 
 void showInfo(/*std::stringstream &ss, int tWidth, int tHeight*/)
 {
-	
-	
+
+
 	// backup current model-view matrix
 	glPushMatrix();                     // save current modelview matrix
 	glLoadIdentity();                   // reset modelview matrix
@@ -1155,21 +1148,19 @@ void showInfo(/*std::stringstream &ss, int tWidth, int tHeight*/)
 	glMatrixMode(GL_PROJECTION);        // switch to projection matrix
 	glPushMatrix();                     // save current projection matrix
 	glLoadIdentity();                   // reset projection matrix
-	gluOrtho2D(0, width/2, 0, height);  // set to orthogonal projection
-	
+	gluOrtho2D(0, width / 2, 0, height);  // set to orthogonal projection
+
 	//Vector3 v1 = sphereVector;                          // first vector on sphere
 	//Vector3 v2 = trackball.getVector(mouseX, mouseY);   // second vector on sphere
 	//float angle = RAD2DEG * acosf(v1.dot(v2) / (v1.length() * v2.length()));
 
 	// for print infos
 
-	//std::stringstream ss;
-	//ss << "Standard : (" << connectXS.ax[0] << ", " << connectXS.ax[1] << ", " << connectXS.ax[2] << ", " << connectXS.ax[3] << ")";
-	
-	
+
+
 	/////////////////////
 	isMatched = false;
-	float normalLowerArmCurveLength=0.0, normalUpperArmCurveLength=0.0, normalSpeed, percentage=0, deviation=0;
+	float normalLowerArmCurveLength = 0.0, normalUpperArmCurveLength = 0.0, normalSpeed, percentage = 0, deviation = 0;
 	normalSpeed = (101.0 / 60.0)*1000.0;
 	std::stringstream closeness;
 	std::stringstream closeness1;
@@ -1177,7 +1168,7 @@ void showInfo(/*std::stringstream &ss, int tWidth, int tHeight*/)
 	std::stringstream closeness3;
 	std::stringstream closeness4;
 	//if (diff < threshold && diff == diff1)
-	if (stdPercent >= 90 )
+	if (stdPercent >= 90)
 	{
 		std::stringstream ss;
 		ss << "Falls within the range of STANDARD CURL";
@@ -1186,9 +1177,9 @@ void showInfo(/*std::stringstream &ss, int tWidth, int tHeight*/)
 		//printf("Standard Curl:%f (Match)\n", diff1);
 		isMatched = true;
 
-		normalLowerArmCurveLength = ((1.34 + 0.3) * 180/PI);
-		normalUpperArmCurveLength = ((0.16 + 0.3) * 180 / PI) ;
-		
+		normalLowerArmCurveLength = ((1.34 + 0.3) * 180 / PI);
+		normalUpperArmCurveLength = ((0.16 + 0.3) * 180 / PI);
+
 		percentage = stdPercent;
 		deviation = diff1 * 180 / PI;
 	}
@@ -1212,11 +1203,11 @@ void showInfo(/*std::stringstream &ss, int tWidth, int tHeight*/)
 			std::stringstream ss;
 			ss << "Falls within the range of CLOSE CURL";
 			drawString(ss.str().c_str(), width / 4 + 150, height / 1.5 - (2 * TEXT_HEIGHT), mcolor, font);
-				
+
 			isMatched = true;
 
-			normalLowerArmCurveLength = ((0.88 + 0.3) * 180/PI);
-			normalUpperArmCurveLength = ((0.14 + 0.3) * 180/PI);
+			normalLowerArmCurveLength = ((0.88 + 0.3) * 180 / PI);
+			normalUpperArmCurveLength = ((0.14 + 0.3) * 180 / PI);
 
 			percentage = closePercent;
 			deviation = diff2 * 180 / PI;
@@ -1226,7 +1217,7 @@ void showInfo(/*std::stringstream &ss, int tWidth, int tHeight*/)
 			std::stringstream ss;
 			ss << "Not within the range of CLOSE CURL";
 			drawString(ss.str().c_str(), width / 4 + 150, height / 1.5 - (2 * TEXT_HEIGHT), color, font);
-			
+
 		}*/
 	}
 
@@ -1240,11 +1231,11 @@ void showInfo(/*std::stringstream &ss, int tWidth, int tHeight*/)
 			std::stringstream ss;
 			ss << "Falls within the range of WIDE CURL";
 			drawString(ss.str().c_str(), width / 4 + 150, height / 1.5 - (3 * TEXT_HEIGHT), mcolor, font);
-			
+
 			isMatched = true;
 
-			normalLowerArmCurveLength = ((1.19 + 0.3) * 180/PI);
-			normalUpperArmCurveLength = ((0.08 + 0.3) * 180/PI);
+			normalLowerArmCurveLength = ((1.19 + 0.3) * 180 / PI);
+			normalUpperArmCurveLength = ((0.08 + 0.3) * 180 / PI);
 
 			percentage = widePercent;
 			deviation = diff3 * 180 / PI;
@@ -1254,7 +1245,7 @@ void showInfo(/*std::stringstream &ss, int tWidth, int tHeight*/)
 			std::stringstream ss;
 			ss << "Not within the range of WIDE CURL";
 			drawString(ss.str().c_str(), width / 4 + 150, height / 1.5 - (3 * TEXT_HEIGHT), color, font);
-			
+
 		}*/
 	}
 	closeness.str("");
@@ -1262,7 +1253,7 @@ void showInfo(/*std::stringstream &ss, int tWidth, int tHeight*/)
 	closeness2.str("");
 	closeness3.str("");
 	closeness4.str("");
-	
+
 	if (stdPercent >= 90)
 	{
 		if (diff2 < 0.42)
@@ -1270,7 +1261,7 @@ void showInfo(/*std::stringstream &ss, int tWidth, int tHeight*/)
 		else
 			closeness.str("Suggestion: Slightly wider, try to close your arm");
 	}
-	
+
 	if (closePercent >= 90)
 	{
 		if (diff1 < 0.39)
@@ -1278,40 +1269,40 @@ void showInfo(/*std::stringstream &ss, int tWidth, int tHeight*/)
 		else
 			closeness.str("Suggestion: Slightly closed, try to open your arm");
 	}
-	
 
-	if (widePercent >= 90 )
+
+	if (widePercent >= 90)
 	{
 		if (diff1 < 0.99)
 			closeness.str("Suggestion: Slightly closed, try to open your arm");
 		else
 			closeness.str("Suggestion: Slightly wider, try to close your arm");
 	}
-	
-	
-		if (curveProperty.speed < normalSpeed)
-			closeness1.str( " # Slightly slowdown");
-		else
-			closeness1.str( " # Slightly speedup");
-	
-	
-		if (curveProperty.upperArmLength > normalUpperArmCurveLength)
-			closeness2.str(" # More then normal upper arm movement observed");
-			
-		if (curveProperty.LowerArmLength > normalLowerArmCurveLength)
-			closeness3.str(" # More then normal lower arm movement observed");
 
-	
-		if (curveProperty.initialOrientationDeviation > (0.15 * 180 / PI))
-			closeness4.str(" # Initial orientation missmatch");
-	
-		closeness << closeness.str() << closeness1.str() << closeness2.str() << closeness3.str() << closeness4.str();
+
+	if (curveProperty.speed < normalSpeed)
+		closeness1.str(" # Slightly slowdown");
+	else
+		closeness1.str(" # Slightly speedup");
+
+
+	if (curveProperty.upperArmLength > normalUpperArmCurveLength)
+		closeness2.str(" # More then normal upper arm movement observed");
+
+	if (curveProperty.LowerArmLength > normalLowerArmCurveLength)
+		closeness3.str(" # More then normal lower arm movement observed");
+
+
+	if (curveProperty.initialOrientationDeviation > (0.15 * 180 / PI))
+		closeness4.str(" # Initial orientation missmatch");
+
+	closeness << closeness.str() << closeness1.str() << closeness2.str() << closeness3.str() << closeness4.str();
 	if (!isMatched)
 	{
 		std::stringstream ss;
 		ss << "No match found!!";
 		drawString(ss.str().c_str(), width / 4 + 150, height / 1.5 - (2 * TEXT_HEIGHT), mcolor, font);
-		
+
 	}
 	else
 	{
@@ -1320,7 +1311,7 @@ void showInfo(/*std::stringstream &ss, int tWidth, int tHeight*/)
 		ss << "Curve-Diagnosis: ";
 		drawString(ss.str().c_str(), width / 4 + 150, height / 1.5 - (6 * TEXT_HEIGHT), color, font);
 		ss.str("");
-		ss << setprecision(3) << "Speed: "<<curveProperty.speed<<"/ms ("<< normalSpeed<<"/ms)";
+		ss << setprecision(3) << "Speed: " << curveProperty.speed << "/ms (" << normalSpeed << "/ms)";
 		drawString(ss.str().c_str(), width / 4 + 150, height / 1.5 - (7 * TEXT_HEIGHT), color, font);
 		ss.str("");
 
@@ -1331,7 +1322,7 @@ void showInfo(/*std::stringstream &ss, int tWidth, int tHeight*/)
 
 		drawString(ss.str().c_str(), width / 4 + 150, height / 1.5 - (9 * TEXT_HEIGHT), color, font);
 		ss.str("");
-		ss << percentage<<"% of trajectory is within the range (> 90%)";
+		ss << percentage << "% of trajectory is within the range (> 90%)";
 		drawString(ss.str().c_str(), width / 4 + 150, height / 1.5 - (10 * TEXT_HEIGHT), color, font);
 		ss.str("");
 
@@ -1343,7 +1334,7 @@ void showInfo(/*std::stringstream &ss, int tWidth, int tHeight*/)
 		drawString(ss.str().c_str(), width / 4 + 150, height / 1.5 - (11 * TEXT_HEIGHT), color, font);
 		drawString(closeness.str().c_str(), 10, 50, color, font);
 	}
-	
+
 	///////////////////
 	std::stringstream ss;
 	//ss << "Press SPACE mode.";
@@ -1365,12 +1356,6 @@ void Robotdisplay(void)
 {
 	glViewport(0, 0, width / 2, height);
 	glScissor(0, 0, width / 2, height);
-	//::glClearColor(0.8f, 0.8f, 0.8f, 0.0f);
-	/*glDisable(GL_LIGHTING);
-	glDisable(GL_LIGHT0);
-	glDisable(GL_LIGHT1);
-	glDisable(GL_LIGHT2);*/
-	//IntializeRobotLight();
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -1380,10 +1365,10 @@ void Robotdisplay(void)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glLoadIdentity();
 	//glScalef(zoominout, zoominout, zoominout);
-	//DrawGrid();
+	DrawGrid();
 	glColor3f(0.8, 0.4, 0.2);
 	traverse(&torso_node);
-	
+
 	glPushMatrix();
 	glTranslatef(0.0, 1.0, 2.0);
 	glRotatef(-180, 0, 1, 0);
@@ -1392,43 +1377,33 @@ void Robotdisplay(void)
 	glPopMatrix();
 
 	showInfo();
-	/*glPushMatrix();
-	glTranslatef(5.5, -5.0, 0.0);
-	drawCoordinate();
-	float P_axis[3] = { 0.0,0.0,0.0 };
-	float P_angle = (qP.GetRotationAngleAndAxis(P_axis))* 180.0 / 3.14159;
-	glColor3f(0.5, 0.5, 0.0);
-	glRotatef(P_angle, P_axis[0], P_axis[1], P_axis[2]);
-	GLUquadricObj *Pri_axis = gluNewQuadric();
-	gluQuadricOrientation(Pri_axis, GLU_OUTSIDE);
-	gluCylinder(Pri_axis, 0.2, 0.2, 3.0, 10, 1);
-	gluDeleteQuadric(Pri_axis);
-	glPopMatrix();*/
 
-	//glutSwapBuffers();
 }
-void PrincipalAxis(void)
+
+void drawTrajectorySphere(int index, float(&traj_b)[20014][4], float r, float g, float b)
 {
-	
-	//glDisable(GL_SMOOTH);
-	//glDisable(GL_LIGHTING);
-	//glDisable(GL_LIGHT0);
-	//glDisable(GL_DEPTH_TEST);
-	//glDisable(GL_LIGHTING);
+
+	glColor3f(r, g, b);
+	float fnorm = sqrt(traj_b[index][1] * traj_b[index][1] + traj_b[index][2] * traj_b[index][2] + traj_b[index][3] * traj_b[index][3]);
+	glPushMatrix();
+	glTranslatef(1.011*traj_b[index][1] / fnorm, 1.011*traj_b[index][2] / fnorm, 1.011*traj_b[index][3] / fnorm);
+	glutSolidSphere(0.009, 30, 30);
+	glPopMatrix();
+}
+
+void drawTrajectory(void)
+{
 	InitializeLight();
 
-	//::glClearColor(0.5f, 0.5f, 0.5f, 0.0f);
-	//initLightAndMaterial();
 	glViewport(width / 2, 0, width / 2, height);
 	glScissor(width / 2, 0, width / 2, height);
-	/*glMatrixMode(GL_MODELVIEW);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);*/
+
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glOrtho(-2, 2, -2, 2, -1, 10);
 
 	glMatrixMode(GL_MODELVIEW);
-	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 	glPushMatrix();
 	glLoadIdentity();
 	gluLookAt(
@@ -1438,100 +1413,42 @@ void PrincipalAxis(void)
 	);
 
 	glScalef(zval - 2.5, zval - 2.5, zval - 2.5);
-	//glPushMatrix();
 
-	//glDisable(GL_CULL_FACE);
-	//glDisable(GL_COLOR_MATERIAL);
-	//glDisable(GL_SPOT_CUTOFF);
-	//glDisable(GL_LIGHTING);
+
 	glLineWidth(2.0);
 	glColor3f(1.0, 1.0, 1.0);
 	glBindTexture(GL_TEXTURE_2D, texture_id[0]);
 	glRotatef(-180, 0, 1, 0);
 	glRotatef(-90, 1, 0, 0);
 	gluSphere(sphere, 1.0, 50, 50);
-	//glutSolidSphere(1.0, 50, 50);
-	//glutWireSphere(1.0, 20, 20);
-	//glPopMatrix();
-	//glEnable(GL_COLOR_MATERIAL);
-	//glEnable(GL_LIGHTING);
-
 
 	drawcenterCoordinate();
 	float r = 1, g = 0, b = 0;
-	/*if (!fileClose && indexP > 0) {*/
+
 	int j = 0;
-	for (int i = 1; i < indexP; i++)
+	for (int i = 0; i < trajCount; i++)
 	{
-		if (PA_data[i][0] == 0)
-			continue;
-
-		glColor3f(r, g, b);
-
-		if (PA_data[i][0] == 9) {
-			r = 0;
-			g = 1;
-			b = 0;
-
-			if (j == 1)
-			{
-				b = 1;
-				g = 0;
-			}
-			j++;
-			glColor3f(r, g, b);
-			//cout << "R:" << r << "\tG:" << g << "\tB:" << b << endl;
-			continue;
-		}
-		float fnorm = sqrt(PA_data[i][1] * PA_data[i][1] + PA_data[i][2] * PA_data[i][2] + PA_data[i][3] * PA_data[i][3]);
-		glPushMatrix();
-		glTranslatef(1.011*PA_data[i][1] / fnorm, 1.011*PA_data[i][2] / fnorm, 1.011*PA_data[i][3] / fnorm);
-		glutSolidSphere(0.009, 30, 30);
-		/*glRotatef(PA_data[i][0],PA_data[i][1], PA_data[i][2], PA_data[i][3]);
-		drawCoordinate(0.1);*/
-		glPopMatrix();
-
-		glColor3f(r, g + 0.64, b);
-
-		fnorm = sqrt(uPA_data[i][1] * uPA_data[i][1] + uPA_data[i][2] * uPA_data[i][2] + uPA_data[i][3] * uPA_data[i][3]);
-		glPushMatrix();
-		glTranslatef(1.011*uPA_data[i][1] / fnorm, 1.011*uPA_data[i][2] / fnorm, 1.011*uPA_data[i][3] / fnorm);
-		glutSolidSphere(0.009, 30, 30);
-		/*glRotatef(PA_data[i][0],PA_data[i][1], PA_data[i][2], PA_data[i][3]);
-		drawCoordinate(0.1);*/
-		glPopMatrix();
-		// draw quads
-		/*glPushMatrix();
-		drawQuads(PA_data[i][1] / fnorm, PA_data[i][2] / fnorm, PA_data[i][3] / fnorm);
-		glPopMatrix();*/
-		//draw quads end
-
+		drawTrajectorySphere(i, traj_b0, 0.0, 0.0, 0.0); //black
+		drawTrajectorySphere(i, traj_b1, 1.0, 0.0, 0.0); //red
+		drawTrajectorySphere(i, traj_b2, 1.0, 0.5, 0.0); //orange
+		drawTrajectorySphere(i, traj_b3, 1.0, 1.0, 0.0); //Yellow
+		drawTrajectorySphere(i, traj_b4, 0.0, 1.0, 0.0); //Bright green
+		drawTrajectorySphere(i, traj_b5, 0.0, 1.0, 1.0); //Cyan
+		drawTrajectorySphere(i, traj_b6, 0.0, 0.0, 1.0); //Blue
+		drawTrajectorySphere(i, traj_b7, 0.5, 0.0, 1.0); //Voilet
+		drawTrajectorySphere(i, traj_b8, 1.0, 0.0, 1.0); //Magenta
+		drawTrajectorySphere(i, traj_b9, 0.4, 0.5, 0.8); //Indigo		
 	}
 
-	if (!fileClose)
-	{
-		glColor3f(0, 0, 0);
-		glPushMatrix();
-		//drawQuads(drawGrid[0][1], drawGrid[0][2], drawGrid[0][3]);
-		glTranslatef(1.011*drawGrid[0][1], 1.011*drawGrid[0][2], 1.011*drawGrid[0][3]);
-		glutSolidSphere(0.025, 30, 30);
-		glPopMatrix();
-	}
-	
 	for (int i = 0; i < dbCount; i++)
 	{
-		/*if (PA_data[i][0] == 0)
-		continue;*/
-
 		glColor3f(1, 0, 1);
-
 
 		float fnorm = sqrt(uDB_data[i][1] * uDB_data[i][1] + uDB_data[i][2] * uDB_data[i][2] + uDB_data[i][3] * uDB_data[i][3]);
 		glPushMatrix();
 		glTranslatef(1.011*uDB_data[i][1] / fnorm, 1.011*uDB_data[i][2] / fnorm, 1.011*uDB_data[i][3] / fnorm);
 		glutSolidSphere(0.009, 30, 30);
-		/*glRotatef(PA_data[i][0],PA_data[i][1], PA_data[i][2], PA_data[i][3]);
-		drawCoordinate(0.1);*/
+
 		glPopMatrix();
 
 		glPushMatrix();
@@ -1541,8 +1458,6 @@ void PrincipalAxis(void)
 		glTranslatef(1.011*lDB_data[i][1] / fnorm, 1.011*lDB_data[i][2] / fnorm, 1.011*lDB_data[i][3] / fnorm);
 		glutSolidSphere(0.009, 30, 30);
 
-		/*glRotatef(PA_data[i][0],PA_data[i][1], PA_data[i][2], PA_data[i][3]);
-		drawCoordinate(0.1);*/
 		glPopMatrix();
 	}
 	for (int i = 0; i < dbCount; i++)
@@ -1552,11 +1467,9 @@ void PrincipalAxis(void)
 
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		/*glAlphaFunc(GL_GREATER, 0.01);
-		glEnable(GL_ALPHA_TEST);*/
+
 		glEnable(GL_CULL_FACE);
-		//glCullFace(GL_BACK);
-		//glDepthFunc(GL_ALWAYS);
+
 		glColor4f(0.13, 0.54, 0.13, 0.3);
 		glPushMatrix();
 		float fnorm = sqrt(lDB_data[i][1] * lDB_data[i][1] + lDB_data[i][2] * lDB_data[i][2] + lDB_data[i][3] * lDB_data[i][3]);
@@ -1568,39 +1481,15 @@ void PrincipalAxis(void)
 			glTranslatef(1.011*lDB_data[i][1] / fnorm, 1.011*lDB_data[i][2] / fnorm, 1.011*lDB_data[i][3] / fnorm);
 			glutSolidSphere(0.15, 30, 30);
 		}
-		//glDepthFunc(GL_LEQUAL);
 		glPopMatrix();
-
-		/*glPushMatrix();
-		fnorm = sqrt(uDB_data[i][1] * uDB_data[i][1] + uDB_data[i][2] * uDB_data[i][2] + uDB_data[i][3] * uDB_data[i][3]);
-		if (i != 0 && i <= 49)
-		renderCylinder_convenient(uDB_data[i - 1][1] / fnorm, uDB_data[i - 1][2] / fnorm, uDB_data[i - 1][3] / fnorm, uDB_data[i][1] / fnorm, uDB_data[i][2] / fnorm, uDB_data[i][3] / fnorm, 0.15, 30);
-
-		if (i == 0 || i == 50)
-		{
-		glTranslatef(1.011*uDB_data[i][1] / fnorm, 1.011*uDB_data[i][2] / fnorm, 1.011*uDB_data[i][3] / fnorm);
-		glutSolidSphere(0.15, 30, 30);
-		}*/
-		//glDepthFunc(GL_LEQUAL);
-		//glPopMatrix();
 
 		glDisable(GL_BLEND);
 		glDisable(GL_CULL_FACE);
 		glEnable(GL_LIGHTING);
 
 	}
-
-	// draw quads
-	
-
-
 	glPopMatrix();
-	/*glDisable(GL_LIGHTING);
-	glEnable(GL_LIGHTING);
-	glEnable(GL_SMOOTH);
-	glEnable(GL_LIGHTING);
-	glEnable(GL_LIGHT0);
-	glEnable(GL_DEPTH_TEST);*/
+
 }
 
 void Display(void)
@@ -1615,7 +1504,7 @@ void Display(void)
 	Robotdisplay();
 
 	//glDisable(GL_COLOR_MATERIAL);
-	PrincipalAxis();
+	drawTrajectory();
 	//glEnable(GL_COLOR_MATERIAL);
 	/*fourSphere();
 	TextDispaly();*/
@@ -1625,13 +1514,20 @@ void Display(void)
 }
 
 void matchDBTrajectory(char * Ufile, char * Lfile)
-{	
+{
 	diff = 0;
-	
+
 	diff1 = Comparision::getDiffBtwTrajectory("Load\\Standard\\UFormFile.csv", "Load\\Standard\\LFormFile.csv", Ufile, Lfile, stdPercent, curveProperty);
-	diff2 = Comparision::getDiffBtwTrajectory("Load\\Close\\UFormFile.csv", "Load\\Close\\LFormFile.csv", Ufile, Lfile, closePercent, curveProperty);
-	diff3 = Comparision::getDiffBtwTrajectory("Load\\Wide\\UFormFile.csv", "Load\\Wide\\LFormFile.csv", Ufile, Lfile, widePercent, curveProperty);
-	
+	if (stdPercent < 90)
+	{
+		Comparision::resetDiagnosis();
+		diff2 = Comparision::getDiffBtwTrajectory("Load\\Close\\UFormFile.csv", "Load\\Close\\LFormFile.csv", Ufile, Lfile, closePercent, curveProperty);
+	}
+	if (stdPercent < 90 && closePercent < 90)
+	{
+		Comparision::resetDiagnosis();
+		diff3 = Comparision::getDiffBtwTrajectory("Load\\Wide\\UFormFile.csv", "Load\\Wide\\LFormFile.csv", Ufile, Lfile, widePercent, curveProperty);
+	}
 	cout << diff1 << "," << diff2 << "," << diff3 << endl;
 
 	if (diff1 < diff2)
@@ -1642,84 +1538,264 @@ void matchDBTrajectory(char * Ufile, char * Lfile)
 	{
 		diff = diff2;
 	}
-	else 
+	else
 		diff = diff3;
-		
+
 	if (diff3 < diff1)
 	{
 		diff = diff3;
 	}
-	
-	//if (diff < 0.1 && diff==diff1)
-	//{
-	//	std::stringstream ss;
-	//	ss << "Standard Curl: (" << diff1 << "[Match])";
-	//	showInfo(ss, width / 4 + 150, height / 2 + 250);
-	//	printf("Standard Curl:%f (Match)\n", diff1);
-	//	isMatched = true;
-	//}
-	//else
-	//{
-	//	std::stringstream ss;
-	//	ss << "Standard Curl: (" << diff1 << "[No-Match])";
-	//	showInfo(ss, width / 4 + 150, height / 2 + 250);
-	//	printf("Standard Curl:%f (No-Match)\n", diff1);
-	//}
-
-	//
-
-	////if (!isMatched)
-	//{
-	//	
-
-	//	if (diff < 0.1 && diff == diff2)
-	//	{
-	//		std::stringstream ss;
-	//		ss << "Close Curl: (" << diff2 << "[Match])";
-	//		showInfo(ss, width / 4 + 150, height / 2 + 250-(2*TEXT_HEIGHT));
-	//		printf("Close Curl:%f (Match)\n", diff2);
-	//		isMatched = true;
-	//	}
-	//	else
-	//	{
-	//		std::stringstream ss;
-	//		ss << "Close Curl: (" << diff2 << "[No-Match])";
-	//		showInfo(ss, width / 4 + 150, height / 2 + 250 - (2 * TEXT_HEIGHT));
-	//		printf("Close Curl:%f (No-Match)\n", diff2);
-	//	}
-	//}
-	//
-	////if (!isMatched)
-	//{
-	//	
-
-	//	if (diff < 0.1 && diff == diff3)
-	//	{
-	//		std::stringstream ss;
-	//		ss << "Wide Curl: (" << diff3 << "[Match])";
-	//		showInfo(ss, width / 4 + 150, height / 2 + 250 - (3 * TEXT_HEIGHT));
-	//		printf("Wide Curl:%f (Match)\n", diff3);
-	//		isMatched = true;
-	//	}
-	//	else
-	//	{
-	//		std::stringstream ss;
-	//		ss << "Wide Curl: (" << diff3 << "[No-Match])";
-	//		showInfo(ss, width / 4 + 150, height / 2 + 250 - (3 * TEXT_HEIGHT));
-	//		printf("Wide Curl:%f (not-Match)\n", diff3);
-	//	}
-	//}
-	//
-
-	//if (!isMatched)
-	//{
-	//	std::stringstream ss;
-	//	ss << "No match found!!";
-	//	showInfo(ss, width / 4 + 150, height / 2 + 250 - (4 * TEXT_HEIGHT));
-	//	printf("No match found");
-	//}
 }
 
+void writeData()
+{
+	time_t curr_time;
+	curr_time = time(NULL);
+	tm *tm_local = localtime(&curr_time);
+
+	ofstream avatarDataFile;
+
+	sprintf_s(fileName, "CData\\AvatarData-00%d-%d%d%d.txt", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
+	avatarDataFile.open(fileName);
+
+	avatarDataFile << "FULLBODY\t" << 1 << "\n" << "Frames:" << "\t" << trajCount << "\n";
+
+	for (int tCount = 0; tCount < trajCount; tCount++)
+	{
+		avatarDataFile << avatarData[tCount].b0.mData[3] << "\t" << avatarData[tCount].b0.mData[0] << "\t" << avatarData[tCount].b0.mData[1] << "\t" << avatarData[tCount].b0.mData[2] << "\t"
+			<< avatarData[tCount].b1.mData[3] << "\t" << avatarData[tCount].b1.mData[0] << "\t" << avatarData[tCount].b1.mData[1] << "\t" << avatarData[tCount].b1.mData[2] << "\t"
+			<< avatarData[tCount].b2.mData[3] << "\t" << avatarData[tCount].b2.mData[0] << "\t" << avatarData[tCount].b2.mData[1] << "\t" << avatarData[tCount].b2.mData[2] << "\t"
+			<< avatarData[tCount].b3.mData[3] << "\t" << avatarData[tCount].b3.mData[0] << "\t" << avatarData[tCount].b3.mData[1] << "\t" << avatarData[tCount].b3.mData[2] << "\t"
+			<< avatarData[tCount].b4.mData[3] << "\t" << avatarData[tCount].b4.mData[0] << "\t" << avatarData[tCount].b4.mData[1] << "\t" << avatarData[tCount].b4.mData[2] << "\t"
+			<< avatarData[tCount].b5.mData[3] << "\t" << avatarData[tCount].b5.mData[0] << "\t" << avatarData[tCount].b5.mData[1] << "\t" << avatarData[tCount].b5.mData[2] << "\t"
+			<< avatarData[tCount].b6.mData[3] << "\t" << avatarData[tCount].b6.mData[0] << "\t" << avatarData[tCount].b6.mData[1] << "\t" << avatarData[tCount].b6.mData[2] << "\t"
+			<< avatarData[tCount].b7.mData[3] << "\t" << avatarData[tCount].b7.mData[0] << "\t" << avatarData[tCount].b7.mData[1] << "\t" << avatarData[tCount].b7.mData[2] << "\t"
+			<< avatarData[tCount].b8.mData[3] << "\t" << avatarData[tCount].b8.mData[0] << "\t" << avatarData[tCount].b8.mData[1] << "\t" << avatarData[tCount].b8.mData[2] << "\t"
+			<< avatarData[tCount].b9.mData[3] << "\t" << avatarData[tCount].b9.mData[0] << "\t" << avatarData[tCount].b9.mData[1] << "\t" << avatarData[tCount].b9.mData[2] << "\n";
+	}
+	avatarDataFile.close();
+}
+
+void writeAvatarData(int tCount)
+{
+	avatarData[tCount].b0 = avatar.b0;
+	avatarData[tCount].b1 = avatar.b1;
+	avatarData[tCount].b2 = avatar.b2;
+	avatarData[tCount].b3 = avatar.b3;
+	avatarData[tCount].b4 = avatar.b4;
+	avatarData[tCount].b5 = avatar.b5;
+	avatarData[tCount].b6 = avatar.b6;
+	avatarData[tCount].b7 = avatar.b7;
+	avatarData[tCount].b8 = avatar.b8;
+	avatarData[tCount].b9 = avatar.b9;
+}
+
+void readAvatarData()
+{
+	int count = 0;
+	int tCount = 0;
+
+	std::ifstream _filestream("./Load/FormFile.txt");
+	std::string _line;
+	int _option;
+	std::string _dummy;
+	int lineCount = 0;
+
+	while (std::getline(_filestream, _line))
+	{
+		std::stringstream _linestream;
+		_linestream << _line;
+		if (count == 0)
+		{
+			_linestream >> _line >> _option; subOption = _option;  count++; continue;
+		}
+
+		if (count == 1)
+		{
+			_linestream >> _line >> tCount; dsize = tCount;  count++; continue;
+		}
+
+		switch (_option)
+		{
+		case 1:
+
+			_linestream
+				>> avatarData[lineCount].b0.mData[3] >> avatarData[lineCount].b0.mData[0] >> avatarData[lineCount].b0.mData[1] >> avatarData[lineCount].b0.mData[2]
+				>> avatarData[lineCount].b1.mData[3] >> avatarData[lineCount].b1.mData[0] >> avatarData[lineCount].b1.mData[1] >> avatarData[lineCount].b1.mData[2]
+				>> avatarData[lineCount].b2.mData[3] >> avatarData[lineCount].b2.mData[0] >> avatarData[lineCount].b2.mData[1] >> avatarData[lineCount].b2.mData[2]
+				>> avatarData[lineCount].b3.mData[3] >> avatarData[lineCount].b3.mData[0] >> avatarData[lineCount].b3.mData[1] >> avatarData[lineCount].b3.mData[2]
+				>> avatarData[lineCount].b4.mData[3] >> avatarData[lineCount].b4.mData[0] >> avatarData[lineCount].b4.mData[1] >> avatarData[lineCount].b4.mData[2]
+				>> avatarData[lineCount].b5.mData[3] >> avatarData[lineCount].b5.mData[0] >> avatarData[lineCount].b5.mData[1] >> avatarData[lineCount].b5.mData[2]
+				>> avatarData[lineCount].b6.mData[3] >> avatarData[lineCount].b6.mData[0] >> avatarData[lineCount].b6.mData[1] >> avatarData[lineCount].b6.mData[2]
+				>> avatarData[lineCount].b7.mData[3] >> avatarData[lineCount].b7.mData[0] >> avatarData[lineCount].b7.mData[1] >> avatarData[lineCount].b7.mData[2]
+				>> avatarData[lineCount].b8.mData[3] >> avatarData[lineCount].b8.mData[0] >> avatarData[lineCount].b8.mData[1] >> avatarData[lineCount].b8.mData[2]
+				>> avatarData[lineCount].b9.mData[3] >> avatarData[lineCount].b9.mData[0] >> avatarData[lineCount].b9.mData[1] >> avatarData[lineCount].b9.mData[2];
+
+			lineCount++;
+			break;
+
+		case 2:
+
+			_linestream
+				>> avatarData[lineCount].b0.mData[3] >> avatarData[lineCount].b0.mData[0] >> avatarData[lineCount].b0.mData[1] >> avatarData[lineCount].b0.mData[2]
+				>> avatarData[lineCount].b2.mData[3] >> avatarData[lineCount].b2.mData[0] >> avatarData[lineCount].b2.mData[1] >> avatarData[lineCount].b2.mData[2]
+				>> avatarData[lineCount].b3.mData[3] >> avatarData[lineCount].b3.mData[0] >> avatarData[lineCount].b3.mData[1] >> avatarData[lineCount].b3.mData[2]
+				>> avatarData[lineCount].b4.mData[3] >> avatarData[lineCount].b4.mData[0] >> avatarData[lineCount].b4.mData[1] >> avatarData[lineCount].b4.mData[2]
+				>> avatarData[lineCount].b5.mData[3] >> avatarData[lineCount].b5.mData[0] >> avatarData[lineCount].b5.mData[1] >> avatarData[lineCount].b5.mData[2];
+			lineCount++;
+			break;
+
+		case 3:
+
+			_linestream
+				>> avatarData[lineCount].b0.mData[3] >> avatarData[lineCount].b0.mData[0] >> avatarData[lineCount].b0.mData[1] >> avatarData[lineCount].b0.mData[2]
+				>> avatarData[lineCount].b6.mData[3] >> avatarData[lineCount].b6.mData[0] >> avatarData[lineCount].b6.mData[1] >> avatarData[lineCount].b6.mData[2]
+				>> avatarData[lineCount].b7.mData[3] >> avatarData[lineCount].b7.mData[0] >> avatarData[lineCount].b7.mData[1] >> avatarData[lineCount].b7.mData[2]
+				>> avatarData[lineCount].b8.mData[3] >> avatarData[lineCount].b8.mData[0] >> avatarData[lineCount].b8.mData[1] >> avatarData[lineCount].b8.mData[2]
+				>> avatarData[lineCount].b9.mData[3] >> avatarData[lineCount].b9.mData[0] >> avatarData[lineCount].b9.mData[1] >> avatarData[lineCount].b9.mData[2];
+
+			lineCount++;
+			break;
+
+		default:
+			break;
+
+		}
+	}
+}
+
+void rotateBone(quaternion q, treenode &joint, float tX, float tY, float tZ)
+{
+	double q0, q1, q2, q3;
+	double angle_rad, angle_deg;
+	double x, y, z, fnorm;
+
+	q0 = q.mData[3];
+	q1 = q.mData[0];
+	q2 = q.mData[2];
+	q3 = -q.mData[1];
+
+
+	angle_rad = acos(q0) * 2;
+	angle_deg = angle_rad * 180 / PI;
+
+	x = q1 / sin(angle_rad / 2);
+	y = q2 / sin(angle_rad / 2);
+	z = q3 / sin(angle_rad / 2);
+	fnorm = sqrt(x*x + y*y + z*z);
+
+
+	glLoadIdentity();
+	glTranslatef(tX, tY, tZ);
+	//glGetFloatv(GL_MODELVIEW_MATRIX, joint.m);
+	glRotatef(angle_deg, x / fnorm, y / fnorm, z / fnorm);
+	glGetFloatv(GL_MODELVIEW_MATRIX, joint.m);
+}
+
+void rotateJoint(treenode &joint, float tX, float tY, float tZ)
+{
+	glLoadIdentity();
+	glTranslatef(tX, tY, tZ);
+	glGetFloatv(GL_MODELVIEW_MATRIX, joint.m);
+
+}
+
+void rotateBody(struct Avatar &avatar)
+{
+	glPushMatrix();
+	rotateBone(avatar.b0, torso_node, 0.0, 0.0, 0.0);
+	glPopMatrix();
+	glPushMatrix();//Head
+	rotateJoint(nk_node, 0.0, TORSO_HEIGHT - 0.25*NECK_HEIGHT, 0.0);
+	rotateBone(avatar.b1, head_node, 0.0, 0.75*NECK_HEIGHT, 0.0);
+	glPopMatrix();
+
+	glPushMatrix();//Right Arm
+	//rotateBone(avatar.b0, torso_node, 0.0, 0.0, 0.0);
+	rotateJoint(lsh_node, -(TORSO_RADIUS + UPPER_ARM_RADIUS), 0.9*TORSO_HEIGHT, 0.0);
+	rotateBone(avatar.b2, lua_node, 0.0, 0.0, 0.0);
+	rotateJoint(lelb_node, 0.0, -UPPER_ARM_HEIGHT, 0.0);
+	rotateBone(avatar.b3, lla_node, 0.0, -ELBOW_RADIUS / 2, 0.0);
+	rotateJoint(lhand_node, 0.0, -LOWER_ARM_HEIGHT, 0.0);
+	glPopMatrix();
+
+	glPushMatrix();//Left Arm
+		//rotateBone(avatar.b0, torso_node, 0.0, 0.0, 0.0);
+	rotateJoint(rsh_node, TORSO_RADIUS + UPPER_ARM_RADIUS, 0.9*TORSO_HEIGHT, 0.0);
+	rotateBone(avatar.b4, rua_node, 0.0, 0.0, 0.0);
+	rotateJoint(relb_node, 0.0, -UPPER_ARM_HEIGHT, 0.0);
+	rotateBone(avatar.b5, rla_node, 0.0, -ELBOW_RADIUS / 2, 0.0);
+	rotateJoint(rhand_node, 0.0, -LOWER_ARM_HEIGHT, 0.0);
+	glPopMatrix();
+
+	glPushMatrix();//Right Leg
+		//rotateBone(avatar.b0, torso_node, 0.0, 0.0, 0.0);
+	rotateBone(avatar.b6.mutiplication(quaternion(1, 0, 0, 0)), lul_node, -TORSO_RADIUS / 2, 0.1*UPPER_LEG_HEIGHT, 0.0);
+	rotateJoint(lknee_node, 0.0, UPPER_LEG_HEIGHT, 0.0);
+	rotateBone(avatar.b7, lll_node, 0.0, KNEE_RADIUS / 2, 0.0);
+	rotateJoint(lfoot_node, 0.0, LOWER_LEG_HEIGHT, 0.0);
+	glPopMatrix();
+
+	glPushMatrix();//Left Leg
+		//rotateBone(avatar.b0, torso_node, 0.0, 0.0, 0.0);
+	rotateBone(avatar.b8.mutiplication(quaternion(1, 0, 0, 0)), rul_node, TORSO_RADIUS / 2, 0.1*UPPER_LEG_HEIGHT, 0.0);
+	rotateJoint(rknee_node, 0.0, UPPER_LEG_HEIGHT, 0.0);
+	rotateBone(avatar.b9, rll_node, 0.0, KNEE_RADIUS / 2, 0.0);
+	rotateJoint(rfoot_node, 0.0, LOWER_LEG_HEIGHT, 0.0);
+	glPopMatrix();
+	//glPopMatrix();
+}
+
+bool isNotSameQuat(quaternion currentQuat, quaternion previousQuat)
+{
+	if (!isFirst)
+	{
+		qPA = currentQuat.mutiplication(previousQuat.Inverse());
+	}
+	else
+	{
+		isFirst = false;
+		return false;
+	}
+
+	if (qPA.mData[3] >= 0.99999)
+	{
+		return false;
+	}
+
+	//if (qPA.mData[3] >= 0.99999)
+	//{
+	//	child = qPrevInvsPA.Inverse();
+	//	//printf("Skip lower arm\n");
+	//}
+
+	//if (uqPA.mData[3] >= 0.99999)
+	//{
+	//	parent = uqPrevInvsPA.Inverse();
+	//	//printf("Skip upper arm\n");
+	//}
+	return true;
+}
+
+void calaculateTrajectory(quaternion parent, quaternion child, TVec3 &parentVec, TVec3 &childVec)
+{
+	TVec3 trajVec;
+	quaternion tempQuat2 = BodyQuat.mutiplication(parent);
+
+	quaternion tempQuat1 = tempQuat2.mutiplication(child);//Case-2 usf_q
+
+
+	quaternion lTransfBodyQuat = tempQuat1;
+	quaternion uTransfBodyQuat = tempQuat2;
+	quaternion vQuat(tempVec._x, tempVec._y, tempVec._z, 0);
+
+	lTransfBodyQuat = lTransfBodyQuat.mutiplication(vQuat.mutiplication(lTransfBodyQuat.Inverse()));
+	uTransfBodyQuat = uTransfBodyQuat.mutiplication(vQuat.mutiplication(uTransfBodyQuat.Inverse()));
+
+
+	parentVec = { (float)uTransfBodyQuat.mData[0], (float)uTransfBodyQuat.mData[1], (float)uTransfBodyQuat.mData[2] };
+	childVec = { (float)lTransfBodyQuat.mData[0], (float)lTransfBodyQuat.mData[1], (float)lTransfBodyQuat.mData[2] };
+}
 
 void idle()
 {
@@ -1747,199 +1823,532 @@ void idle()
 
 		if (DataAvailable && startAnim)
 		{
-			QuatData_U = quaternion(connectXS.ax[0], connectXS.ax[1], connectXS.ax[2], connectXS.ax[3]);
-			QuatData_L = quaternion(connectXS.ax2[0], connectXS.ax2[1], connectXS.ax2[2], connectXS.ax2[3]);
-			QuatData_C = quaternion(connectXS.r_ax3[0], connectXS.r_ax3[1], connectXS.r_ax3[2], connectXS.r_ax3[3]);
-
-			double q0 , q1, q2, q3;
-			double angle_rad, angle_deg;
-			double x, y, z, fnorm;
-
-			if (First_calibrate  /*&& fileClose*/) {
-
-				std::cout << "AttentionPose:" << std::endl;
-
-				firstInvQuat_U = QuatData_U.Inverse();
-				std::cout << "Upper-Arm Quat:\t" << firstInvQuat_U.mData[3] << "\t" << firstInvQuat_U.mData[0] << "\t" << firstInvQuat_U.mData[1] << "\t" << firstInvQuat_U.mData[2] << std::endl;
-
-				firstInvQuat_L = QuatData_L;
-				std::cout << "Lower-Arm Quat:\t" << firstInvQuat_L.mData[3] << "\t" << firstInvQuat_L.mData[0] << "\t" << firstInvQuat_L.mData[1] << "\t" << firstInvQuat_L.mData[2] << std::endl;
-				firstInvQuat_L = QuatData_L.Inverse();
-
-				firstPlvCalib = QuatData_C.Inverse();
-				std::cout << "Pelvis Quat:\t" << QuatData_C.mData[3] << "\t" << QuatData_C.mData[0] << "\t" << QuatData_C.mData[1] << "\t" << QuatData_C.mData[2] << std::endl;
-
-				time_t curr_time;
-				curr_time = time(NULL);
-				tm *tm_local = localtime(&curr_time);
-
-				/*sprintf_s(fileName, "CData\\CalibFile-00%d-%d%d%d.csv", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
-				Calibfile.open(fileName);
-				Calibfile << QuatData_U.mData[3] << "," << QuatData_U.mData[0] << "," << QuatData_U.mData[1] << "," << QuatData_U.mData[2] << "," << "UpperArm" << "\n";
-				Calibfile << QuatData_L.mData[3] << "," << QuatData_L.mData[0] << "," << QuatData_L.mData[1] << "," << QuatData_L.mData[2] << "," << "LowerArm" << "\n";
-				Calibfile << QuatData_C.mData[3] << "," << QuatData_C.mData[0] << "," << QuatData_C.mData[1] << "," << QuatData_C.mData[2] << "," << "Pelvis" << "\n";
-				Calibfile.close();*/
-				First_calibrate = false;
-
-				/*time_t curr_time;
-				curr_time = time(NULL);
-				tm *tm_local = localtime(&curr_time);*/
-
-				/*sprintf_s(fileName, "CData\\BodyFixPoint-00%d-%d%d%d.csv", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
-				Calibfile.open(fileName);
-				Calibfile << QuatData_C.mData[3] << "," << QuatData_C.mData[0] << "," << QuatData_C.mData[1] << "," << QuatData_C.mData[2] << "," << "ForeArm" << "\n";
-				Calibfile.close();*/
-			}
-
-			firstInvQuat_C = QuatData_C.mutiplication(firstPlvCalib);
-			
-			quaternion reset_U = firstInvQuat_C.Inverse().mutiplication(QuatData_U.mutiplication(firstInvQuat_U));
-			reset_U.normalize();
-			quaternion usf_q = reset_U;
-			quaternion reset_L = QuatData_U.mutiplication(firstInvQuat_U).Inverse().mutiplication(QuatData_L.mutiplication(firstInvQuat_L));
-			reset_L.normalize();
-			quaternion lsf_q = reset_L;
-
-			q0 = reset_U.mData[3];
-			q1 = reset_U.mData[0];
-			q2 = reset_U.mData[2];
-			q3 = -reset_U.mData[1];
-
-
-			angle_rad = acos(q0) * 2;
-			angle_deg = angle_rad * 180 / PI;
-
-			x = q1 / sin(angle_rad / 2);
-			y = q2 / sin(angle_rad / 2);
-			z = q3 / sin(angle_rad / 2);
-			fnorm = sqrt(x*x + y*y + z*z);
-			
-			//............Right Arm.............//
-
-			glPushMatrix();
-			glGetFloatv(GL_MODELVIEW_MATRIX, lua_node.m);
-			glRotatef(angle_deg, x / fnorm, y / fnorm, z / fnorm);
-			glGetFloatv(GL_MODELVIEW_MATRIX, lua_node.m);
-			
-			////Right elbow
-			glLoadIdentity();
-			glTranslatef(0.0, -UPPER_ARM_HEIGHT, 0.0);
-			glGetFloatv(GL_MODELVIEW_MATRIX, lelb_node.m);
-
-			//Right lower arm
-			glGetFloatv(GL_MODELVIEW_MATRIX, lla_node.m);
-			
-			q0 = lsf_q.mData[3];
-			q1 = lsf_q.mData[0];
-			q2 = lsf_q.mData[2];
-			q3 = -lsf_q.mData[1];
-
-
-			angle_rad = acos(q0) * 2;
-			angle_deg = angle_rad * 180 / PI;
-			x = q1 / sin(angle_rad / 2);
-			y = q2 / sin(angle_rad / 2);
-			z = q3 / sin(angle_rad / 2);
-			
-			fnorm = sqrt(x*x + y*y + z*z);
-
-			
-			glLoadIdentity();
-			glTranslatef(0.0, 0.0, 0.0);
-			glRotatef(angle_deg, x / fnorm, y / fnorm, z / fnorm);
-			glGetFloatv(GL_MODELVIEW_MATRIX, lla_node.m);
-			glPopMatrix();
-
-
-			/////////////////////////
-			
-			
-			//quaternion tempQuat1 = BodyQuat.mutiplication(lsf_q);//Case-1
-
-			//quaternion tempQuat1 = BodyQuat.mutiplication(usf_q.mutiplication(lsf_q));//Case-3
-
-			quaternion tempQuat2 = BodyQuat.mutiplication(usf_q);
-
-			quaternion tempQuat1 = tempQuat2.mutiplication(lsf_q);//Case-2 usf_q
-
-			
-			quaternion lTransfBodyQuat = tempQuat1;
-			quaternion uTransfBodyQuat = tempQuat2;
-			quaternion vQuat(tempVec._x, tempVec._y, tempVec._z, 0);
-			
-			lTransfBodyQuat = lTransfBodyQuat.mutiplication(vQuat.mutiplication(lTransfBodyQuat.Inverse()));
-			uTransfBodyQuat = uTransfBodyQuat.mutiplication(vQuat.mutiplication(uTransfBodyQuat.Inverse()));
-
-			///////////////////////////////////////////////////////
-			if (fileClose)
+			switch (subOption)
 			{
-				uqPrevInvsPA = uqPrevPA;
-				uqPrevPA = usf_q.Inverse();
+			case 1:
+			{
+				QuatData_Pelvis = connectXS.xsIMU.b0;
 
-				qPrevInvsPA = qPrevPA;
-				qPrevPA = lsf_q.Inverse();
-				if (!isFirst)
+				QuatData_head = connectXS.xsIMU.b1;
+
+				QuatData_RightUpperArm = connectXS.xsIMU.b2;
+				QuatData_RightLowerArm = connectXS.xsIMU.b3;
+
+				QuatData_LeftUpperArm = connectXS.xsIMU.b4;
+				QuatData_LeftLowerArm = connectXS.xsIMU.b5;
+
+				QuatData_RightUpperLeg = connectXS.xsIMU.b6;
+				QuatData_RightLowerLeg = connectXS.xsIMU.b7;
+
+				QuatData_LeftUpperLeg = connectXS.xsIMU.b8;
+				QuatData_LeftLowerLeg = connectXS.xsIMU.b9;
+
+
+				if (firstCalib  /*&& fileClose*/)
 				{
-					qPA = lsf_q.mutiplication(qPrevInvsPA);
-					uqPA = usf_q.mutiplication(uqPrevInvsPA);
+
+					std::cout << "AttentionPose:" << std::endl;
+
+					firstPlvCalib = QuatData_Pelvis.Inverse();
+					std::cout << "Pelvis Quat:\t\t" << QuatData_Pelvis.mData[3] << "\t" << QuatData_Pelvis.mData[0] << "\t" << QuatData_Pelvis.mData[1] << "\t" << QuatData_Pelvis.mData[2] << std::endl;
+
+					firstHeadCalib = QuatData_head.Inverse();
+					std::cout << "Head Quat:\t\t" << QuatData_head.mData[3] << "\t" << QuatData_head.mData[0] << "\t" << QuatData_head.mData[1] << "\t" << QuatData_head.mData[2] << std::endl;
+
+					firstInvQuat_RightUpperArm = QuatData_RightUpperArm.Inverse();
+					std::cout << "Right Upper-Arm Quat:\t" << QuatData_RightUpperArm.mData[3] << "\t" << QuatData_RightUpperArm.mData[0] << "\t" << QuatData_RightUpperArm.mData[1] << "\t" << QuatData_RightUpperArm.mData[2] << std::endl;
+
+					firstInvQuat_RightLowerArm = QuatData_RightLowerArm.Inverse();
+					std::cout << "Right Lower-Arm Quat:\t" << QuatData_RightLowerArm.mData[3] << "\t" << QuatData_RightLowerArm.mData[0] << "\t" << QuatData_RightLowerArm.mData[1] << "\t" << QuatData_RightLowerArm.mData[2] << std::endl;
+
+					firstInvQuat_LeftUpperArm = QuatData_LeftUpperArm.Inverse();
+					std::cout << "Left Upper-Arm Quat:\t" << QuatData_LeftUpperArm.mData[3] << "\t" << QuatData_LeftUpperArm.mData[0] << "\t" << QuatData_LeftUpperArm.mData[1] << "\t" << QuatData_LeftUpperArm.mData[2] << std::endl;
+
+					firstInvQuat_LeftLowerArm = QuatData_LeftLowerArm.Inverse();
+					std::cout << "Left Lower-Arm Quat:\t" << QuatData_LeftLowerArm.mData[3] << "\t" << QuatData_LeftLowerArm.mData[0] << "\t" << QuatData_LeftLowerArm.mData[1] << "\t" << QuatData_LeftLowerArm.mData[2] << std::endl;
+
+					firstInvQuat_RightUpperLeg = QuatData_RightUpperLeg.Inverse();
+					std::cout << "Right Upper-Leg Quat:\t" << QuatData_RightUpperLeg.mData[3] << "\t" << QuatData_RightUpperLeg.mData[0] << "\t" << QuatData_RightUpperLeg.mData[1] << "\t" << QuatData_RightUpperLeg.mData[2] << std::endl;
+
+					firstInvQuat_RightLowerLeg = QuatData_RightLowerLeg.Inverse();
+					std::cout << "Right Lower-Leg Quat:\t" << QuatData_RightLowerLeg.mData[3] << "\t" << QuatData_RightLowerLeg.mData[0] << "\t" << QuatData_RightLowerLeg.mData[1] << "\t" << QuatData_RightLowerLeg.mData[2] << std::endl;
+
+					firstInvQuat_LeftUpperLeg = QuatData_LeftUpperLeg.Inverse();
+					std::cout << "Left Upper-Leg Quat:\t" << QuatData_LeftUpperLeg.mData[3] << "\t" << QuatData_LeftUpperLeg.mData[0] << "\t" << QuatData_LeftUpperLeg.mData[1] << "\t" << QuatData_LeftUpperLeg.mData[2] << std::endl;
+
+					firstInvQuat_LeftLowerLeg = QuatData_LeftLowerLeg.Inverse();
+					std::cout << "Left Lower-Leg Quat:\t" << QuatData_LeftLowerLeg.mData[3] << "\t" << QuatData_LeftLowerLeg.mData[0] << "\t" << QuatData_LeftLowerLeg.mData[1] << "\t" << firstInvQuat_LeftLowerArm.mData[2] << std::endl;
+
+					firstCalib = false;
 				}
-				else
+
+				sfq_Pelvis = QuatData_Pelvis.mutiplication(firstPlvCalib);
+
+				quaternion sfq_Head = sfq_Pelvis.Inverse().mutiplication(QuatData_head.mutiplication(firstHeadCalib));
+				sfq_Head.normalize();
+
+				quaternion sfq_RUA = sfq_Pelvis.Inverse().mutiplication(QuatData_RightUpperArm.mutiplication(firstInvQuat_RightUpperArm));
+				sfq_RUA.normalize();
+
+				quaternion sfq_RLA = QuatData_RightUpperArm.mutiplication(firstInvQuat_RightUpperArm).Inverse().mutiplication(QuatData_RightLowerArm.mutiplication(firstInvQuat_RightLowerArm));
+				sfq_RLA.normalize();
+
+				quaternion sfq_RUL = sfq_Pelvis.Inverse().mutiplication(QuatData_RightUpperLeg.mutiplication(firstInvQuat_RightUpperLeg));
+				sfq_RUL.normalize();
+
+				quaternion sfq_RLL = QuatData_RightUpperLeg.mutiplication(firstInvQuat_RightUpperLeg).Inverse().mutiplication(QuatData_RightLowerLeg.mutiplication(firstInvQuat_RightLowerLeg));
+				sfq_RLL.normalize();
+
+				quaternion sfq_LUA = sfq_Pelvis.Inverse().mutiplication(QuatData_LeftUpperArm.mutiplication(firstInvQuat_LeftUpperArm));
+				sfq_LUA.normalize();
+
+				quaternion sfq_LLA = QuatData_LeftUpperArm.mutiplication(firstInvQuat_LeftUpperArm).Inverse().mutiplication(QuatData_LeftLowerArm.mutiplication(firstInvQuat_LeftLowerArm));
+				sfq_LLA.normalize();
+
+				quaternion sfq_LUL = sfq_Pelvis.Inverse().mutiplication(QuatData_LeftUpperLeg.mutiplication(firstInvQuat_LeftUpperLeg));
+				sfq_LUL.normalize();
+
+				quaternion sfq_LLL = QuatData_LeftUpperLeg.mutiplication(firstInvQuat_LeftUpperLeg).Inverse().mutiplication(QuatData_LeftLowerLeg.mutiplication(firstInvQuat_LeftLowerLeg));
+
+
+				avatar.b0 = sfq_Pelvis;
+				avatar.b1 = sfq_Head;
+				avatar.b2 = sfq_RUA;
+				avatar.b3 = sfq_RLA;
+				avatar.b4 = sfq_LUA;
+				avatar.b5 = sfq_LLA;
+				avatar.b6 = sfq_RUL;
+				avatar.b7 = sfq_RLL;
+				avatar.b8 = sfq_LUL;
+				avatar.b9 = sfq_LLL;
+
+				rotateBody(avatar);
+
+				bool isMotion = false;
+				if (fileClose)
 				{
-					isFirst = false;
-					break;
-				}
+					if (isNotSameQuat(avatar.b2, avatar.prv_b2) || isNotSameQuat(avatar.b3, avatar.prv_b3) ||
+						isNotSameQuat(avatar.b4, avatar.prv_b4) || isNotSameQuat(avatar.b5, avatar.prv_b5) ||
+						isNotSameQuat(avatar.b6, avatar.prv_b6) || isNotSameQuat(avatar.b7, avatar.prv_b7) ||
+						isNotSameQuat(avatar.b8, avatar.prv_b8) || isNotSameQuat(avatar.b9, avatar.prv_b9) ||
+						isNotSameQuat(avatar.b0, avatar.prv_b0) || isNotSameQuat(avatar.b1, avatar.prv_b1))
+					{
+						writeAvatarData(trajCount);
+					}
 
-				if (qPA.mData[3] >= 0.99999 && uqPA.mData[3] >= 0.99999)
+					if (isNotSameQuat(avatar.b0, avatar.prv_b0))
+					{
+						isMotion = true;
+						TVec3 b0Vec, b1Vec;
+
+						quaternion vQuat(tempVec._x, tempVec._y, tempVec._z, 0);
+
+						quaternion uTransfBodyQuat = avatar.b0.mutiplication(vQuat.mutiplication(avatar.b0.Inverse()));
+
+						traj_b0[trajCount][0] = 1;
+						traj_b0[trajCount][1] = uTransfBodyQuat.mData[0];
+						traj_b0[trajCount][2] = uTransfBodyQuat.mData[1];
+						traj_b0[trajCount][3] = uTransfBodyQuat.mData[2];
+					}
+
+					if (isNotSameQuat(avatar.b1, avatar.prv_b1))
+					{
+						isMotion = true;
+						TVec3 b0Vec, b1Vec;
+						calaculateTrajectory(avatar.b1, avatar.b1, b0Vec, b1Vec);
+
+
+						traj_b1[trajCount][0] = 1;
+						traj_b1[trajCount][1] = b0Vec._x;
+						traj_b1[trajCount][2] = b0Vec._y;
+						traj_b1[trajCount][3] = b0Vec._z;
+
+					}
+
+					if (isNotSameQuat(avatar.b2, avatar.prv_b2) || isNotSameQuat(avatar.b3, avatar.prv_b3))
+					{
+						isMotion = true;
+
+						TVec3 b2Vec, b3Vec;
+						calaculateTrajectory(avatar.b2, avatar.b3, b2Vec, b3Vec);
+
+						traj_b2[trajCount][0] = 1;
+						traj_b2[trajCount][1] = b2Vec._x;
+						traj_b2[trajCount][2] = b2Vec._y;
+						traj_b2[trajCount][3] = b2Vec._z;
+
+						traj_b3[trajCount][0] = 1;
+						traj_b3[trajCount][1] = b3Vec._x;
+						traj_b3[trajCount][2] = b3Vec._y;
+						traj_b3[trajCount][3] = b3Vec._z;
+
+					}
+
+					if (isNotSameQuat(avatar.b4, avatar.prv_b4) || isNotSameQuat(avatar.b5, avatar.prv_b5))
+					{
+						isMotion = true;
+
+						TVec3 b4Vec, b5Vec;
+						calaculateTrajectory(avatar.b4, avatar.b5, b4Vec, b5Vec);
+
+
+						traj_b4[trajCount][0] = 1;
+						traj_b4[trajCount][1] = b4Vec._x;
+						traj_b4[trajCount][2] = b4Vec._y;
+						traj_b4[trajCount][3] = b4Vec._z;
+
+						traj_b5[trajCount][0] = 1;
+						traj_b5[trajCount][1] = b5Vec._x;
+						traj_b5[trajCount][2] = b5Vec._y;
+						traj_b5[trajCount][3] = b5Vec._z;
+
+					}
+
+					if (isNotSameQuat(avatar.b6, avatar.prv_b6) || isNotSameQuat(avatar.b7, avatar.prv_b7))
+					{
+						isMotion = true;
+						TVec3 b6Vec, b7Vec;
+						calaculateTrajectory(avatar.b6, avatar.b7, b6Vec, b7Vec);
+
+						traj_b6[trajCount][0] = 1;
+						traj_b6[trajCount][1] = b6Vec._x;
+						traj_b6[trajCount][2] = b6Vec._y;
+						traj_b6[trajCount][3] = b6Vec._z;
+
+						traj_b7[trajCount][0] = 1;
+						traj_b7[trajCount][1] = b7Vec._x;
+						traj_b7[trajCount][2] = b7Vec._y;
+						traj_b7[trajCount][3] = b7Vec._z;
+
+					}
+
+					if (isNotSameQuat(avatar.b8, avatar.prv_b8) || isNotSameQuat(avatar.b9, avatar.prv_b9))
+					{
+						isMotion = true;
+						TVec3 b8Vec, b9Vec;
+						calaculateTrajectory(avatar.b8, avatar.b9, b8Vec, b9Vec);
+
+						traj_b8[trajCount][0] = 1;
+						traj_b8[trajCount][1] = b8Vec._x;
+						traj_b8[trajCount][2] = b8Vec._y;
+						traj_b8[trajCount][3] = b8Vec._z;
+
+						traj_b9[trajCount][0] = 1;
+						traj_b9[trajCount][1] = b9Vec._x;
+						traj_b9[trajCount][2] = b9Vec._y;
+						traj_b9[trajCount][3] = b9Vec._z;
+
+					}
+
+
+					if (!isMotion)
+					{
+						break;
+					}
+
+					avatar.prv_b0 = avatar.b0;
+					avatar.prv_b1 = avatar.b1;
+
+					avatar.prv_b2 = avatar.b2;
+					avatar.prv_b3 = avatar.b3;
+					avatar.prv_b4 = avatar.b4;
+					avatar.prv_b5 = avatar.b5;
+
+					avatar.prv_b6 = avatar.b6;
+					avatar.prv_b7 = avatar.b7;
+					avatar.prv_b8 = avatar.b8;
+					avatar.prv_b9 = avatar.b9;
+
+					trajCount++;
+				}
+			}
+			break;
+
+			case 2:
+			{
+				QuatData_Pelvis = connectXS.xsIMU.b0;
+
+				QuatData_RightUpperArm = connectXS.xsIMU.b1;
+				QuatData_RightLowerArm = connectXS.xsIMU.b2;
+
+				QuatData_LeftUpperArm = connectXS.xsIMU.b3;
+				QuatData_LeftLowerArm = connectXS.xsIMU.b4;
+
+				if (firstCalib  /*&& fileClose*/)
 				{
-					//printf("qP > 0.9999\n");
-					//printf("Skip both\n");
-					break;
+
+					std::cout << "AttentionPose:" << std::endl;
+
+					firstPlvCalib = QuatData_Pelvis.Inverse();
+					std::cout << "Pelvis Quat:\t\t" << QuatData_Pelvis.mData[3] << "\t" << QuatData_Pelvis.mData[0] << "\t" << QuatData_Pelvis.mData[1] << "\t" << QuatData_Pelvis.mData[2] << std::endl;
+
+					firstInvQuat_RightUpperArm = QuatData_RightUpperArm.Inverse();
+					std::cout << "Right Upper-Arm Quat:\t" << firstInvQuat_RightUpperArm.mData[3] << "\t" << firstInvQuat_RightUpperArm.mData[0] << "\t" << firstInvQuat_RightUpperArm.mData[1] << "\t" << firstInvQuat_RightUpperArm.mData[2] << std::endl;
+
+					firstInvQuat_RightLowerArm = QuatData_RightLowerArm.Inverse();
+					std::cout << "Right Lower-Arm Quat:\t" << firstInvQuat_RightLowerArm.mData[3] << "\t" << firstInvQuat_RightLowerArm.mData[0] << "\t" << firstInvQuat_RightLowerArm.mData[1] << "\t" << firstInvQuat_RightLowerArm.mData[2] << std::endl;
+
+					firstInvQuat_LeftUpperArm = QuatData_LeftUpperArm.Inverse();
+					std::cout << "Left Upper-Arm Quat:\t" << firstInvQuat_LeftUpperArm.mData[3] << "\t" << firstInvQuat_LeftUpperArm.mData[0] << "\t" << firstInvQuat_LeftUpperArm.mData[1] << "\t" << firstInvQuat_LeftUpperArm.mData[2] << std::endl;
+
+					firstInvQuat_LeftLowerArm = QuatData_LeftLowerArm.Inverse();
+					std::cout << "Left Lower-Arm Quat:\t" << firstInvQuat_LeftLowerArm.mData[3] << "\t" << firstInvQuat_LeftLowerArm.mData[0] << "\t" << firstInvQuat_LeftLowerArm.mData[1] << "\t" << firstInvQuat_LeftLowerArm.mData[2] << std::endl;
+
+
+					firstCalib = false;
 				}
 
-				if (qPA.mData[3] >= 0.99999)
+				sfq_Pelvis = QuatData_Pelvis.mutiplication(firstPlvCalib);
+
+				quaternion sfq_RUA = sfq_Pelvis.Inverse().mutiplication(QuatData_RightUpperArm.mutiplication(firstInvQuat_RightUpperArm));
+				sfq_RUA.normalize();
+
+				quaternion sfq_RLA = QuatData_RightUpperArm.mutiplication(firstInvQuat_RightUpperArm).Inverse().mutiplication(QuatData_RightLowerArm.mutiplication(firstInvQuat_RightLowerArm));
+				sfq_RLA.normalize();
+
+
+
+				quaternion sfq_LUA = sfq_Pelvis.Inverse().mutiplication(QuatData_LeftUpperArm.mutiplication(firstInvQuat_LeftUpperArm));
+				sfq_LUA.normalize();
+
+				quaternion sfq_LLA = QuatData_LeftUpperArm.mutiplication(firstInvQuat_LeftUpperArm).Inverse().mutiplication(QuatData_LeftLowerArm.mutiplication(firstInvQuat_LeftLowerArm));
+				sfq_LLA.normalize();
+
+				avatar.b0 = sfq_Pelvis;
+				avatar.b2 = sfq_RUA;
+				avatar.b3 = sfq_RLA;
+				avatar.b4 = sfq_LUA;
+				avatar.b5 = sfq_LLA;
+
+				rotateBody(avatar);
+
+				bool isMotion = false;
+				if (fileClose)
 				{
-					lsf_q = qPrevInvsPA.Inverse();
-					//printf("Skip lower arm\n");
+
+					if (isNotSameQuat(avatar.b2, avatar.prv_b2) || isNotSameQuat(avatar.b3, avatar.prv_b3) ||
+						isNotSameQuat(avatar.b4, avatar.prv_b4) || isNotSameQuat(avatar.b5, avatar.prv_b5) ||
+						isNotSameQuat(avatar.b0, avatar.prv_b0))
+					{
+						writeData();
+					}
+
+					if (isNotSameQuat(avatar.b0, avatar.prv_b0))
+					{
+						isMotion = true;
+						TVec3 b0Vec, b1Vec;
+
+						quaternion vQuat(tempVec._x, tempVec._y, tempVec._z, 0);
+
+						quaternion uTransfBodyQuat = avatar.b0.mutiplication(vQuat.mutiplication(avatar.b0.Inverse()));
+
+						traj_b0[trajCount][0] = 1;
+						traj_b0[trajCount][1] = uTransfBodyQuat.mData[0];
+						traj_b0[trajCount][2] = uTransfBodyQuat.mData[1];
+						traj_b0[trajCount][3] = uTransfBodyQuat.mData[2];
+					}
+
+
+
+					if (isNotSameQuat(avatar.b2, avatar.prv_b2) || isNotSameQuat(avatar.b3, avatar.prv_b3))
+					{
+						isMotion = true;
+
+						TVec3 b2Vec, b3Vec;
+						calaculateTrajectory(avatar.b2, avatar.b3, b2Vec, b3Vec);
+
+						traj_b2[trajCount][0] = 1;
+						traj_b2[trajCount][1] = b2Vec._x;
+						traj_b2[trajCount][2] = b2Vec._y;
+						traj_b2[trajCount][3] = b2Vec._z;
+
+						traj_b3[trajCount][0] = 1;
+						traj_b3[trajCount][1] = b3Vec._x;
+						traj_b3[trajCount][2] = b3Vec._y;
+						traj_b3[trajCount][3] = b3Vec._z;
+					}
+
+					if (isNotSameQuat(avatar.b4, avatar.prv_b4) || isNotSameQuat(avatar.b5, avatar.prv_b5))
+					{
+						isMotion = true;
+
+						TVec3 b4Vec, b5Vec;
+						calaculateTrajectory(avatar.b4, avatar.b5, b4Vec, b5Vec);
+
+
+						traj_b4[trajCount][0] = 1;
+						traj_b4[trajCount][1] = b4Vec._x;
+						traj_b4[trajCount][2] = b4Vec._y;
+						traj_b4[trajCount][3] = b4Vec._z;
+
+						traj_b5[trajCount][0] = 1;
+						traj_b5[trajCount][1] = b5Vec._x;
+						traj_b5[trajCount][2] = b5Vec._y;
+						traj_b5[trajCount][3] = b5Vec._z;
+					}
+
+
+					if (!isMotion)
+					{
+						break;
+					}
+
+					avatar.prv_b0 = avatar.b0;
+
+					avatar.prv_b2 = avatar.b2;
+					avatar.prv_b3 = avatar.b3;
+					avatar.prv_b4 = avatar.b4;
+					avatar.prv_b5 = avatar.b5;
+
+
+					trajCount++;
+
 				}
 
-				if (uqPA.mData[3] >= 0.99999)
+			}
+			break;
+
+			case 3:
+			{
+				QuatData_Pelvis = connectXS.xsIMU.b0;
+
+				QuatData_RightUpperLeg = connectXS.xsIMU.b1;
+				QuatData_RightLowerLeg = connectXS.xsIMU.b2;
+
+				QuatData_LeftUpperLeg = connectXS.xsIMU.b3;
+				QuatData_LeftLowerLeg = connectXS.xsIMU.b4;
+
+				if (firstCalib  /*&& fileClose*/)
 				{
-					usf_q = uqPrevInvsPA.Inverse();
-					//printf("Skip upper arm\n");
+
+					std::cout << "AttentionPose:" << std::endl;
+
+					firstPlvCalib = QuatData_Pelvis.Inverse();
+					std::cout << "Pelvis Quat:\t" << QuatData_Pelvis.mData[3] << "\t" << QuatData_Pelvis.mData[0] << "\t" << QuatData_Pelvis.mData[1] << "\t" << QuatData_Pelvis.mData[2] << std::endl;
+
+					firstInvQuat_RightUpperLeg = QuatData_RightUpperLeg.Inverse();
+					std::cout << "Right Upper-Leg Quat:\t" << QuatData_RightUpperLeg.mData[3] << "\t" << QuatData_RightUpperLeg.mData[0] << "\t" << QuatData_RightUpperLeg.mData[1] << "\t" << QuatData_RightUpperLeg.mData[2] << std::endl;
+
+					firstInvQuat_RightLowerLeg = QuatData_RightLowerLeg.Inverse();
+					std::cout << "Right Lower-Leg Quat:\t" << QuatData_RightLowerLeg.mData[3] << "\t" << QuatData_RightLowerLeg.mData[0] << "\t" << QuatData_RightLowerLeg.mData[1] << "\t" << QuatData_RightLowerLeg.mData[2] << std::endl;
+
+					firstInvQuat_LeftUpperLeg = QuatData_LeftUpperLeg.Inverse();
+					std::cout << "Left Upper-Arm Quat:\t" << QuatData_LeftUpperLeg.mData[3] << "\t" << QuatData_LeftUpperLeg.mData[0] << "\t" << QuatData_LeftUpperLeg.mData[1] << "\t" << QuatData_LeftUpperLeg.mData[2] << std::endl;
+
+					firstInvQuat_LeftLowerLeg = QuatData_LeftLowerLeg.Inverse();
+					std::cout << "Left Lower-Arm Quat:\t" << QuatData_LeftLowerLeg.mData[3] << "\t" << QuatData_LeftLowerLeg.mData[0] << "\t" << QuatData_LeftLowerLeg.mData[1] << "\t" << firstInvQuat_LeftLowerArm.mData[2] << std::endl;
+
+					firstCalib = false;
 				}
 
-				/*U_rawqfile << connectXS.ax[3] << "," << connectXS.ax[0] << "," << connectXS.ax[1] << "," << connectXS.ax[2] << "\n";
-				L_rawqfile << connectXS.ax2[3] << "," << connectXS.ax2[0] << "," << connectXS.ax2[1] << "," << connectXS.ax2[2] << "\n";
-				P_rawfile << connectXS.r_ax3[3] << "," << connectXS.r_ax3[0] << "," << connectXS.r_ax3[1] << "," << connectXS.r_ax3[2] << "\n";*/
-				L_sfqfile << lsf_q.mData[3] << "," << lsf_q.mData[0] << "," << lsf_q.mData[1] << "," << lsf_q.mData[2] << "\n";
-				U_sfqfile << usf_q.mData[3] << "," << usf_q.mData[0] << "," << usf_q.mData[1] << "," << usf_q.mData[2] << "\n";
-					
-				
-				indexP++;
-				PA_data[indexP][0] = 1;// TransfBodyQuat.mData[3];
-				PA_data[indexP][1] = lTransfBodyQuat.mData[0];
-				PA_data[indexP][2] = lTransfBodyQuat.mData[1];
-				PA_data[indexP][3] = lTransfBodyQuat.mData[2];
+				sfq_Pelvis = QuatData_Pelvis.mutiplication(firstPlvCalib);
 
-				uPA_data[indexP][0] = 1;// TransfBodyQuat.mData[3];
-				uPA_data[indexP][1] = uTransfBodyQuat.mData[0];
-				uPA_data[indexP][2] = uTransfBodyQuat.mData[1];
-				uPA_data[indexP][3] = uTransfBodyQuat.mData[2];
+				quaternion sfq_RUL = sfq_Pelvis.Inverse().mutiplication(QuatData_RightUpperLeg.mutiplication(firstInvQuat_RightUpperLeg));
+				sfq_RUL.normalize();
 
+				quaternion sfq_RLL = QuatData_RightUpperLeg.mutiplication(firstInvQuat_RightUpperLeg).Inverse().mutiplication(QuatData_RightLowerLeg.mutiplication(firstInvQuat_RightLowerLeg));
+				sfq_RLL.normalize();
+
+
+
+				quaternion sfq_LUL = sfq_Pelvis.Inverse().mutiplication(QuatData_LeftUpperLeg.mutiplication(firstInvQuat_LeftUpperLeg));
+				sfq_LUL.normalize();
+
+				quaternion sfq_LLL = QuatData_LeftUpperLeg.mutiplication(firstInvQuat_LeftUpperLeg).Inverse().mutiplication(QuatData_LeftLowerLeg.mutiplication(firstInvQuat_LeftLowerLeg));
+				sfq_LLL.normalize();
+
+				avatar.b0 = sfq_Pelvis;
+				avatar.b6 = sfq_RUL;
+				avatar.b7 = sfq_RLL;
+				avatar.b8 = sfq_LUL;
+				avatar.b9 = sfq_LLL;
+
+				rotateBody(avatar);
+
+				bool isMotion = false;
+				if (fileClose)
+				{
+
+					if (isNotSameQuat(avatar.b6, avatar.prv_b6) || isNotSameQuat(avatar.b7, avatar.prv_b7) ||
+						isNotSameQuat(avatar.b8, avatar.prv_b8) || isNotSameQuat(avatar.b9, avatar.prv_b9) ||
+						isNotSameQuat(avatar.b0, avatar.prv_b0))
+					{
+						writeData();
+					}
+
+					if (isNotSameQuat(avatar.b0, avatar.prv_b0))
+					{
+						isMotion = true;
+						TVec3 b0Vec, b1Vec;
+
+						quaternion vQuat(tempVec._x, tempVec._y, tempVec._z, 0);
+
+						quaternion uTransfBodyQuat = avatar.b0.mutiplication(vQuat.mutiplication(avatar.b0.Inverse()));
+
+						traj_b0[trajCount][0] = 1;
+						traj_b0[trajCount][1] = uTransfBodyQuat.mData[0];
+						traj_b0[trajCount][2] = uTransfBodyQuat.mData[1];
+						traj_b0[trajCount][3] = uTransfBodyQuat.mData[2];
+					}
+
+					if (isNotSameQuat(avatar.b6, avatar.prv_b6) || isNotSameQuat(avatar.b7, avatar.prv_b7))
+					{
+						isMotion = true;
+						TVec3 b6Vec, b7Vec;
+						calaculateTrajectory(avatar.b6, avatar.b7, b6Vec, b7Vec);
+
+						traj_b6[trajCount][0] = 1;
+						traj_b6[trajCount][1] = b6Vec._x;
+						traj_b6[trajCount][2] = b6Vec._y;
+						traj_b6[trajCount][3] = b6Vec._z;
+
+						traj_b7[trajCount][0] = 1;
+						traj_b7[trajCount][1] = b7Vec._x;
+						traj_b7[trajCount][2] = b7Vec._y;
+						traj_b7[trajCount][3] = b7Vec._z;
+
+					}
+
+					if (isNotSameQuat(avatar.b8, avatar.prv_b8) || isNotSameQuat(avatar.b9, avatar.prv_b9))
+					{
+						isMotion = true;
+						TVec3 b8Vec, b9Vec;
+						calaculateTrajectory(avatar.b8, avatar.b9, b8Vec, b9Vec);
+
+						traj_b8[trajCount][0] = 1;
+						traj_b8[trajCount][1] = b8Vec._x;
+						traj_b8[trajCount][2] = b8Vec._y;
+						traj_b8[trajCount][3] = b8Vec._z;
+
+						traj_b9[trajCount][0] = 1;
+						traj_b9[trajCount][1] = b9Vec._x;
+						traj_b9[trajCount][2] = b9Vec._y;
+						traj_b9[trajCount][3] = b9Vec._z;
+
+					}
+
+
+					if (!isMotion)
+					{
+						break;
+					}
+
+					avatar.prv_b0 = avatar.b0;
+
+					avatar.prv_b6 = avatar.b6;
+					avatar.prv_b7 = avatar.b7;
+					avatar.prv_b8 = avatar.b8;
+					avatar.prv_b9 = avatar.b9;
+
+					trajCount++;
+				}
+
+			}
+			break;
+
+			default:
 				break;
-							
-				//std::cout << "printf: " << duration << '\n';
-				//printf(" AxisAngle: %f \t %f \t %.15f\n", dot(a, b) / (mag(a)*mag(b)), Axis_Angle * 180 / PI, q0);
 			}
-			else
-			{
-				drawGrid[0][0] = 1;// TransfBodyQuat.mData[3];
-				drawGrid[0][1] = lTransfBodyQuat.mData[0];
-				drawGrid[0][2] = lTransfBodyQuat.mData[1];
-				drawGrid[0][3] = lTransfBodyQuat.mData[2];
-
-			}
-
 		}
 	}
 	break;
@@ -1950,8 +2359,8 @@ void idle()
 		{
 			std::cout << "\n reset:" << connectXS.mtwDevices[i]->resetOrientation(XRM_Alignment) << std::endl;
 		}
-		First_calibrate = true;
-		
+		firstCalib = true;
+
 		option = 1;
 		break;
 
@@ -1968,153 +2377,252 @@ void idle()
 	{
 		if (bReadFile)
 		{
-			//............Right Arm.............//
-			if (isize >= dsize)
+			switch (subOption)
 			{
-				bReadFile = false;
-				isize = 0;
-				L_rfile2.close();
-				RPY_lowpass.close();
-				outDataL.close();
-				outDataU.close();
-				matchDBTrajectory("Load\\UFormFile.csv", "Load\\LFormFile.csv");
-				break;
-			}
-		
-			///////////////
-			quaternion qutObj;
-			glPushMatrix();
-			glLoadIdentity();
-			glGetFloatv(GL_MODELVIEW_MATRIX, lua_node.m);
-
-			quaternion reset_U(uqdata[isize][0], uqdata[isize][1], uqdata[isize][2], uqdata[isize][3]);
-			quaternion reset_L(-lqdata[isize][1], -lqdata[isize][2], lqdata[isize][0], lqdata[isize][3]);
-			float q0 = reset_U.mData[3];
-			float q1 = reset_U.mData[0];
-			float q2 = reset_U.mData[2];
-			float q3 = -reset_U.mData[1];
-			
-			float angle_rad = acos(q0) * 2;
-			float angle_deg = angle_rad * 180 / PI;
-
-			float x = q1 / sin(angle_rad / 2);
-			float y = q2 / sin(angle_rad / 2);
-			float z = q3 / sin(angle_rad / 2);
-			float fnorm = sqrt(x*x + y*y + z*z);
-			
-			glRotatef(angle_deg, x / fnorm, y / fnorm, z / fnorm);
-
-			glGetFloatv(GL_MODELVIEW_MATRIX, lua_node.m);
-			
-			glLoadIdentity();
-			glTranslatef(0.0, -UPPER_ARM_HEIGHT, 0.0);
-			glGetFloatv(GL_MODELVIEW_MATRIX, lelb_node.m);
-
-			glGetFloatv(GL_MODELVIEW_MATRIX, lla_node.m);
-			
-			q0 = lqdata[isize][3];
-			q1 = lqdata[isize][0];
-			q2 = lqdata[isize][2];
-			q3 = -lqdata[isize][1];
-
-			
-			
-			if (q0 == 9)
+			case 1:
 			{
-				indexP++;
-				PA_data[indexP][0] = 9;
-				PA_data[indexP][1] = 0;
-				PA_data[indexP][2] = 0;
-				PA_data[indexP][3] = 0;
-				isize++;
-				glPopMatrix();
-				isRQFirst = true;
-				break;
+				if (trajCount >= dsize)
+				{
+					bReadFile = false;
+					isize = 0;
+					outDataL.close();
+					outDataU.close();
+					matchDBTrajectory("Load\\UFormFile.csv", "Load\\LFormFile.csv");
+					break;
+				}
+
+				avatar.b0 = avatarData[trajCount].b0;
+				avatar.b1 = avatarData[trajCount].b1;
+				avatar.b2 = avatarData[trajCount].b2;
+				avatar.b3 = avatarData[trajCount].b3;
+				avatar.b4 = avatarData[trajCount].b4;
+				avatar.b5 = avatarData[trajCount].b5;
+				avatar.b6 = avatarData[trajCount].b6;
+				avatar.b7 = avatarData[trajCount].b7;
+				avatar.b8 = avatarData[trajCount].b8;
+				avatar.b9 = avatarData[trajCount].b9;
+
+				rotateBody(avatar);
+
+				TVec3 b0Vec, b1Vec;
+
+				quaternion vQuat(tempVec._x, tempVec._y, tempVec._z, 0);
+
+				quaternion uTransfBodyQuat = avatar.b0.mutiplication(vQuat.mutiplication(avatar.b0.Inverse()));
+
+				traj_b0[trajCount][0] = 1;
+				traj_b0[trajCount][1] = uTransfBodyQuat.mData[0];
+				traj_b0[trajCount][2] = uTransfBodyQuat.mData[1];
+				traj_b0[trajCount][3] = uTransfBodyQuat.mData[2];
+
+				calaculateTrajectory(avatar.b1, avatar.b1, b0Vec, b1Vec);
+
+				traj_b1[trajCount][0] = 1;
+				traj_b1[trajCount][1] = b0Vec._x;
+				traj_b1[trajCount][2] = b0Vec._y;
+				traj_b1[trajCount][3] = b0Vec._z;
+
+
+				TVec3 b2Vec, b3Vec;
+				calaculateTrajectory(avatar.b2, avatar.b3, b2Vec, b3Vec);
+
+				traj_b2[trajCount][0] = 1;
+				traj_b2[trajCount][1] = b2Vec._x;
+				traj_b2[trajCount][2] = b2Vec._y;
+				traj_b2[trajCount][3] = b2Vec._z;
+
+				traj_b3[trajCount][0] = 1;
+				traj_b3[trajCount][1] = b3Vec._x;
+				traj_b3[trajCount][2] = b3Vec._y;
+				traj_b3[trajCount][3] = b3Vec._z;
+
+				TVec3 b4Vec, b5Vec;
+				calaculateTrajectory(avatar.b4, avatar.b5, b4Vec, b5Vec);
+
+				traj_b4[trajCount][0] = 1;
+				traj_b4[trajCount][1] = b4Vec._x;
+				traj_b4[trajCount][2] = b4Vec._y;
+				traj_b4[trajCount][3] = b4Vec._z;
+
+				traj_b5[trajCount][0] = 1;
+				traj_b5[trajCount][1] = b5Vec._x;
+				traj_b5[trajCount][2] = b5Vec._y;
+				traj_b5[trajCount][3] = b5Vec._z;
+
+				TVec3 b6Vec, b7Vec;
+				calaculateTrajectory(avatar.b6, avatar.b7, b6Vec, b7Vec);
+
+				traj_b6[trajCount][0] = 1;
+				traj_b6[trajCount][1] = b6Vec._x;
+				traj_b6[trajCount][2] = b6Vec._y;
+				traj_b6[trajCount][3] = b6Vec._z;
+
+				traj_b7[trajCount][0] = 1;
+				traj_b7[trajCount][1] = b7Vec._x;
+				traj_b7[trajCount][2] = b7Vec._y;
+				traj_b7[trajCount][3] = b7Vec._z;
+
+				TVec3 b8Vec, b9Vec;
+				calaculateTrajectory(avatar.b8, avatar.b9, b8Vec, b9Vec);
+
+				traj_b8[trajCount][0] = 1;
+				traj_b8[trajCount][1] = b8Vec._x;
+				traj_b8[trajCount][2] = b8Vec._y;
+				traj_b8[trajCount][3] = b8Vec._z;
+
+				traj_b9[trajCount][0] = 1;
+				traj_b9[trajCount][1] = b9Vec._x;
+				traj_b9[trajCount][2] = b9Vec._y;
+				traj_b9[trajCount][3] = b9Vec._z;
+				
+				trajCount++;
 			}
-
-			angle_rad = acos(q0) * 2;
-			angle_deg = angle_rad * 180 / PI;
-			x = q1 / sin(angle_rad / 2);
-			y = q2 / sin(angle_rad / 2);
-			z = q3 / sin(angle_rad / 2);
-
-			fnorm = sqrt(x*x + y*y + z*z);
-						
-			glLoadIdentity();
-			glTranslatef(0.0, 0.0, 0.0);
-			glRotatef(angle_deg, x / fnorm, y / fnorm, z / fnorm);
-			glGetFloatv(GL_MODELVIEW_MATRIX, lla_node.m);
-			glPopMatrix();
-			
-			/*qPrevInvsPA = qPrevPA;
-			qPrevPA = sf_q.Inverse();
-			if (!isFirst)
-				qPA = sf_q.mutiplication(qPrevInvsPA);
-			else
-			{
-				isFirst = false;
-				isize++;
-				break;
-			}
-
-			if (qPA.mData[3] >= 0.99999 || isinf(x) || isnan(x)) {
-
-				isize++;
-				break;
-			}*/
-			
-			quaternion tempQuat1 = BodyQuat.mutiplication(reset_U);
-			quaternion tempQuat2 = tempQuat1.mutiplication(reset_L);
-					
-			TVector3 TransfBodyQuat1 = tempQuat2.quternionMatrices(tempQuat2, tempVec);
-			TVector3 TransfBodyQuat2 = tempQuat1.quternionMatrices(tempQuat1, tempVec);
-			
-			///////////////////////////////////
-			indexP++;
-						
-			if (indexP == 1)
-			{
-				outDataL.open("pointData\\StandarduserDataL.txt");
-				outDataU.open("pointData\\StandarduserDataU.txt");
-			}
-			PA_data[indexP][0] = 1.0;
-			PA_data[indexP][1] = TransfBodyQuat1._x;
-			PA_data[indexP][2] = TransfBodyQuat1._y;
-			PA_data[indexP][3] = TransfBodyQuat1._z;
-
-			outDataL << PA_data[indexP][1] << "\t" << PA_data[indexP][2] << "\t" << PA_data[indexP][3] << endl;
-
-			uPA_data[indexP][0] = 1.0;
-			uPA_data[indexP][1] = TransfBodyQuat2._x;
-			uPA_data[indexP][2] = TransfBodyQuat2._y;
-			uPA_data[indexP][3] = TransfBodyQuat2._z;
-
-			outDataU << uPA_data[indexP][1] << "\t" << uPA_data[indexP][2] << "\t" << uPA_data[indexP][3] << endl;
-			//PA_data[indexP][0] = 1;// TransfBodyQuat.mData[3];
-			//PA_data[indexP][1] = TransfBodyQuat.mData[0];
-			//PA_data[indexP][2] = TransfBodyQuat.mData[1];
-			//PA_data[indexP][3] = TransfBodyQuat.mData[2];
-
-			isize++;
 			break;
+			case 2:
+			{
+
+
+				if (trajCount >= dsize)
+				{
+					bReadFile = false;
+					isize = 0;
+					outDataL.close();
+					outDataU.close();
+					matchDBTrajectory("Load\\UFormFile.csv", "Load\\LFormFile.csv");
+					break;
+				}
+
+				avatar.b0 = avatarData[trajCount].b0;
+				avatar.b2 = avatarData[trajCount].b2;
+				avatar.b3 = avatarData[trajCount].b3;
+				avatar.b4 = avatarData[trajCount].b4;
+				avatar.b5 = avatarData[trajCount].b5;
+
+				rotateBody(avatar);
+				
+				TVec3 b0Vec, b1Vec;
+
+				quaternion vQuat(tempVec._x, tempVec._y, tempVec._z, 0);
+
+				quaternion uTransfBodyQuat = avatar.b0.mutiplication(vQuat.mutiplication(avatar.b0.Inverse()));
+
+				traj_b0[trajCount][0] = 1;
+				traj_b0[trajCount][1] = uTransfBodyQuat.mData[0];
+				traj_b0[trajCount][2] = uTransfBodyQuat.mData[1];
+				traj_b0[trajCount][3] = uTransfBodyQuat.mData[2];
+
+				TVec3 b2Vec, b3Vec;
+				calaculateTrajectory(avatar.b2, avatar.b3, b2Vec, b3Vec);
+
+				traj_b2[trajCount][0] = 1;
+				traj_b2[trajCount][1] = b2Vec._x;
+				traj_b2[trajCount][2] = b2Vec._y;
+				traj_b2[trajCount][3] = b2Vec._z;
+
+				traj_b3[trajCount][0] = 1;
+				traj_b3[trajCount][1] = b3Vec._x;
+				traj_b3[trajCount][2] = b3Vec._y;
+				traj_b3[trajCount][3] = b3Vec._z;
+
+				TVec3 b4Vec, b5Vec;
+				calaculateTrajectory(avatar.b4, avatar.b5, b4Vec, b5Vec);
+				
+				traj_b4[trajCount][0] = 1;
+				traj_b4[trajCount][1] = b4Vec._x;
+				traj_b4[trajCount][2] = b4Vec._y;
+				traj_b4[trajCount][3] = b4Vec._z;
+
+				traj_b5[trajCount][0] = 1;
+				traj_b5[trajCount][1] = b5Vec._x;
+				traj_b5[trajCount][2] = b5Vec._y;
+				traj_b5[trajCount][3] = b5Vec._z;
+				
+				trajCount++;
+
+			}
+
+			break;
+
+			case 3:
+			{
+
+				if (trajCount >= dsize)
+				{
+					bReadFile = false;
+					isize = 0;
+					outDataL.close();
+					outDataU.close();
+					matchDBTrajectory("Load\\UFormFile.csv", "Load\\LFormFile.csv");
+					break;
+				}
+
+				avatar.b0 = avatarData[trajCount].b0;
+				avatar.b6 = avatarData[trajCount].b6;
+				avatar.b7 = avatarData[trajCount].b7;
+				avatar.b8 = avatarData[trajCount].b8;
+				avatar.b9 = avatarData[trajCount].b9;
+
+				rotateBody(avatar);
+
+
+				TVec3 b0Vec, b1Vec;
+
+				quaternion vQuat(tempVec._x, tempVec._y, tempVec._z, 0);
+
+				quaternion uTransfBodyQuat = avatar.b0.mutiplication(vQuat.mutiplication(avatar.b0.Inverse()));
+
+				traj_b0[trajCount][0] = 1;
+				traj_b0[trajCount][1] = uTransfBodyQuat.mData[0];
+				traj_b0[trajCount][2] = uTransfBodyQuat.mData[1];
+				traj_b0[trajCount][3] = uTransfBodyQuat.mData[2];
+
+				TVec3 b6Vec, b7Vec;
+				calaculateTrajectory(avatar.b6, avatar.b7, b6Vec, b7Vec);
+
+				traj_b6[trajCount][0] = 1;
+				traj_b6[trajCount][1] = b6Vec._x;
+				traj_b6[trajCount][2] = b6Vec._y;
+				traj_b6[trajCount][3] = b6Vec._z;
+
+				traj_b7[trajCount][0] = 1;
+				traj_b7[trajCount][1] = b7Vec._x;
+				traj_b7[trajCount][2] = b7Vec._y;
+				traj_b7[trajCount][3] = b7Vec._z;
+
+
+
+				TVec3 b8Vec, b9Vec;
+				calaculateTrajectory(avatar.b8, avatar.b9, b8Vec, b9Vec);
+
+				traj_b8[trajCount][0] = 1;
+				traj_b8[trajCount][1] = b8Vec._x;
+				traj_b8[trajCount][2] = b8Vec._y;
+				traj_b8[trajCount][3] = b8Vec._z;
+
+				traj_b9[trajCount][0] = 1;
+				traj_b9[trajCount][1] = b9Vec._x;
+				traj_b9[trajCount][2] = b9Vec._y;
+				traj_b9[trajCount][3] = b9Vec._z;
+
+
+				trajCount++;
+
+			}
+			break;
+
+			default:
+				break;
+			}
 		}
 	}
 	break;
 
 	case 9:
 	{
-		bool DataAvailable = connectXS.newDataAvailable;
-		if (DataAvailable && startCalib)
-		{
-			if (AttAxisCalib)
-				Calib_att = quaternion(connectXS.ax2[0], connectXS.ax2[1], connectXS.ax2[2], connectXS.ax2[3]);
 
-			if (TposAxisCalib)
-				Calib_tpos = quaternion(connectXS.ax2[0], connectXS.ax2[1], connectXS.ax2[2], connectXS.ax2[3]);
-		}
 	}
 	break;
-	
+
 	case 10:
 	{
 		if (bReadDBFile)
@@ -2166,7 +2674,7 @@ void idle()
 			q1 = reset_L.mData[0];
 			q2 = reset_L.mData[2];
 			q3 = -reset_L.mData[1];
-			
+
 			angle_rad = acos(q0) * 2;
 			angle_deg = angle_rad * 180 / PI;
 			x = q1 / sin(angle_rad / 2);
@@ -2181,23 +2689,6 @@ void idle()
 			glGetFloatv(GL_MODELVIEW_MATRIX, lla_node.m);
 			glPopMatrix();
 
-			/*qPrevInvsPA = qPrevPA;
-			qPrevPA = sf_q.Inverse();
-			if (!isFirst)
-			qPA = sf_q.mutiplication(qPrevInvsPA);
-			else
-			{
-			isFirst = false;
-			isize++;
-			break;
-			}
-
-			if (qPA.mData[3] >= 0.99999 || isinf(x) || isnan(x)) {
-
-			isize++;
-			break;
-			}*/
-
 			quaternion tempQuat1 = BodyQuat.mutiplication(reset_U);
 			quaternion tempQuat2 = tempQuat1.mutiplication(reset_L);
 
@@ -2205,7 +2696,7 @@ void idle()
 			TVector3 TransfBodyQuat2 = tempQuat1.quternionMatrices(tempQuat1, tempVec);
 
 			///////////////////////////////////
-			
+
 			indexDB++;
 			if (indexDB == 1) {
 				outDataL.open("pointData\\outDataDBL.txt");
@@ -2215,7 +2706,7 @@ void idle()
 			lDB_data[indexDB][1] = TransfBodyQuat1._x;
 			lDB_data[indexDB][2] = TransfBodyQuat1._y;
 			lDB_data[indexDB][3] = TransfBodyQuat1._z;
-			
+
 			outDataL << lDB_data[indexDB][1] << "\t" << lDB_data[indexDB][2] << "\t" << lDB_data[indexDB][3] << endl;
 
 			uDB_data[indexDB][0] = 1.0;
@@ -2224,7 +2715,7 @@ void idle()
 			uDB_data[indexDB][3] = TransfBodyQuat2._z;
 
 			outDataU << uDB_data[indexDB][1] << "\t" << uDB_data[indexDB][2] << "\t" << uDB_data[indexDB][3] << endl;
-					
+
 			idbsize++;
 			break;
 		}
@@ -2234,15 +2725,7 @@ void idle()
 	glutPostRedisplay();
 }
 
-void menu(int id)
-{
-	option = id;
-	done = 0;
-	if (id == 3) { rotate_ = 90; xr = 0; yr = 1; zr = 0; }
-	if (id == 4) { rotate_ = 0;  xr = 0; yr = 1; zr = 0; }
-	if (id == 5) { rotate_ = 30; xr = 0; yr = 1; zr = 0; }
-	if (id == 6) { rotate_ = 90; xr = 1; yr = 0; zr = 0; }
-}
+
 
 void myReshape(int w, int h)
 {
@@ -2286,7 +2769,7 @@ void computeIntialpoint()
 void myinit()
 {
 	computeIntialpoint();
-	
+
 	/////// allocate quadrics with filled drawing style /////////
 
 	h = gluNewQuadric();
@@ -2404,16 +2887,16 @@ void myinit()
 	relb_node.child = &rla_node;
 
 	glLoadIdentity();
-	glTranslatef(-TORSO_RADIUS / 2, 0.1*UPPER_LEG_HEIGHT, 0.0);
-	glRotatef(theta[7], 1.0, 0.0, 0.0);
+	glTranslatef(-TORSO_RADIUS / 2, 0.1*UPPER_LEG_HEIGHT, 0.0);//glTranslatef(-TORSO_RADIUS / 2, 0.1*UPPER_LEG_HEIGHT, 0.0);
+	glRotatef(theta[7], 1.0, 0.0, 0.0);//glRotatef(theta[7], 1.0, 0.0, 0.0);
 	glGetFloatv(GL_MODELVIEW_MATRIX, lul_node.m);
 	lul_node.f = left_upper_leg;
 	lul_node.sibling = &rul_node;
 	lul_node.child = &lknee_node;
 
 	glLoadIdentity();
-	glTranslatef(TORSO_RADIUS / 2, 0.1*UPPER_LEG_HEIGHT, 0.0);
-	glRotatef(theta[9], 1.0, 0.0, 0.0);
+	glTranslatef(TORSO_RADIUS / 2, 0.1*UPPER_LEG_HEIGHT, 0.0);//glTranslatef(TORSO_RADIUS / 2, 0.1*UPPER_LEG_HEIGHT, 0.0);
+	glRotatef(theta[9], 1.0, 0.0, 0.0);//glRotatef(theta[9], 1.0, 0.0, 0.0);
 	glGetFloatv(GL_MODELVIEW_MATRIX, rul_node.m);
 	rul_node.f = right_upper_leg;
 	rul_node.sibling = NULL;
@@ -2571,7 +3054,7 @@ void mouseMotion(int x, int y)
 		xrot = y + ydiff;
 		if (xrot > 89) xrot = 89.0f;
 		if (xrot < -89) xrot = -89.0f;
-		
+
 		pointTranslateX = zval*(cos(xrot*PI / 180) * sin(yrot*PI / 180));
 		pointTranslateY = zval*(sin(xrot*PI / 180));
 		pointTranslateZ = zval*(cos(xrot*PI / 180) * cos(yrot*PI / 180));
@@ -2604,17 +3087,6 @@ void keyBoardEvent(unsigned char key, int x, int y)
 		}
 	}
 
-	if (key == 'x')
-	{
-		AttAxisCalib = true;
-	}
-
-
-	if (key == 'y')
-	{
-		TposAxisCalib = true;
-	}
-
 	if (key == 100)//key "d"
 	{
 		//connectXS.waitForConnections = false;
@@ -2638,15 +3110,17 @@ void keyBoardEvent(unsigned char key, int x, int y)
 		{
 			std::cout << "\n reset:" << connectXS.mtwDevices[i]->resetOrientation(XRM_Alignment) << std::endl;
 		}
-		First_calibrate = true;
+		firstCalib = true;
 
 	}
 
 	if (key == 'v')
 	{
 		startAnim = !startAnim;
-		First_calibrate = true;
-		isRQFirst = true;
+		firstCalib = true;
+
+		connectXS.xsIMU = { qInit,qInit,qInit,qInit,qInit,qInit,qInit,qInit,qInit,qInit };
+		avatar = { qInit,qInit,qInit,qInit,qInit,qInit,qInit,qInit,qInit,qInit };
 		std::cout << "\n Ready for recording...!" << std::endl;
 	}
 
@@ -2657,59 +3131,31 @@ void keyBoardEvent(unsigned char key, int x, int y)
 		{
 			std::cout << "\n Recording....!" << std::endl;
 
-			time_t curr_time;
-			curr_time = time(NULL);
-			tm *tm_local = localtime(&curr_time);
-			/*char dirName[1024];
-			sprintf_s(dirName,"%d-%d%d%d", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
-			string dir = {dirName};
-			CreateDirectory(dir.c_str, NULL);*/
-			//fileClose = true;
-			
-			/*sprintf_s(fileName, "CData\\LRawFile-00%d-%d%d%d.csv", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
-			L_rawqfile.open(fileName);
-			sprintf_s(fileName, "CData\\URawFile-00%d-%d%d%d.csv", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
-			U_rawqfile.open(fileName);
-			sprintf_s(fileName, "CData\\PRawFile-00%d-%d%d%d.csv", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
-			P_rawfile.open(fileName);*/
-			
-			/*sprintf_s(fileName, "LFormFile-00%d-%d%d%d.csv", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
-			L_qfile1.open(fileName);*/
-			/*sprintf_s(fileName, "CData\\AxisAngleFile-00%d-%d%d%d.csv", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
-			L_rfile2.open(fileName);*/
-			sprintf_s(LfileName, "CData\\LFormFile-00%d-%d%d%d.csv", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
-			L_sfqfile.open(LfileName);
 
-			sprintf_s(UfileName, "CData\\UFormFile-00%d-%d%d%d.csv", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
-			U_sfqfile.open(UfileName);
-			/*sprintf_s(fileName, "CData\\TransBodyFile-00%d-%d%d%d.csv", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
-			LatLongfile.open(fileName);*/
-			//printf("File Open\n");
+			trajCount = 0;
+			LindexP = 0;
+			memset(traj_b0, 0, 80056 * (sizeof(float)));
+			memset(traj_b1, 0, 80056 * (sizeof(float)));
+			memset(traj_b2, 0, 80056 * (sizeof(float)));
+			memset(traj_b3, 0, 80056 * (sizeof(float)));
+			memset(traj_b4, 0, 80056 * (sizeof(float)));
+			memset(traj_b5, 0, 80056 * (sizeof(float)));
+			memset(traj_b6, 0, 80056 * (sizeof(float)));
+			memset(traj_b7, 0, 80056 * (sizeof(float)));
+			memset(traj_b8, 0, 80056 * (sizeof(float)));
+			memset(traj_b9, 0, 80056 * (sizeof(float)));
 
-			fileCount++;
-			indexP = 0;
-			memset(PA_data, 0, 80056 * (sizeof(float)));
-			memset(uPA_data, 0, 80056 * (sizeof(float)));
-			//First_calibrate = true;
 			memset(cIndexArray, 0, 200 * (sizeof(int)));
 			CenterIndex = 0;
 			start = std::clock();
-			prev_angle = 0.0;
 			isFirst = true;
-			//isRQFirst = true;
-			averageIndexP = 0;
+
 		}
 		else
 		{
+			writeData();
+			//matchDBTrajectory(UfileName, LfileName);
 
-			//fileClose = false;
-			/*L_rawqfile.close();
-			U_rawqfile.close();
-			P_rawfile.close();*/
-			L_sfqfile.close();
-			U_sfqfile.close();
-			matchDBTrajectory(UfileName, LfileName);
-			
 		}
 
 		Comparision::resetDiagnosis();
@@ -2717,97 +3163,22 @@ void keyBoardEvent(unsigned char key, int x, int y)
 
 	if (key == 49) //Key-1
 	{
-		std::ifstream infile;
-		infile.open("./Load/LFormFile.csv");
-
-		infile.unsetf(std::ios_base::skipws);
-
-		unsigned line_count = std::count(
-			std::istream_iterator<char>(infile),
-			std::istream_iterator<char>(),
-			'\n');
-	
-		const int icount = (const int)line_count;
-		dsize = icount;
-		uqdata = new float*[icount];
-		lqdata = new float*[icount];
-		for (int i = 0; i < icount; ++i)
-		{
-			uqdata[i] = new float[4];
-			lqdata[i] = new float[4];
-		}
-
-		int i = 0;
-
-		std::ifstream infileu;
-		infileu.open("./Load/LFormFile.csv");
-
-		if (!infileu) { cout << "Cannot open input file.\n"; }
-		else { cout << "C4 data\n"; }
-		int j = 0;
-		for (std::string line; getline(infileu, line); )
-		{
-			std::istringstream iss(line);
-
-			std::string delimiter = ",";
-			size_t pos = 0;
-			std::string token;
-			int i = 3;
-			while ((pos = line.find(delimiter)) != std::string::npos) {
-				token = line.substr(0, pos);
-				//std::cout << token << std::endl;
-				line.erase(0, pos + delimiter.length());
-
-				lqdata[j][i] = stod(token);
-				if (i == 3) { i = -1; }
-				if (i == 1) {
-					lqdata[j][i + 1] = stod(line);
-				}
-				i++;
-			}
-			j++;				
-		}
-			
-		std::ifstream infilep;
-		infilep.open("./Load/UFormFile.csv");
-
-		if (!infilep) { cout << "Cannot open input file.\n"; }
-		else { cout << "Plv data\n"; }
-		j = 0;
-		for (std::string line; getline(infilep, line); )
-		{
-			std::istringstream iss(line);
-
-			std::string delimiter = ",";
-			size_t pos = 0;
-			std::string token;
-			int i = 3;
-			while ((pos = line.find(delimiter)) != std::string::npos) {
-				token = line.substr(0, pos);
-				//std::cout << token << std::endl;
-				line.erase(0, pos + delimiter.length());
-
-				uqdata[j][i] = stod(token);
-				if (i == 3) { i = -1; }
-				if (i == 1) {
-					uqdata[j][i + 1] = stod(line);
-				}
-				i++;
-
-			}
-			j++;
-
-		}
-
-		infile.close();
-		infileu.close();
+		readAvatarData();
 
 		bReadFile = true;
-		isRQFirst = true;
-		indexP = 0;
-		Counterindex = 0;
-		memset(PA_data, 0, 8056 * (sizeof(int)));
-		memset(uPA_data, 0, 8 * (sizeof(int)));
+		trajCount = 0;
+
+		memset(traj_b0, 0, 80056 * (sizeof(float)));
+		memset(traj_b1, 0, 80056 * (sizeof(float)));
+		memset(traj_b2, 0, 80056 * (sizeof(float)));
+		memset(traj_b3, 0, 80056 * (sizeof(float)));
+		memset(traj_b4, 0, 80056 * (sizeof(float)));
+		memset(traj_b5, 0, 80056 * (sizeof(float)));
+		memset(traj_b6, 0, 80056 * (sizeof(float)));
+		memset(traj_b7, 0, 80056 * (sizeof(float)));
+		memset(traj_b8, 0, 80056 * (sizeof(float)));
+		memset(traj_b9, 0, 80056 * (sizeof(float)));
+
 		start = std::clock();
 		Comparision::resetDiagnosis();
 	}
@@ -2816,7 +3187,7 @@ void keyBoardEvent(unsigned char key, int x, int y)
 	{
 		memset(uDB_data, 0, 80056 * (sizeof(float)));
 		memset(lDB_data, 0, 80056 * (sizeof(float)));
-		
+
 		std::ifstream infile;
 		infile.open("Load\\Standard\\UFormFile.csv");
 
@@ -2902,12 +3273,12 @@ void keyBoardEvent(unsigned char key, int x, int y)
 			j++;
 
 		}
-		
+
 		bReadDBFile = true;
 		indexDB = 0;
-		
+
 		memset(uDB_data, 0, 8056 * (sizeof(int)));
-		memset(lDB_data, 0, 8 * (sizeof(int)));		
+		memset(lDB_data, 0, 8 * (sizeof(int)));
 	}
 
 	if (key == '8')
@@ -3005,7 +3376,7 @@ void keyBoardEvent(unsigned char key, int x, int y)
 
 		memset(uDB_data, 0, 8056 * (sizeof(int)));
 		memset(lDB_data, 0, 8 * (sizeof(int)));
-		
+
 	}
 
 	if (key == '9')
@@ -3104,10 +3475,27 @@ void keyBoardEvent(unsigned char key, int x, int y)
 		memset(uDB_data, 0, 8056 * (sizeof(int)));
 		memset(lDB_data, 0, 8 * (sizeof(int)));
 	}
-	
+
 
 	if (key == 'q') { exit(0); }
 }
+
+void menu(int id)
+{
+	option = id;
+
+	if (id == 3) { rotate_ = 90; xr = 0; yr = 1; zr = 0; }
+	if (id == 4) { rotate_ = 0;  xr = 0; yr = 1; zr = 0; }
+	if (id == 5) { rotate_ = 30; xr = 0; yr = 1; zr = 0; }
+	if (id == 6) { rotate_ = 90; xr = 1; yr = 0; zr = 0; }
+}
+
+void dataCapture(int id)
+{
+	option = 1;
+	subOption = id;
+}
+
 
 int targc;
 char** targv;
@@ -3127,12 +3515,19 @@ DWORD WINAPI RoboticArm(LPVOID lpParam)
 	glutMouseFunc(mouseEvent);
 	glutMotionFunc(mouseMotion);
 	glutMouseWheelFunc(mouseWheel);
+
+	int dataCaptureSub = glutCreateMenu(dataCapture);
+	glutAddMenuEntry("Full Body", 1);
+	glutAddMenuEntry("Upper Body", 2);
+	glutAddMenuEntry("Lower Body", 3);
+
 	glutCreateMenu(menu);
 	glutAddMenuEntry(" Start Xsens ", 0);
-	glutAddMenuEntry(" Data Capture", 1);
+	glutAddSubMenu(" Data Capture", dataCaptureSub);
+
 	glutAddMenuEntry(" Read file ", 8);
 	glutAddMenuEntry(" Read DB file ", 10);
-	glutAddMenuEntry(" Calibration ", 9);
+	//glutAddMenuEntry(" Calibration ", 9);
 	glutAddMenuEntry(" Reset ", 2);
 	glutAddMenuEntry(" Side View ", 3);
 	glutAddMenuEntry(" Front View ", 4);
