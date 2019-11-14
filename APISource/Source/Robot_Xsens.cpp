@@ -1558,23 +1558,40 @@ void writeData()
 	sprintf_s(fileName, "CData\\AvatarData-00%d-%d%d%d.txt", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
 	avatarDataFile.open(fileName);
 
-	avatarDataFile << "FULLBODY\t" << 1 << "\n" << "Frames:" << "\t" << trajCount << "\n";
-
-	for (int tCount = 0; tCount < trajCount; tCount++)
+	if (subOption == 1) 
 	{
-		avatarDataFile << avatarData[tCount].b0.mData[3] << "\t" << avatarData[tCount].b0.mData[0] << "\t" << avatarData[tCount].b0.mData[1] << "\t" << avatarData[tCount].b0.mData[2] << "\t"
-			<< avatarData[tCount].b1.mData[3] << "\t" << avatarData[tCount].b1.mData[0] << "\t" << avatarData[tCount].b1.mData[1] << "\t" << avatarData[tCount].b1.mData[2] << "\t"
-			<< avatarData[tCount].b2.mData[3] << "\t" << avatarData[tCount].b2.mData[0] << "\t" << avatarData[tCount].b2.mData[1] << "\t" << avatarData[tCount].b2.mData[2] << "\t"
-			<< avatarData[tCount].b3.mData[3] << "\t" << avatarData[tCount].b3.mData[0] << "\t" << avatarData[tCount].b3.mData[1] << "\t" << avatarData[tCount].b3.mData[2] << "\t"
-			<< avatarData[tCount].b4.mData[3] << "\t" << avatarData[tCount].b4.mData[0] << "\t" << avatarData[tCount].b4.mData[1] << "\t" << avatarData[tCount].b4.mData[2] << "\t"
-			<< avatarData[tCount].b5.mData[3] << "\t" << avatarData[tCount].b5.mData[0] << "\t" << avatarData[tCount].b5.mData[1] << "\t" << avatarData[tCount].b5.mData[2] << "\t"
-			<< avatarData[tCount].b6.mData[3] << "\t" << avatarData[tCount].b6.mData[0] << "\t" << avatarData[tCount].b6.mData[1] << "\t" << avatarData[tCount].b6.mData[2] << "\t"
-			<< avatarData[tCount].b7.mData[3] << "\t" << avatarData[tCount].b7.mData[0] << "\t" << avatarData[tCount].b7.mData[1] << "\t" << avatarData[tCount].b7.mData[2] << "\t"
-			<< avatarData[tCount].b8.mData[3] << "\t" << avatarData[tCount].b8.mData[0] << "\t" << avatarData[tCount].b8.mData[1] << "\t" << avatarData[tCount].b8.mData[2] << "\t"
-			<< avatarData[tCount].b9.mData[3] << "\t" << avatarData[tCount].b9.mData[0] << "\t" << avatarData[tCount].b9.mData[1] << "\t" << avatarData[tCount].b9.mData[2] << "\n";
+		avatarDataFile << "FULLBODY\t" << 1 << "\n" << "Frames:" << "\t" << trajCount << "\n";
 	}
+
+	if (subOption == 2)
+	{
+		avatarDataFile << "UPPERBODY\t" << 2 << "\n" << "Frames:" << "\t" << trajCount << "\n";
+	}
+
+	if (subOption == 3)
+	{
+		avatarDataFile << "LOWERBODY\t" << 3 << "\n" << "Frames:" << "\t" << trajCount << "\n";
+	}
+
+		for (int tCount = 0; tCount < trajCount; tCount++)
+		{
+			avatarDataFile << avatarData[tCount].b0.mData[3] << "\t" << avatarData[tCount].b0.mData[0] << "\t" << avatarData[tCount].b0.mData[1] << "\t" << avatarData[tCount].b0.mData[2] << "\t"
+				<< avatarData[tCount].b1.mData[3] << "\t" << avatarData[tCount].b1.mData[0] << "\t" << avatarData[tCount].b1.mData[1] << "\t" << avatarData[tCount].b1.mData[2] << "\t"
+				<< avatarData[tCount].b2.mData[3] << "\t" << avatarData[tCount].b2.mData[0] << "\t" << avatarData[tCount].b2.mData[1] << "\t" << avatarData[tCount].b2.mData[2] << "\t"
+				<< avatarData[tCount].b3.mData[3] << "\t" << avatarData[tCount].b3.mData[0] << "\t" << avatarData[tCount].b3.mData[1] << "\t" << avatarData[tCount].b3.mData[2] << "\t"
+				<< avatarData[tCount].b4.mData[3] << "\t" << avatarData[tCount].b4.mData[0] << "\t" << avatarData[tCount].b4.mData[1] << "\t" << avatarData[tCount].b4.mData[2] << "\t"
+				<< avatarData[tCount].b5.mData[3] << "\t" << avatarData[tCount].b5.mData[0] << "\t" << avatarData[tCount].b5.mData[1] << "\t" << avatarData[tCount].b5.mData[2] << "\t"
+				<< avatarData[tCount].b6.mData[3] << "\t" << avatarData[tCount].b6.mData[0] << "\t" << avatarData[tCount].b6.mData[1] << "\t" << avatarData[tCount].b6.mData[2] << "\t"
+				<< avatarData[tCount].b7.mData[3] << "\t" << avatarData[tCount].b7.mData[0] << "\t" << avatarData[tCount].b7.mData[1] << "\t" << avatarData[tCount].b7.mData[2] << "\t"
+				<< avatarData[tCount].b8.mData[3] << "\t" << avatarData[tCount].b8.mData[0] << "\t" << avatarData[tCount].b8.mData[1] << "\t" << avatarData[tCount].b8.mData[2] << "\t"
+				<< avatarData[tCount].b9.mData[3] << "\t" << avatarData[tCount].b9.mData[0] << "\t" << avatarData[tCount].b9.mData[1] << "\t" << avatarData[tCount].b9.mData[2] << "\n";
+		}
+	
 	avatarDataFile.close();
+
+	fileCount++;
 }
+
 
 void writeAvatarData(int tCount)
 {
@@ -1618,6 +1635,8 @@ void readAvatarData()
 		switch (_option)
 		{
 		case 1:
+		case 2:
+		case 3:
 
 			_linestream
 				>> avatarData[lineCount].b0.mData[3] >> avatarData[lineCount].b0.mData[0] >> avatarData[lineCount].b0.mData[1] >> avatarData[lineCount].b0.mData[2]
@@ -1634,7 +1653,7 @@ void readAvatarData()
 			lineCount++;
 			break;
 
-		case 2:
+		/*case 2:
 
 			_linestream
 				>> avatarData[lineCount].b0.mData[3] >> avatarData[lineCount].b0.mData[0] >> avatarData[lineCount].b0.mData[1] >> avatarData[lineCount].b0.mData[2]
@@ -1655,7 +1674,7 @@ void readAvatarData()
 				>> avatarData[lineCount].b9.mData[3] >> avatarData[lineCount].b9.mData[0] >> avatarData[lineCount].b9.mData[1] >> avatarData[lineCount].b9.mData[2];
 
 			lineCount++;
-			break;
+			break;*/
 
 		default:
 			break;
@@ -2130,7 +2149,7 @@ void idle()
 						isNotSameQuat(avatar.b4, avatar.prv_b4) || isNotSameQuat(avatar.b5, avatar.prv_b5) ||
 						isNotSameQuat(avatar.b0, avatar.prv_b0))
 					{
-						writeData();
+						writeAvatarData(trajCount);
 					}
 
 					if (isNotSameQuat(avatar.b0, avatar.prv_b0))
@@ -2273,7 +2292,7 @@ void idle()
 						isNotSameQuat(avatar.b8, avatar.prv_b8) || isNotSameQuat(avatar.b9, avatar.prv_b9) ||
 						isNotSameQuat(avatar.b0, avatar.prv_b0))
 					{
-						writeData();
+						writeAvatarData(trajCount);
 					}
 
 					if (isNotSameQuat(avatar.b0, avatar.prv_b0))
@@ -2367,6 +2386,7 @@ void idle()
 
 	case 7:
 	{
+		
 		connectXS.bxMTdisconnect = true;
 		if (connectXS.closeMtW_Succes || !connectXS.isRunning)	exit(0);
 	}
@@ -3085,6 +3105,8 @@ void keyBoardEvent(unsigned char key, int x, int y)
 			connectXS.bxMTdisconnect = false;
 
 		}
+
+		
 	}
 
 	if (key == 100)//key "d"
