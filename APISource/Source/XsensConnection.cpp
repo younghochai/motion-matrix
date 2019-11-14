@@ -345,18 +345,10 @@ bool XsensConnection::xmtConnect()
 		{
 			XsDevicePtr mtwDevice = control->device(*i);
 			if (mtwDevice != 0)
-			{
+			{			
 				
-				
-				//mtwDevice->resetOrientation(XRM_Global);
-				//mtwDevice->resetOrientation(XRM_Heading);
 				std::string mtw_id = mtwDevice->deviceId().toString().toStdString();
-
-
-				/*pelvis ------> "00B43808" 
-				rightUpperArm -> "00B438AE" 
-				rightLowerArm -> "00B438C7" || mtw_id == "00B4391F" || mtw_id == "00B43923"*/
-
+								
 				if (mtw_id == "00B4391F" || mtw_id == "00B43808" || mtw_id == "00B438C7" || mtw_id == "00B438AE" || mtw_id == "00B43923" ||
 					mtw_id == "00B43926" || mtw_id == "00B4278B" || mtw_id == "00B42790" || mtw_id == "00B42799" || mtw_id == "00B4279F")//00B438AE & 00B43926
 				{
@@ -371,15 +363,8 @@ bool XsensConnection::xmtConnect()
 						
 					}
 					
-					std::cout << "\n reset->" << mtw_id <<":"<< mtwDevice->resetOrientation(XRM_Alignment) << std::endl;
-					//std::cout << "AHS:" << mtwDevice->setDeviceOptionFlags(XDOF_EnableAhs, XDOF_None) << std::endl;
-					/*std::cout << "\n switch to Config:" << wirelessMasterDevice->gotoConfig() << std::endl;
-					std::cout << "\n switch to Config:" << mtwDevice->gotoConfig() << std::endl;
-					std::cout << "\n Store Alignment Matrix:" << mtwDevice->resetOrientation(XRM_StoreAlignmentMatrix) << std::endl;
-					std::cout << "\n Enable AHS:" << wirelessMasterDevice->setDeviceOptionFlags(XDOF_EnableAhs, XDOF_None) << std::endl;
+					//std::cout << "\n reset->" << mtw_id <<":"<< mtwDevice->resetOrientation(XRM_Alignment) << std::endl;
 					
-					std::cout << "\n switch to Measurement:" <<wirelessMasterDevice->gotoMeasurement() << std::endl;
-					std::cout << "\n switch to Config:" << mtwDevice->gotoMeasurement() << std::endl;*/
 				}
 								
 			}
