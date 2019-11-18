@@ -74,6 +74,8 @@ float Comparision::getDiffBtwTrajectory(char* usf1File, char* lsf1File, char* us
 {
 	int count1, count2;
 	quaternion usf1[1024], lsf1[1024], usf2[1024], lsf2[1024];
+	//diagnosisDone = false;
+
 	percent = 0;
 	// Read First Trajectory (UpperArm and Lower Arm) into usf1 and lsf1
 	fstream file1(usf1File, ios::in);
