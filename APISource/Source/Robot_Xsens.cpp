@@ -1421,7 +1421,7 @@ void drawTrajectory(void)
 	glRotatef(-180, 0, 1, 0);
 	glRotatef(-90, 1, 0, 0);
 	gluSphere(sphere, 1.0, 50, 50);
-
+	glDisable(GL_TEXTURE_2D);
 	drawcenterCoordinate();
 	float r = 1, g = 0, b = 0;
 
@@ -1500,9 +1500,9 @@ void Display(void)
 	/*char pcResult[250] = 'Hello';
 	sprintf(charstring, "PC : %d ", pcResult);
 	drawText(charstring, 10, 80);*/
-
+	glDisable(GL_TEXTURE_2D);
 	Robotdisplay();
-
+	glEnable(GL_TEXTURE_2D);
 	//glDisable(GL_COLOR_MATERIAL);
 	drawTrajectory();
 	//glEnable(GL_COLOR_MATERIAL);
