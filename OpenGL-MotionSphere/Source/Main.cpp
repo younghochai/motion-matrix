@@ -1,5 +1,32 @@
-// Robot_Xsens.cpp : Defines the entry point for the console application.
-//
+/*
+*	BSD 3-Clause License
+*
+*	Copyright (c) 2018, OpenAI, VELab, GSAIM, Chung-Ang University.
+*
+*	All rights reserved.
+*
+*	Redistribution and use in source and binary forms, with or without modification, are permitted provided
+*  that the following conditions are met:
+*
+*	1. Redistributions of source code must retain the above copyright notice, this list of conditions and the
+*	   following disclaimer.
+*
+*	2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+*     the following disclaimer in the documentation and/or other materials provided with the distribution.
+*
+*	3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or
+*     promote products derived from this software without specific prior written permission.
+*
+*	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+*	WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+*	PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+*	ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
+*	TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+*	HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+*	NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
+*	OF SUCH DAMAGE.
+*
+*/
 
 #include"XsensConnection.h"
 
@@ -16,6 +43,12 @@
 
 using namespace std;
 
+/** \brief @Quaternion Functions
+*  \note This class enables  Avatar hierarchy and Motion Sphere rendering, Motion visualization, .
+*  \authors: Ashok Kumar Patil <ashokpatil03@hotmail.com>
+*			 Adithya Balasubramanyam <adithyakoundinya@gmail.com> 
+*			 Bharatesh Chakravarthi  <chakravarthi589@gmail.com>
+*/
 
 #define STEP 0.1
 #define TORSO_HEIGHT 6.0
@@ -197,6 +230,10 @@ float mcolor[4] = { 1, 0, 0, 1 };
 //Texturemapping
 GLuint texture_id[2];
 GLUquadricObj *sphere;
+
+float rF = 0.68;
+float gF = 0.14;
+float bF = 0.21;
 
 const int   TEXT_WIDTH = 8;
 const int   TEXT_HEIGHT = 24;
@@ -494,7 +531,7 @@ void bodyJoint_circle(float r, int width)
 void torso()
 {
 	// Belly
-	glColor3f(0.68, 0.14, 0.21);
+	glColor3f(rF, gF, bF);
 	glPushMatrix();
 	glTranslatef(0.0, 0.0, 0.0);
 	glRotatef(90, 1, 0, 0);
@@ -527,7 +564,7 @@ void torso()
 	glPopMatrix();
 
 	//Upper Body
-	glColor3f(0.68, 0.14, 0.21);
+	glColor3f(rF, gF, bF);
 	glPushMatrix();
 	glTranslatef(0.0, 5.75, 0.0);
 	glRotatef(90, 1, 0, 0);
@@ -540,7 +577,7 @@ void torso()
 void head()
 {
 	//Head
-	glColor3f(0.68, 0.14, 0.21);
+	glColor3f(rF, gF, bF);
 	glPushMatrix();
 	glTranslatef(-0.1, 0.25, 0);
 	glRotatef(-90, 1, 0, 0);
@@ -553,7 +590,7 @@ void head()
 void neck()
 {
 	//Neck 
-	glColor3f(0.68, 0.14, 0.21);
+	glColor3f(rF, gF, bF);
 	glPushMatrix();
 	glRotatef(-90.0, 1.0, 0.0, 0.0);
 	glTranslatef(0.0, 0.0, 0.0);
@@ -572,7 +609,7 @@ void neck()
 void rightShoulder()
 {
 	//Right Shoulder
-	glColor3f(0.98, 0.14, 0.21);
+	glColor3f(rF, gF, bF);
 	glPushMatrix();
 	glTranslatef(-1.85, 0.10, 0);
 	glRotatef(90, 0.12, 1, 0);
@@ -595,7 +632,7 @@ void rightShoulder()
 void leftShoulder()
 {
 	//Left Shoulder
-	glColor3f(0.98, 0.14, 0.21);
+	glColor3f(rF, gF, bF);
 	glPushMatrix();
 	glTranslatef(1.85, 0.125, 0);
 	glRotatef(-90, -0.1, 1, 0.0);
@@ -658,7 +695,7 @@ void leftKnee()
 void leftFoot()
 {
 	//Left Foot
-	glColor3f(0.98, 0.14, 0.21);
+	glColor3f(rF, gF, bF);
 	glPushMatrix();
 	glTranslatef(0.0, 0.8, 0);
 	glRotatef(90, 1, 0, 0);
@@ -679,7 +716,7 @@ void leftFoot()
 void rightFoot()
 {
 	//Right Foot
-	glColor3f(0.98, 0.14, 0.21);
+	glColor3f(rF, gF, bF);
 	glPushMatrix();
 	glTranslatef(0.15, 0.8, 0);
 	glRotatef(90, 1, 0, 0);
@@ -698,7 +735,7 @@ void rightFoot()
 void rightHand()
 {
 	//Right Hand
-	glColor3f(0.98, 0.14, 0.21);
+	glColor3f(rF, gF, bF);
 	glPushMatrix();
 	glTranslatef(0.0, 0.0, 0);
 	glRotatef(-90, 1, 0, 0);
@@ -717,6 +754,8 @@ void rightHand()
 void leftHand()
 {
 	//Left Hand
+	glColor3f(rF, gF, bF);
+	//glColor3f(83.0 / 255.0, 172.0 / 255.0, 0.0);
 	glPushMatrix();
 	glTranslatef(0.0, 0.0, 0);
 	glRotatef(-90, 1, 0, 0);
@@ -735,7 +774,8 @@ void leftHand()
 void left_upper_arm()
 {
 	//Left Upper Arm Cap
-	glColor3f(0.98, 0.14, 0.21);
+	glColor3f(rF, gF, bF);
+	//glColor3f(101.0/255.0, 101.0/255.0, 0.0);
 	glPushMatrix();
 	glTranslatef(0.0, 0.0, 0);
 	glRotatef(-90.0, 1.0, 0.0, 0.0);
@@ -743,7 +783,7 @@ void left_upper_arm()
 	glPopMatrix();
 
 	//Left Upper Arm
-	glColor3f(0.98, 0.14, 0.21);
+	//glColor3f(rF, gF, bF);
 	glPushMatrix();
 	glTranslatef(0.0, 0.0, 0);
 	glRotatef(90.0, 1.0, 0.0, 0.0);
@@ -762,14 +802,15 @@ void left_lower_arm()
 {
 
 	//Left Lower Arm Cap
-	glColor3f(0.98, 0.14, 0.21);
+	glColor3f(rF, gF, bF);
+	//glColor3f(83.0 / 255.0, 172.0 / 255.0, 0.0);
 	glPushMatrix();
 	glRotatef(-90.0, 1.0, 0.0, 0.0);
 	glutSolidCone(LOWER_ARM_RADIUS - 0.15, 0.5, 10, 10);
 	glPopMatrix();
 
 	//Left Lower Arm
-	glColor3f(0.98, 0.14, 0.21);
+	//glColor3f(rF, gF, bF);
 	glPushMatrix();
 	glTranslatef(0.0, 0.0, 0);
 	glRotatef(90.0, 1.0, 0.0, 0.0);
@@ -787,7 +828,7 @@ void left_lower_arm()
 void right_upper_arm()
 {
 	//right upper Arm Cap
-	glColor3f(0.98, 0.14, 0.21);
+	glColor3f(rF, gF, bF);
 	glPushMatrix();
 	glTranslatef(0.0, 0.0, 0);
 	glRotatef(-90.0, 1.0, 0.0, 0.0);
@@ -795,7 +836,7 @@ void right_upper_arm()
 	glPopMatrix();
 
 	//right upper Arm
-	glColor3f(0.98, 0.14, 0.21);
+	glColor3f(rF, gF, bF);
 	glPushMatrix();
 	glTranslatef(0.0, 0.0, 0);
 	glRotatef(90.0, 1.0, 0.0, 0.0);
@@ -813,14 +854,14 @@ void right_lower_arm()
 {
 
 	//Right Lower Arm Cap
-	glColor3f(0.98, 0.14, 0.21);
+	glColor3f(rF, gF, bF);
 	glPushMatrix();
 	glRotatef(-90.0, 1.0, 0.0, 0.0);
 	glutSolidCone(LOWER_ARM_RADIUS - 0.15, 0.5, 10, 10);
 	glPopMatrix();
 
 	//Right Lower Arm Cap
-	glColor3f(0.98, 0.14, 0.21);
+	glColor3f(rF, gF, bF);
 	glPushMatrix();
 	glTranslatef(0.0, 0.0, 0);
 	glRotatef(90.0, 1.0, 0.0, 0.0);
@@ -837,7 +878,7 @@ void right_lower_arm()
 void left_upper_leg()
 {
 	//Left Upper Leg Cap
-	glColor3f(0.98, 0.14, 0.21);
+	glColor3f(rF, gF, bF);
 	glPushMatrix();
 	glTranslatef(0.0, 1.0, 0);
 	glRotatef(-90.0, 1.0, 0.0, 0.0);
@@ -845,7 +886,7 @@ void left_upper_leg()
 	glPopMatrix();
 
 	//Left Upper Leg
-	glColor3f(0.98, 0.14, 0.21);
+	glColor3f(rF, gF, bF);
 	glPushMatrix();
 	glTranslatef(0.0, 1.0, 0);
 	glRotatef(90.0, 1.0, 0.0, 0.0);
@@ -858,7 +899,7 @@ void left_upper_leg()
 void left_lower_leg()
 {
 	//Left lower Leg Cap
-	glColor3f(0.98, 0.14, 0.21);
+	glColor3f(rF, gF, bF);
 	glPushMatrix();
 	glTranslatef(0.0, 0.8, 0);
 	glRotatef(-90.0, 1.0, 0.0, 0.0);
@@ -867,7 +908,7 @@ void left_lower_leg()
 
 
 	//Left lower Leg
-	glColor3f(0.98, 0.14, 0.21);
+	glColor3f(rF, gF, bF);
 	glPushMatrix();
 	glTranslatef(0.0, 0.8, 0);
 	glRotatef(90.0, 1.0, 0.0, 0.0);
@@ -882,7 +923,7 @@ void left_lower_leg()
 void right_upper_leg()
 {
 	//right upper Leg Cap
-	glColor3f(0.98, 0.14, 0.21);
+	glColor3f(rF, gF, bF);
 	glPushMatrix();
 	glTranslatef(0.15, 1.0, 0);
 	glRotatef(-90.0, 1.0, 0.0, 0.0);
@@ -890,7 +931,7 @@ void right_upper_leg()
 	glPopMatrix();
 
 	//right upper Leg
-	glColor3f(0.98, 0.14, 0.21);
+	glColor3f(rF, gF, bF);
 	glPushMatrix();
 	glTranslatef(0.15, 1.0, 0);
 	glRotatef(90.0, 1.0, 0.0, 0.0);
@@ -902,7 +943,7 @@ void right_upper_leg()
 void right_lower_leg()
 {
 	//right lower  Leg Cap
-	glColor3f(0.98, 0.14, 0.21);
+	glColor3f(rF, gF, bF);
 	glPushMatrix();
 	glTranslatef(0.15, 0.8, 0);
 	glRotatef(-90.0, 1.0, 0.0, 0.0);
@@ -910,7 +951,7 @@ void right_lower_leg()
 	glPopMatrix();
 
 	//right lower  Leg 
-	glColor3f(0.98, 0.14, 0.21);
+	glColor3f(rF, gF, bF);
 	glPushMatrix();
 	glTranslatef(0.15, 0.8, 0);
 	glRotatef(90.0, 1.0, 0.0, 0.0);
@@ -980,36 +1021,71 @@ void renderCylinder(float x1, float y1, float z1, float x2, float y2, float z2, 
 
 void IntializeRobotLight()
 {
-	GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 1.0 };
-	GLfloat mat_diffuse[] = { 1.0, 1.0, 1.0, 1.0 };
-	GLfloat mat_ambient[] = { 1.0, 1.0, 1.0, 1.0 };
-	GLfloat mat_shininess = { 100.0 };
-	GLfloat light_ambient[] = { 0.0, 0.0, 0.0, 1.0 };
-	GLfloat light_diffuse[] = { 0.4, 0.4, 0.4, 1.0 };
-	//GLfloat light_diffuse[] = { 1, 0.87, 0.75, 1.0 };
-	GLfloat light_specular[] = { 1.0, 1.0, 1.0, 1.0 };
-	GLfloat light_position[] = { -10.0, 0.0, 10.0, 0.0 };
+	GLfloat mat_ambient_0[] = { 0.2f, 0.2f, 0.2f, 1.0f };
+	GLfloat mat_diffuse_0[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	GLfloat mat_specular_0[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	GLfloat mat_position_0[] = { 0.0f, 0.0f, 4.0f, 0.0f };
+	//GLfloat mat_position_0[] = { 0.5f, 0.5f, 0.8f, 0.0f};	
+	GLfloat mat_shininess[] = { 128.0f };
 
-	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
-	glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
-	glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
+	//glLightfv(GL_LIGHT0, GL_AMBIENT, mat_ambient_0);
+	////glLightdv(GL_LIGHT0, GL_DIFFUSE, mat_diffuse_0);
+	//glLightfv(GL_LIGHT0, GL_SPECULAR, mat_specular_0);
+	//glLightfv(GL_LIGHT0, GL_POSITION, mat_position_0);
 
-	glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
-	glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
-	glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
-	glMaterialf(GL_FRONT, GL_SHININESS, mat_shininess);
+	glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient_0);
+	glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular_0);
+	glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse_0);
+	glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
 
-	glEnable(GL_SMOOTH);
+	/*GLfloat mat_ambient_1[] = { 0.1f, 0.1f, 0.1f, 1.0f };
+	GLfloat mat_diffuse_1[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	GLfloat mat_specular_1[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	GLfloat mat_position_1[] = { 8.5f, 8.5f, 3.0f, 1.0f };
+	GLfloat mat_spotdir_1[] = { 10.0f, 0.0f, 0.0f };*/
+
+	glLightfv(GL_LIGHT1, GL_SPECULAR, mat_specular_0);
+	glLightfv(GL_LIGHT1, GL_POSITION, mat_position_0);
+	glLightfv(GL_LIGHT1, GL_DIFFUSE, mat_diffuse_0);
+	glLightfv(GL_LIGHT1, GL_AMBIENT, mat_ambient_0);
+
+	/*glLightf(GL_LIGHT1, GL_CONSTANT_ATTENUATION, 1.5f);
+	glLightf(GL_LIGHT1, GL_LINEAR_ATTENUATION, 0.5f);
+	glLightf(GL_LIGHT1, GL_QUADRATIC_ATTENUATION, 0.2f);*/
+
+	/*glLightf(GL_LIGHT1, GL_SPOT_CUTOFF, 50.0f);
+	glLightfv(GL_LIGHT1, GL_SPOT_DIRECTION, mat_position_0);
+	glLightf(GL_LIGHT1, GL_SPOT_EXPONENT, 2.0f);*/
+
+	//GLfloat mat_ambient_2[] = { 0.3f, 0.3f, 0.3f, 1.0f };
+	//GLfloat mat_diffuse_2[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	//GLfloat mat_specular_2[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	////GLfloat mat_position_2[] = { 0.9f, -0.5f, 0.6f, 1.0f};	
+	////GLfloat mat_position_2[] = { -0.5f, 0.5f, 0.6f, 1.0f};	
+	//GLfloat mat_position_2[] = { 8.5f, 9.0f, 3.0f, 1.0f };
+
+	//glLightfv(GL_LIGHT2, GL_SPECULAR, mat_specular_2);
+	//glLightfv(GL_LIGHT2, GL_POSITION, mat_position_2);
+	//glLightfv(GL_LIGHT2, GL_DIFFUSE, mat_diffuse_2);
+	//glLightfv(GL_LIGHT2, GL_AMBIENT, mat_ambient_2);
+
+
 	glEnable(GL_LIGHTING);
-	glEnable(GL_LIGHT0);
-	glDepthFunc(GL_LEQUAL);
+	//glEnable(GL_LIGHT0);
+	glEnable(GL_LIGHT1);
+	//glEnable(GL_LIGHT2);
+
 	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LEQUAL);
 
-	//glClearColor(1.0, 1.0, 1.0, 1.0);
-	//glClearColor(0, 0, 0, 0);
+	::glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	//::glClearColor(0.0f, 0.0f, 0.0f, 0.0f);	
+	::glShadeModel(GL_SMOOTH);
+	//::glShadeModel(GL_FLAT);	
 
-	glColor3f(1.0, 0.0, 0.0);
+	//glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+	glEnable(GL_COLOR_MATERIAL);
+
 }
 
 void InitializeLight()
@@ -1035,32 +1111,32 @@ void InitializeLight()
 	GLfloat mat_diffuse_1[] = { 1.0f, 1.0f, 1.0f, 1.0f };
 	GLfloat mat_specular_1[] = { 1.0f, 1.0f, 1.0f, 1.0f };
 	GLfloat mat_position_1[] = { -8.5f, -8.5f, 3.0f, 1.0f };
-	GLfloat mat_spotdir_1[] = { -10.0f, 0.0f, 0.0f };
+	GLfloat mat_spotdir_1[] = { 10.0f, 0.0f, 5.0f };
 
-	glLightfv(GL_LIGHT1, GL_SPECULAR, mat_specular_1);
+	/*glLightfv(GL_LIGHT1, GL_SPECULAR, mat_specular_1);
 	glLightfv(GL_LIGHT1, GL_POSITION, mat_position_1);
 	glLightfv(GL_LIGHT1, GL_DIFFUSE, mat_diffuse_1);
-	glLightfv(GL_LIGHT1, GL_AMBIENT, mat_ambient_1);
+	glLightfv(GL_LIGHT1, GL_AMBIENT, mat_ambient_1);*/
 
 	/*glLightf(GL_LIGHT1, GL_CONSTANT_ATTENUATION, 1.5f);
 	glLightf(GL_LIGHT1, GL_LINEAR_ATTENUATION, 0.5f);
 	glLightf(GL_LIGHT1, GL_QUADRATIC_ATTENUATION, 0.2f);*/
 
-	glLightf(GL_LIGHT1, GL_SPOT_CUTOFF, 50.0f);
-	glLightfv(GL_LIGHT1, GL_SPOT_DIRECTION, mat_spotdir_1);
-	glLightf(GL_LIGHT1, GL_SPOT_EXPONENT, 2.0f);
+	glLightf(GL_LIGHT0, GL_SPOT_CUTOFF, 120.0f);
+	glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, mat_spotdir_1);
+	glLightf(GL_LIGHT0, GL_SPOT_EXPONENT, 2.0f);
 
-	GLfloat mat_ambient_2[] = { 0.3f, 0.3f, 0.3f, 1.0f };
-	GLfloat mat_diffuse_2[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-	GLfloat mat_specular_2[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-	//GLfloat mat_position_2[] = { 0.9f, -0.5f, 0.6f, 1.0f};	
-	//GLfloat mat_position_2[] = { -0.5f, 0.5f, 0.6f, 1.0f};	
-	GLfloat mat_position_2[] = { -8.5f, 9.0f, 3.0f, 1.0f };
+	//GLfloat mat_ambient_2[] = { 0.3f, 0.3f, 0.3f, 1.0f };
+	//GLfloat mat_diffuse_2[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	//GLfloat mat_specular_2[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	////GLfloat mat_position_2[] = { 0.9f, -0.5f, 0.6f, 1.0f};	
+	////GLfloat mat_position_2[] = { -0.5f, 0.5f, 0.6f, 1.0f};	
+	//GLfloat mat_position_2[] = { -8.5f, 9.0f, 3.0f, 1.0f };
 
-	glLightfv(GL_LIGHT2, GL_SPECULAR, mat_specular_2);
-	glLightfv(GL_LIGHT2, GL_POSITION, mat_position_2);
-	glLightfv(GL_LIGHT2, GL_DIFFUSE, mat_diffuse_2);
-	glLightfv(GL_LIGHT2, GL_AMBIENT, mat_ambient_2);
+	//glLightfv(GL_LIGHT2, GL_SPECULAR, mat_specular_2);
+	//glLightfv(GL_LIGHT2, GL_POSITION, mat_position_2);
+	//glLightfv(GL_LIGHT2, GL_DIFFUSE, mat_diffuse_2);
+	//glLightfv(GL_LIGHT2, GL_AMBIENT, mat_ambient_2);
 
 
 	glEnable(GL_LIGHTING);
@@ -1354,6 +1430,8 @@ void showInfo(/*std::stringstream &ss, int tWidth, int tHeight*/)
 
 void Robotdisplay(void)
 {
+	IntializeRobotLight();
+
 	glViewport(0, 0, width / 2, height);
 	glScissor(0, 0, width / 2, height);
 
@@ -1364,7 +1442,7 @@ void Robotdisplay(void)
 	glMatrixMode(GL_MODELVIEW);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glLoadIdentity();
-	//glScalef(zoominout, zoominout, zoominout);
+	glScalef(1.5, 1.5, 1.5);
 	DrawGrid();
 	glColor3f(0.8, 0.4, 0.2);
 	traverse(&torso_node);
@@ -1376,18 +1454,20 @@ void Robotdisplay(void)
 	drawCoordinate();
 	glPopMatrix();
 
-	showInfo();
+	//showInfo();
 
 }
 
+
 void drawTrajectorySphere(int index, float(&traj_b)[20014][4], float r, float g, float b)
 {
-
+	float sphere_radius = 0.009;
+	
 	glColor3f(r, g, b);
 	float fnorm = sqrt(traj_b[index][1] * traj_b[index][1] + traj_b[index][2] * traj_b[index][2] + traj_b[index][3] * traj_b[index][3]);
 	glPushMatrix();
 	glTranslatef(1.011*traj_b[index][1] / fnorm, 1.011*traj_b[index][2] / fnorm, 1.011*traj_b[index][3] / fnorm);
-	glutSolidSphere(0.009, 30, 30);
+	glutSolidSphere(sphere_radius, 30, 30);
 	glPopMatrix();
 }
 
@@ -1414,7 +1494,7 @@ void drawTrajectory(void)
 
 	glScalef(zval - 2.5, zval - 2.5, zval - 2.5);
 
-
+	glDisable(GL_LIGHT1);
 	glLineWidth(2.0);
 	glColor3f(1.0, 1.0, 1.0);
 	glBindTexture(GL_TEXTURE_2D, texture_id[0]);
@@ -1422,8 +1502,10 @@ void drawTrajectory(void)
 	glRotatef(-90, 1, 0, 0);
 	gluSphere(sphere, 1.0, 50, 50);
 	glDisable(GL_TEXTURE_2D);
+	
+	glEnable(GL_LIGHT1);
 	drawcenterCoordinate();
-	float r = 1, g = 0, b = 0;
+	//float r = 1, g = 0, b = 0;
 
 	int j = 0;
 	for (int i = 0; i < trajCount; i++)
@@ -1460,6 +1542,7 @@ void drawTrajectory(void)
 
 		glPopMatrix();
 	}
+
 	for (int i = 0; i < dbCount; i++)
 	{
 
@@ -1501,9 +1584,16 @@ void Display(void)
 	sprintf(charstring, "PC : %d ", pcResult);
 	drawText(charstring, 10, 80);*/
 	glDisable(GL_TEXTURE_2D);
+	//glEnable(GL_POLYGON_SMOOTH);
+	//glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+	/*glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);*/
+
+	//glEnable(GL_CULL_FACE);
 	Robotdisplay();
+	glDisable(GL_BLEND);
 	glEnable(GL_TEXTURE_2D);
-	//glDisable(GL_COLOR_MATERIAL);
+	glDisable(GL_LIGHT0);
 	drawTrajectory();
 	//glEnable(GL_COLOR_MATERIAL);
 	/*fourSphere();
@@ -1790,7 +1880,7 @@ bool isNotSameQuat(quaternion currentQuat, quaternion previousQuat)
 
 	//if (uqPA.mData[3] >= 0.99999)
 	//{
-	//	parent = uqPrevInvsPA.Inverse();
+	//	parent = uqPrevInvsPA.Inverse();b
 	//	//printf("Skip upper arm\n");
 	//}
 	return true;
@@ -2639,7 +2729,25 @@ void idle()
 
 	case 9:
 	{
+		trajCount = 0;
+		LindexP = 0;
+		memset(traj_b0, 0, 80056 * (sizeof(float)));
+		memset(traj_b1, 0, 80056 * (sizeof(float)));
+		memset(traj_b2, 0, 80056 * (sizeof(float)));
+		memset(traj_b3, 0, 80056 * (sizeof(float)));
+		memset(traj_b4, 0, 80056 * (sizeof(float)));
+		memset(traj_b5, 0, 80056 * (sizeof(float)));
+		memset(traj_b6, 0, 80056 * (sizeof(float)));
+		memset(traj_b7, 0, 80056 * (sizeof(float)));
+		memset(traj_b8, 0, 80056 * (sizeof(float)));
+		memset(traj_b9, 0, 80056 * (sizeof(float)));
+		memset(cIndexArray, 0, 200 * (sizeof(int)));
+		CenterIndex = 0;
+		isFirst = true;
 
+		avatar = { qInit,qInit,qInit,qInit,qInit,qInit,qInit,qInit,qInit,qInit };
+
+		rotateBody(avatar);
 	}
 	break;
 
@@ -3114,9 +3222,27 @@ void keyBoardEvent(unsigned char key, int x, int y)
 		//connectXS.waitForConnections = false;
 	}
 
-	if (key == 99)//key "c"
+	if (key == 'c')//key "c"
 	{
-		//connectXS.bxMTdisconnect = true;
+		trajCount = 0;
+		LindexP = 0;
+		memset(traj_b0, 0, 80056 * (sizeof(float)));
+		memset(traj_b1, 0, 80056 * (sizeof(float)));
+		memset(traj_b2, 0, 80056 * (sizeof(float)));
+		memset(traj_b3, 0, 80056 * (sizeof(float)));
+		memset(traj_b4, 0, 80056 * (sizeof(float)));
+		memset(traj_b5, 0, 80056 * (sizeof(float)));
+		memset(traj_b6, 0, 80056 * (sizeof(float)));
+		memset(traj_b7, 0, 80056 * (sizeof(float)));
+		memset(traj_b8, 0, 80056 * (sizeof(float)));
+		memset(traj_b9, 0, 80056 * (sizeof(float)));
+		memset(cIndexArray, 0, 200 * (sizeof(int)));
+		CenterIndex = 0;
+		isFirst = true;	
+
+		avatar = { qInit,qInit,qInit,qInit,qInit,qInit,qInit,qInit,qInit,qInit };
+
+		rotateBody(avatar);
 	}
 
 	if (key == 114)//key "r"
@@ -3166,12 +3292,10 @@ void keyBoardEvent(unsigned char key, int x, int y)
 			memset(traj_b7, 0, 80056 * (sizeof(float)));
 			memset(traj_b8, 0, 80056 * (sizeof(float)));
 			memset(traj_b9, 0, 80056 * (sizeof(float)));
-
 			memset(cIndexArray, 0, 200 * (sizeof(int)));
 			CenterIndex = 0;
 			start = std::clock();
 			isFirst = true;
-
 		}
 		else
 		{
@@ -3525,9 +3649,9 @@ char** targv;
 DWORD WINAPI RoboticArm(LPVOID lpParam)
 {
 	glutInit(&targc, targv);
-	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
+	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH | GLUT_MULTISAMPLE);
 	glutInitWindowSize(width, height);
-	glutCreateWindow("Robot");
+	glutCreateWindow("Motion-Sphere");
 
 	myinit();
 	glutReshapeFunc(myReshape);
@@ -3547,14 +3671,17 @@ DWORD WINAPI RoboticArm(LPVOID lpParam)
 	glutAddMenuEntry(" Start Xsens ", 0);
 	glutAddSubMenu(" Data Capture", dataCaptureSub);
 
+	glutAddMenuEntry(" Reset Sensor", 2);
+
 	glutAddMenuEntry(" Read file ", 8);
 	glutAddMenuEntry(" Read DB file ", 10);
-	//glutAddMenuEntry(" Calibration ", 9);
-	glutAddMenuEntry(" Reset ", 2);
+	glutAddMenuEntry(" Clear Data", 9);
+	
 	glutAddMenuEntry(" Side View ", 3);
 	glutAddMenuEntry(" Front View ", 4);
 	glutAddMenuEntry(" 3/4 View ", 5);
 	glutAddMenuEntry(" Top View ", 6);
+
 	glutAddMenuEntry(" Close ", 7);
 
 	glutAttachMenu(GLUT_RIGHT_BUTTON);
