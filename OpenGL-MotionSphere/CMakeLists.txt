@@ -16,8 +16,8 @@ include_directories("${INCLUDEDIR}")
 include_directories("${INCLUDEDIR}/Xsens")
 include_directories("${INCLUDEDIR}/fgl")
 
-SET  (project_SOURCES "${SCRDIR}/Main.cpp" "${SCRDIR}/XsensConnection.cpp" "${SCRDIR}/quaternion.cpp" "${SCRDIR}/Comparision.cpp" "${SCRDIR}/tgaload.cpp")
-SET  (project_HEADERS "${INCLUDEDIR}/XsensConnection.h" "${INCLUDEDIR}/quaternion.h" "${INCLUDEDIR}/Comparision.h" "${INCLUDEDIR}/tgaload.h")
+SET  (project_SOURCES "${SCRDIR}/Main.cpp" "${SCRDIR}/XsensConnection.cpp" "${SCRDIR}/quaternion.cpp" "${SCRDIR}/Comparision.cpp" "${SCRDIR}/tgaload.cpp" "${SCRDIR}/SphereUtility.cpp")
+SET  (project_HEADERS "${INCLUDEDIR}/XsensConnection.h" "${INCLUDEDIR}/quaternion.h" "${INCLUDEDIR}/Comparision.h" "${INCLUDEDIR}/tgaload.h" "${INCLUDEDIR}/SphereUtility.h")
 
 add_executable(Motion-Sphere ${project_SOURCES} ${project_HEADERS} )
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT Motion-Sphere)
