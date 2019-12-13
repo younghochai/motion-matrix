@@ -30,10 +30,16 @@
 
 #pragma once
 #include <math.h>
-struct TVector3 {
+struct TVec3 {
 	double _x;
 	double _y;
 	double _z;
+};
+
+struct IntVec3 {
+	int _x;
+	int _y;
+	int _z;
 };
 
 /** \brief @Quaternion Functions
@@ -52,14 +58,14 @@ double mData[4];
 public:
 	quaternion();
 	quaternion(double x, double y, double z, double w);
-	quaternion(TVector3 complex, double real);
+	quaternion(TVec3 complex, double real);
 	~quaternion();
 
 	double  real() const;
 	void real(double r);
 
-	TVector3 complex() const;
-	void complex(const TVector3& c);
+	TVec3 complex() const;
+	void complex(const TVec3& c);
 
 	double norm(quaternion q);
 	double norm();
@@ -73,8 +79,8 @@ public:
 	quaternion Inverse();
 
 	quaternion mutiplication(quaternion Q);
-	TVector3 quternionMatrices(quaternion Q,  TVector3 vecPoint);
-	void quaternionToEulerAngles(quaternion Q, TVector3& vecPoint);
+	TVec3 quternionMatrices(quaternion Q,  TVec3 vecPoint);
+	void quaternionToEulerAngles(quaternion Q, TVec3& vecPoint);
 	void setPrecisionOfValues();
 	quaternion EulerAngleToQuaternion(double yaw, double pitch, double roll);
 
