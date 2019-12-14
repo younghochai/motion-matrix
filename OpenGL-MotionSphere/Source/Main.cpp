@@ -101,6 +101,13 @@ struct InfoWindow {
 	char selectedColor = 'n';
 	bool sliderEnabled = false;
 	bool pointSelected = false;
+
+	char um1[255] = "Null", um2[255] = "Null", um3[255] = "Null", um4[255] = "Null";
+	char fm1[255] = "Null";
+	char um5[255] = "Null", um6[255] = "Null", um7[255] = "Null", um8[255] = "Null";
+	char fm2[255] = "Null";
+	char motionType[255] = "Null";
+
 };
 struct PixelColor {
 	GLfloat r;
@@ -116,7 +123,7 @@ InfoWindow infoWindow;
 quaternion qInit = { 0,0,0,1 };
 Avatar avatar = { qInit,qInit,qInit,qInit,qInit,qInit,qInit,qInit,qInit,qInit };
 
-SphereUtility su;
+SphereUtility su, suDB;
 //Avatar avatarData[1024];
 int prevy = 0;
 float prevSliderVal = 0;
@@ -197,8 +204,8 @@ int indexDB = 0;
 bool firstCalib = true;  // Reset Quaternion
 
 bool isFirst = true;
-int width = 1800;
-int height = 900;
+int width = 1920; //1800;
+int height = 1017; //900;
 
 TVec3 tempVec;
 
@@ -278,7 +285,7 @@ void DrawSelectedCircle(double r)
 	int const NSTEPS = 100;
 	double t = 0.;
 	glLineWidth(7);
-	glColor3d(1, 0.5, 0);
+	glColor3d(1, 0.0, 0);
 	glDisable(GL_LIGHTING);
 	glBegin(GL_LINE_LOOP);
 
@@ -393,13 +400,13 @@ void drawCoordinate()
 	glBegin(GL_LINES);
 	glColor3f(1, 0, 0); // x-axis red
 	glVertex3i(0, 0, 0);
-	glVertex3i(2.5, 0, 0);
+	glVertex3i(1.5, 0, 0);
 	glColor3f(0, 1, 0); // y-axis green
 	glVertex3i(0, 0, 0);
-	glVertex3i(0, 2.5, 0);
+	glVertex3i(0, 1.5, 0);
 	glColor3f(0, 0, 1); // z-axis blue
 	glVertex3i(0, 0, 0);
-	glVertex3i(0, 0, 2.5);
+	glVertex3i(0, 0, 1.5);
 	glEnd();
 	//glEnable(GL_LIGHTING);	
 	glColor3f(0.8, 0.4, 0.2);
@@ -569,6 +576,7 @@ void bodyJoint_circle(float r, int width)
 	int w = width;
 	float radius = r;
 	glLineWidth(w);
+	glColor3f(0, 0, 0);
 	glBegin(GL_LINES);
 
 	x = (float)radius * cos(359 * PI / 180.0f);
@@ -594,7 +602,6 @@ void torso()
 	glPopMatrix();
 
 	//Belly Center joint Circle
-	glColor3f(0, 0, 0);
 	glPushMatrix();
 	glTranslatef(0, 0.25, 0);
 	glRotatef(180, 1, 0, 0);
@@ -602,16 +609,13 @@ void torso()
 	glPopMatrix();
 
 	//Belly Left joint Circle 
-	glColor3f(0, 0, 0);
 	glPushMatrix();
 	glTranslatef(-0.75, 0, 0);
 	glRotatef(180, 1, 0, 0);
 	bodyJoint_circle(0.25, 2);
 	glPopMatrix();
-
-
+	
 	//Belly Right joint Circle 
-	glColor3f(0, 0, 0);
 	glPushMatrix();
 	glTranslatef(0.75, 0, 0);
 	glRotatef(180, 1, 0, 0);
@@ -625,8 +629,6 @@ void torso()
 	glRotatef(90, 1, 0, 0);
 	glutSolidCone(0.8, 5.5, 6, 6);
 	glPopMatrix();
-
-
 }
 
 void head()
@@ -634,12 +636,10 @@ void head()
 	//Head
 	glColor3f(rF, gF, bF);
 	glPushMatrix();
-	glTranslatef(-0.1, 0.25, 0);
+	glTranslatef(0.0, 0.25, 0);
 	glRotatef(-90, 1, 0, 0);
 	glutSolidCone(0.55, 2.05, 6, 6);
-	glPopMatrix();
-
-
+	glPopMatrix();	
 }
 
 void neck()
@@ -658,7 +658,6 @@ void neck()
 	glTranslatef(0.0, 1, 0);
 	bodyJoint_circle(0.2, 2);
 	glPopMatrix();
-
 }
 
 void rightShoulder()
@@ -670,18 +669,13 @@ void rightShoulder()
 	glRotatef(90, 0.12, 1, 0);
 	glutSolidCone(0.35, 2.25, 6, 6);
 	glPopMatrix();
-
-
+	
 	//Right Shoulder joint Circle
-	glColor3f(0.0, 0.0, 0.0);
 	glPushMatrix();
 	glTranslatef(0.0, 0.2, 0);
 	bodyJoint_circle(0.5, 2);
 	glPopMatrix();
-
-
 }
-
 
 
 void leftShoulder()
@@ -693,10 +687,8 @@ void leftShoulder()
 	glRotatef(-90, -0.1, 1, 0.0);
 	glutSolidCone(0.35, 2.25, 6, 6);
 	glPopMatrix();
-
-
+	
 	//Left Shoulder Joint Circle
-	glColor3f(0.0, 0.0, 0.0);
 	glPushMatrix();
 	glTranslatef(0.0, 0.2, 0);
 	bodyJoint_circle(0.5, 2);
@@ -715,7 +707,6 @@ void rightElbow()
 void leftElbow()
 {
 	//Left Elbow
-	glColor3f(0.0, 0.0, 0.0);
 	glPushMatrix();
 	glTranslatef(0.0, 0.0, 0);
 	glRotatef(180, 1, 0, 0);
@@ -726,20 +717,16 @@ void leftElbow()
 void rightKnee()
 {
 	//Right Knee
-	glColor3f(0.0, 0.0, 0.0);
 	glPushMatrix();
 	glRotatef(180, 0, 1, 0);
-	glTranslatef(-0.15, 0.8, 0);
+	glTranslatef(0.0, 0.8, 0);
 	bodyJoint_circle(0.5, 2);
 	glPopMatrix();
-
-
 }
 
 void leftKnee()
 {
 	//Left Knee
-	glColor3f(0.0, 0.0, 0.0);
 	glPushMatrix();
 	glRotatef(180, 0, 1, 0);
 	glTranslatef(0.0, 0.8, 0);
@@ -758,14 +745,12 @@ void leftFoot()
 	glPopMatrix();
 
 	//Left Foot Joint Circle
-	glColor3f(0.0, 0.0, 0.0);
 	glPushMatrix();
 	glTranslatef(0.0, 0.8, 0);
 	glRotatef(180, 0, 1, 0);
 	glTranslatef(0.0, -0.65, 0);
 	bodyJoint_circle(0.2, 2);
 	glPopMatrix();
-
 }
 
 void rightFoot()
@@ -773,15 +758,14 @@ void rightFoot()
 	//Right Foot
 	glColor3f(rF, gF, bF);
 	glPushMatrix();
-	glTranslatef(0.15, 0.8, 0);
+	glTranslatef(0.0, 0.8, 0);
 	glRotatef(90, 1, 0, 0);
 	glutSolidCone(0.75, 0.75, 6, 6);
 	glPopMatrix();
 
 	//Right Foot Joint Circle
-	glColor3f(0.0, 0.0, 0.0);
 	glPushMatrix();
-	glTranslatef(0.15, 0.15, 0);
+	glTranslatef(0.0, 0.15, 0);
 	glRotatef(180, 0, 1, 0);
 	bodyJoint_circle(0.2, 2);
 	glPopMatrix();
@@ -798,7 +782,6 @@ void rightHand()
 	glPopMatrix();
 
 	//Right Hand Joint Circle
-	glColor3f(0.0, 0.0, 0.0);
 	glPushMatrix();
 	glRotatef(180, 0, 1, 0);
 	glTranslatef(0.0, 0.65, 0);
@@ -818,7 +801,6 @@ void leftHand()
 	glPopMatrix();
 
 	//Left Hand Joint Circle
-	glColor3f(0.0, 0.0, 0.0);
 	glPushMatrix();
 	glRotatef(180, 0, 1, 0);
 	glTranslatef(0.0, 0.65, 0);
@@ -855,7 +837,6 @@ void left_upper_arm()
 
 void left_lower_arm()
 {
-
 	//Left Lower Arm Cap
 	glColor3f(rF, gF, bF);
 	//glColor3f(83.0 / 255.0, 172.0 / 255.0, 0.0);
@@ -947,8 +928,6 @@ void left_upper_leg()
 	glRotatef(90.0, 1.0, 0.0, 0.0);
 	glutSolidCone(UPPER_LEG_RADIUS - 0.1, 0.5, 10, 10);
 	glPopMatrix();
-
-
 }
 
 void left_lower_leg()
@@ -971,16 +950,12 @@ void left_lower_leg()
 	glPopMatrix();
 }
 
-
-
-
-
 void right_upper_leg()
 {
 	//right upper Leg Cap
 	glColor3f(rF, gF, bF);
 	glPushMatrix();
-	glTranslatef(0.15, 1.0, 0);
+	glTranslatef(0.0, 1.0, 0);
 	glRotatef(-90.0, 1.0, 0.0, 0.0);
 	glutSolidCone(UPPER_LEG_RADIUS - 0.1, UPPER_LEG_HEIGHT, 10, 10);
 	glPopMatrix();
@@ -988,11 +963,10 @@ void right_upper_leg()
 	//right upper Leg
 	glColor3f(rF, gF, bF);
 	glPushMatrix();
-	glTranslatef(0.15, 1.0, 0);
+	glTranslatef(0.0, 1.0, 0);
 	glRotatef(90.0, 1.0, 0.0, 0.0);
 	glutSolidCone(UPPER_LEG_RADIUS - 0.1, 0.5, 10, 10);
 	glPopMatrix();
-
 }
 
 void right_lower_leg()
@@ -1000,7 +974,7 @@ void right_lower_leg()
 	//right lower  Leg Cap
 	glColor3f(rF, gF, bF);
 	glPushMatrix();
-	glTranslatef(0.15, 0.8, 0);
+	glTranslatef(0.0, 0.8, 0);
 	glRotatef(-90.0, 1.0, 0.0, 0.0);
 	glutSolidCone(LOWER_LEG_RADIUS - 0.2, LOWER_LEG_HEIGHT, 10, 10);
 	glPopMatrix();
@@ -1008,11 +982,10 @@ void right_lower_leg()
 	//right lower  Leg 
 	glColor3f(rF, gF, bF);
 	glPushMatrix();
-	glTranslatef(0.15, 0.8, 0);
+	glTranslatef(0.0, 0.8, 0);
 	glRotatef(90.0, 1.0, 0.0, 0.0);
 	glutSolidCone(LOWER_LEG_RADIUS - 0.2, 0.5, 10, 10);
 	glPopMatrix();
-
 }
 
 void drawText(char*string, int x, int y)
@@ -1535,7 +1508,7 @@ bool colorMatched(float r, float g, float b)
 {
 	float dis = sqrt((pointColor.r - r)*(pointColor.r - r) + (pointColor.g - g)*(pointColor.g - g) + (pointColor.b - b)*(pointColor.b - b));
 	//cout << dis << endl;
-	if (dis < 0.1)
+	if (dis < 0.4)
 		return true;
 	else
 		return false;
@@ -1727,10 +1700,10 @@ void EditWindow()
 			glVertex2f(2, 2.5);
 
 			glVertex2f(2, 2.5);
-			glVertex2f(2, -1.5);
+			glVertex2f(2, -1.7);
 
-			glVertex2f(2, -1.5);
-			glVertex2f(-2, -1.5);
+			glVertex2f(2, -1.7);
+			glVertex2f(-2, -1.7);
 		glEnd();
 		glColor3f(1.0, 1.0, 1.0);
 	glPopMatrix();
@@ -1854,9 +1827,6 @@ void EditWindow()
 	glColor3f(1.0, 1.0, 1.0);
 	glPopMatrix();
 	glEnable(GL_LIGHTING);
-	
-
-
 }
 void showInformation()
 {
@@ -1870,20 +1840,90 @@ void showInformation()
 	glPushMatrix();
 		glColor3f(0.0, 0.0, 0.0);
 		glBegin(GL_LINES);
-			glVertex2f(-2, -1.5);
+			glVertex2f(-2, -1.7);
 			glVertex2f(-2, 2.5);
 
 			glVertex2f(-2, 2.5);
 			glVertex2f(2, 2.5);
 
 			glVertex2f(2, 2.5);
-			glVertex2f(2, -1.5);
+			glVertex2f(2, -1.7);
 
-			glVertex2f(2, -1.5);
-			glVertex2f(-2, -1.5);
+			glVertex2f(2, -1.7);
+			glVertex2f(-2, -1.7);
 		glEnd();
 		glColor3f(1.0, 1.0, 1.0);
 	glPopMatrix();
+	//-----------------------Show information------------------------//
+	float tcolor[4] = { 1, 1, 1, 1 };
+	float lableColor[4] = { 0, 0, 0, 1 };
+	float lableColor1[4] = { 0.2, 0.2, 1, 1 };
+	float pos[3];
+	std::stringstream ss;
+	ss << "Unit Motion";
+	pos[0] = -1.3; pos[1] = 1.45; pos[2] = 0;
+	drawString3D(ss.str().c_str(), pos, lableColor1, font);
+	
+	ss.str("");
+	ss << "1." << infoWindow.um1;
+	pos[0] = -1.85; pos[1] = 1.0; pos[2] = 0;
+	drawString3D(ss.str().c_str(), pos, lableColor, font);
+
+	ss.str("");
+	ss << "2." << infoWindow.um2;
+	pos[0] = -1.85; pos[1] = 0.5; pos[2] = 0;
+	drawString3D(ss.str().c_str(), pos, lableColor, font);
+	
+	ss.str("");
+	ss << "3." << infoWindow.um3;
+	pos[0] = -1.85; pos[1] = 0.0; pos[2] = 0;
+	drawString3D(ss.str().c_str(), pos, lableColor, font);
+
+	ss.str("");
+	ss << "4." << infoWindow.um4;
+	pos[0] = -1.85; pos[1] = -0.5; pos[2] = 0;
+	drawString3D(ss.str().c_str(), pos, lableColor, font);
+
+	ss.str("");
+	ss << "5." << infoWindow.um5;
+	pos[0] = -0.85; pos[1] = 1.0; pos[2] = 0;
+	drawString3D(ss.str().c_str(), pos, lableColor, font);
+
+	ss.str("");
+	ss << "6." << infoWindow.um6;
+	pos[0] = -0.85; pos[1] = 0.5; pos[2] = 0;
+	drawString3D(ss.str().c_str(), pos, lableColor, font);
+
+	ss.str("");
+	ss << "7." << infoWindow.um7;
+	pos[0] = -0.85; pos[1] = 0.0; pos[2] = 0;
+	drawString3D(ss.str().c_str(), pos, lableColor, font);
+
+	ss.str("");
+	ss << "8." << infoWindow.um8;
+	pos[0] = -0.85; pos[1] = -0.5; pos[2] = 0;
+	drawString3D(ss.str().c_str(), pos, lableColor, font);
+
+	ss.str("");
+	ss << "Modular Sensing";
+	pos[0] = -0.3; pos[1] = 1.95; pos[2] = 0;
+	drawString3D(ss.str().c_str(), pos, lableColor1, font);
+
+	ss.str("");
+	ss << infoWindow.motionType;
+	pos[0] = 0.5; pos[1] = 0.53; pos[2] = 0;
+	drawString3D(ss.str().c_str(), pos, lableColor1, font);
+	
+	ss.str("");
+	ss <<  infoWindow.fm1;
+	pos[0] = 0.55; pos[1] = 0.0; pos[2] = 0;
+	drawString3D(ss.str().c_str(), pos, lableColor, font);
+
+	ss.str("");
+	ss << infoWindow.fm2;
+	pos[0] = 0.55; pos[1] = -0.5; pos[2] = 0;
+	drawString3D(ss.str().c_str(), pos, lableColor, font);
+
 }
 void drawTrajectory(void)
 {
@@ -1899,7 +1939,7 @@ void drawTrajectory(void)
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glOrtho(-2, 2, -1.5, 2.5, -2, 10);
+	glOrtho(-2, 2, -1.7, 2.5, -2, 10);
 
 	glMatrixMode(GL_MODELVIEW);
 	glClearColor(1.000, 0.753, 0.796, 1);
@@ -3697,7 +3737,8 @@ void getSelectedColor()
 	if (infoWindow.selectedColor == 'd' || infoWindow.selectedColor == 'r' || infoWindow.selectedColor == 'g' || infoWindow.selectedColor == 'b')
 	{
 		float dis = sqrt((pixelColor.r - 0.196078)*(pixelColor.r - 0.196078) + (pixelColor.g - 0.803921640)*(pixelColor.g - 0.803921640) + (pixelColor.b - 0.196078449)*(pixelColor.b - 0.196078449));
-		if (dis < 0.001)
+		
+		if (dis < 0.01)
 		{
 			infoWindow.sliderEnabled = true; return;
 		}
@@ -3867,6 +3908,85 @@ void mouseMotion(int x, int y)
 	}
 }
 
+
+void readInfoData(std::string fileName)
+{
+	int count = 0;
+	int tCount = 0;
+
+	std::ifstream _filestream(fileName);
+	std::string _line, _line2, _line3;
+	int _option;
+	std::string _dummy;
+	int lineCount = 0;
+
+	while (std::getline(_filestream, _line))
+	{
+		std::stringstream _linestream;
+		_linestream << _line;
+		if (count == 0)
+		{
+			_linestream >>  infoWindow.um1;  count++; continue;
+		}
+
+		if (count == 1)
+		{
+			_linestream >>  infoWindow.um2; count++; continue;
+		}
+		if (count == 2)
+		{
+			_linestream >>  infoWindow.um3;  count++; continue;
+		}
+
+		if (count == 3)
+		{
+			_linestream >>  infoWindow.um4; count++; continue;
+		}
+		if (count == 4)
+		{
+			_linestream >>  infoWindow.fm1; count++;  continue;
+		}	
+
+		if (count == 5)
+		{
+			_linestream >> infoWindow.um5;  count++; continue;
+		}
+
+		if (count == 6)
+		{
+			_linestream >> infoWindow.um6; count++; continue;
+		}
+		if (count == 7)
+		{
+			_linestream >> infoWindow.um7;  count++; continue;
+		}
+
+		if (count == 8)
+		{
+			_linestream >> infoWindow.um8; count++; continue;
+		}
+		
+		if (count == 9)
+		{
+			_linestream >> infoWindow.fm2; count++;  continue;
+		}
+
+		if (count == 10)
+		{
+			_linestream >> infoWindow.motionType >> _line >> _line2;
+
+			_line3 = " ";
+			strcat(infoWindow.motionType, _line3.c_str());
+			strcat(infoWindow.motionType, _line.c_str()); 
+			strcat(infoWindow.motionType, _line3.c_str());
+			strcat(infoWindow.motionType, _line2.c_str());
+
+			 count++;  continue;
+		}
+
+	}
+}
+
 void keyBoardEvent(unsigned char key, int x, int y)
 {
 	//printf("key_code =%d  \n", key);
@@ -3979,7 +4099,7 @@ void keyBoardEvent(unsigned char key, int x, int y)
 		Comparision::resetDiagnosis();
 	}
 
-	if (key == 49) //Key-1
+	if (key == '1') //Key-1
 	{
 		//readAvatarData();
 		su.readAvatarData("./Load/FormFile.txt");
@@ -3999,6 +4119,13 @@ void keyBoardEvent(unsigned char key, int x, int y)
 
 		start = std::clock();
 		Comparision::resetDiagnosis();
+	}
+	if (key == '2') //Key-2
+	{
+		//readAvatarData();
+		readInfoData("./Load/InfoFile.txt");
+		bReadFile = true;
+		
 	}
 
 	if (key == '7')
@@ -4318,7 +4445,7 @@ void dataCapture(int id)
 int targc;
 char** targv;
 
-DWORD WINAPI RoboticArm(LPVOID lpParam)
+DWORD WINAPI AvatarMotion(LPVOID lpParam)
 {
 	glutInit(&targc, targv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH | GLUT_MULTISAMPLE | GLUT_STENCIL);
@@ -4326,6 +4453,7 @@ DWORD WINAPI RoboticArm(LPVOID lpParam)
 	glutCreateWindow("Motion-Sphere");
 
 	myinit();
+	//glutFullScreen();
 	glutReshapeFunc(myReshape);
 	glutIdleFunc(idle);
 	glutDisplayFunc(Display);
@@ -4415,7 +4543,7 @@ main()
 
 	// Create thread 2.
 	Handle_Of_Thread_2 = CreateThread(NULL, 0,
-		RoboticArm, &Data_Of_Thread_2, 0, NULL);
+		AvatarMotion, &Data_Of_Thread_2, 0, NULL);
 	if (Handle_Of_Thread_2 == NULL)
 		ExitProcess(Data_Of_Thread_2);
 
