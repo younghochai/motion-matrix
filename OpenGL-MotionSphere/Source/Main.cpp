@@ -1,5 +1,32 @@
-// Robot_Xsens.cpp : Defines the entry point for the console application.
-//
+/*
+*	BSD 3-Clause License
+*
+*	Copyright (c) 2018, OpenAI, VELab, GSAIM, Chung-Ang University.
+*
+*	All rights reserved.
+*
+*	Redistribution and use in source and binary forms, with or without modification, are permitted provided
+*  that the following conditions are met:
+*
+*	1. Redistributions of source code must retain the above copyright notice, this list of conditions and the
+*	   following disclaimer.
+*
+*	2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+*     the following disclaimer in the documentation and/or other materials provided with the distribution.
+*
+*	3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or
+*     promote products derived from this software without specific prior written permission.
+*
+*	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+*	WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+*	PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+*	ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
+*	TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+*	HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+*	NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
+*	OF SUCH DAMAGE.
+*
+*/
 
 #include"XsensConnection.h"
 
@@ -13,9 +40,16 @@
 #include <ctime>
 #include "tgaload.h" //Texture mapping
 #include "Comparision.h"
+#include "SphereUtility.h"
 
 using namespace std;
 
+/** \brief @Quaternion Functions
+*  \note This class enables  Avatar hierarchy and Motion Sphere rendering, Motion visualization, .
+*  \authors: Ashok Kumar Patil <ashokpatil03@hotmail.com>
+*			 Adithya Balasubramanyam <adithyakoundinya@gmail.com> 
+*			 Bharatesh Chakravarthi  <chakravarthi589@gmail.com>
+*/
 
 #define STEP 0.1
 #define TORSO_HEIGHT 6.0
@@ -41,28 +75,63 @@ using namespace std;
 #define NULL 0
 #define PI 3.14159265359
 #define SAMPLESIZE 100.0f
-struct TVec3 {
-	float _x;
-	float _y;
-	float _z;
+
+// Moving the Following code from Main.cpp to SphereUtility.h
+//struct TVec3 {
+//	float _x;
+//	float _y;
+//	float _z;
+//};
+//
+//
+//struct Avatar {
+//	quaternion b0, b1, b2, b3, b4, b5, b6, b7, b8, b9;
+//	quaternion prv_b0, prv_b1, prv_b2, prv_b3, prv_b4,
+//		prv_b5, prv_b6, prv_b7, prv_b8, prv_b9;
+//	//ofstream fb0/*, fb1, fb2, fb3, fb4, fb5, fb6, fb7, fb8, fb9*/;
+//};
+
+struct InfoWindow {
+	int frameNo=0;
+	int BoneID=0;
+	float q0=0.0, q1= 0.0, q2= 0.0, q3= 0.0, vx= 0.0, vy= 0.0, vz= 0.0;
+	float angle = 0.0, ax = 0.0, ay = 0.0, az = 0.0;
+	float sliderVal = 0;
+	float firstVal;
+	char selectedColor = 'n';
+	bool sliderEnabled = false;
+	bool pointSelected = false;
+
+	char um1[255] = "Null", um2[255] = "Null", um3[255] = "Null", um4[255] = "Null";
+	char fm1[255] = "Null";
+	char um5[255] = "Null", um6[255] = "Null", um7[255] = "Null", um8[255] = "Null";
+	char fm2[255] = "Null";
+	char motionType[255] = "Null";
+
+};
+struct PixelColor {
+	GLfloat r;
+	GLfloat g;
+	GLfloat b;
+	GLfloat a;
 };
 
 
-struct Avatar {
-	quaternion b0, b1, b2, b3, b4, b5, b6, b7, b8, b9;
-	quaternion prv_b0, prv_b1, prv_b2, prv_b3, prv_b4,
-		prv_b5, prv_b6, prv_b7, prv_b8, prv_b9;
-	//ofstream fb0/*, fb1, fb2, fb3, fb4, fb5, fb6, fb7, fb8, fb9*/;
-};
+
+PixelColor pixelColor, pointColor;
+InfoWindow infoWindow;
 quaternion qInit = { 0,0,0,1 };
-struct Avatar avatar = { qInit,qInit,qInit,qInit,qInit,qInit,qInit,qInit,qInit,qInit };
+Avatar avatar = { qInit,qInit,qInit,qInit,qInit,qInit,qInit,qInit,qInit,qInit };
 
-struct Avatar avatarData[1024];
-
+SphereUtility su, suDB;
+//Avatar avatarData[1024];
+int prevy = 0;
+float prevSliderVal = 0;
 int option = -1, subOption = -1;
 double rotate_ = 0;
 
 double xr = 0, yr = 0, zr = 0;
+GLuint stencilIndex;
 
 void head();
 void torso();
@@ -135,10 +204,10 @@ int indexDB = 0;
 bool firstCalib = true;  // Reset Quaternion
 
 bool isFirst = true;
-int width = 1800;
-int height = 900;
+int width = 1920; //1800;
+int height = 1017; //900;
 
-TVector3 tempVec;
+TVec3 tempVec;
 
 float xrot = 0.0f;
 float yrot = 0.0f;
@@ -198,14 +267,44 @@ float mcolor[4] = { 1, 0, 0, 1 };
 GLuint texture_id[2];
 GLUquadricObj *sphere;
 
+float rF = 0.68;
+float gF = 0.14;
+float bF = 0.21;
+
 const int   TEXT_WIDTH = 8;
 const int   TEXT_HEIGHT = 24;
 void *font = GLUT_BITMAP_TIMES_ROMAN_24;
+
+///////////////////////////////////////////////////////////////////////////////
+// Draw a cirle around the selected item
+// StencilFucntion should be used to identify the object.
+///////////////////////////////////////////////////////////////////////////////
+void DrawSelectedCircle(double r)
+{
+	double const TWO_PI = 6.2831853071795865;
+	int const NSTEPS = 100;
+	double t = 0.;
+	glLineWidth(7);
+	glColor3d(1, 0.0, 0);
+	glDisable(GL_LIGHTING);
+	glBegin(GL_LINE_LOOP);
+
+	for (int i = 0; i < (NSTEPS - 1); ++i)
+	{
+
+		glVertex2d(r * cos(t), r * sin(t));
+		t += TWO_PI / NSTEPS;
+	}
+	glEnd();
+	glLineWidth(1);
+	glEnable(GL_LIGHTING);
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // write 2d text using GLUT
 // The projection matrix must be set to orthogonal before call this function.
 ///////////////////////////////////////////////////////////////////////////////
-void drawString(const char *str, int x, int y, float color[4], void *font)
+void drawString(const char *str, float x, float y, float color[4], void *font)
 {
 	glPushAttrib(GL_LIGHTING_BIT | GL_CURRENT_BIT); // lighting and color mask
 	glDisable(GL_LIGHTING);     // need to disable lighting for proper text color
@@ -274,7 +373,7 @@ float mag(TVec3 a)  //calculates magnitude of a
 	return std::sqrt(a._x * a._x + a._y * a._y + a._z * a._z);
 }
 
-void quaternionToEulerAngles(quaternion q, TVector3& RPY)
+void quaternionToEulerAngles(quaternion q, TVec3& RPY)
 {
 	//roll (x-axis rotation)
 	double sinr_cosp = 2.0 * (q.mData[3] * q.mData[0] + q.mData[1] * q.mData[2]);
@@ -301,13 +400,13 @@ void drawCoordinate()
 	glBegin(GL_LINES);
 	glColor3f(1, 0, 0); // x-axis red
 	glVertex3i(0, 0, 0);
-	glVertex3i(2.5, 0, 0);
+	glVertex3i(1.5, 0, 0);
 	glColor3f(0, 1, 0); // y-axis green
 	glVertex3i(0, 0, 0);
-	glVertex3i(0, 2.5, 0);
+	glVertex3i(0, 1.5, 0);
 	glColor3f(0, 0, 1); // z-axis blue
 	glVertex3i(0, 0, 0);
-	glVertex3i(0, 0, 2.5);
+	glVertex3i(0, 0, 1.5);
 	glEnd();
 	//glEnable(GL_LIGHTING);	
 	glColor3f(0.8, 0.4, 0.2);
@@ -477,6 +576,7 @@ void bodyJoint_circle(float r, int width)
 	int w = width;
 	float radius = r;
 	glLineWidth(w);
+	glColor3f(0, 0, 0);
 	glBegin(GL_LINES);
 
 	x = (float)radius * cos(359 * PI / 180.0f);
@@ -494,7 +594,7 @@ void bodyJoint_circle(float r, int width)
 void torso()
 {
 	// Belly
-	glColor3f(0.68, 0.14, 0.21);
+	glColor3f(rF, gF, bF);
 	glPushMatrix();
 	glTranslatef(0.0, 0.0, 0.0);
 	glRotatef(90, 1, 0, 0);
@@ -502,7 +602,6 @@ void torso()
 	glPopMatrix();
 
 	//Belly Center joint Circle
-	glColor3f(0, 0, 0);
 	glPushMatrix();
 	glTranslatef(0, 0.25, 0);
 	glRotatef(180, 1, 0, 0);
@@ -510,16 +609,13 @@ void torso()
 	glPopMatrix();
 
 	//Belly Left joint Circle 
-	glColor3f(0, 0, 0);
 	glPushMatrix();
 	glTranslatef(-0.75, 0, 0);
 	glRotatef(180, 1, 0, 0);
 	bodyJoint_circle(0.25, 2);
 	glPopMatrix();
-
-
+	
 	//Belly Right joint Circle 
-	glColor3f(0, 0, 0);
 	glPushMatrix();
 	glTranslatef(0.75, 0, 0);
 	glRotatef(180, 1, 0, 0);
@@ -527,33 +623,29 @@ void torso()
 	glPopMatrix();
 
 	//Upper Body
-	glColor3f(0.68, 0.14, 0.21);
+	glColor3f(rF, gF, bF);
 	glPushMatrix();
 	glTranslatef(0.0, 5.75, 0.0);
 	glRotatef(90, 1, 0, 0);
 	glutSolidCone(0.8, 5.5, 6, 6);
 	glPopMatrix();
-
-
 }
 
 void head()
 {
 	//Head
-	glColor3f(0.68, 0.14, 0.21);
+	glColor3f(rF, gF, bF);
 	glPushMatrix();
-	glTranslatef(-0.1, 0.25, 0);
+	glTranslatef(0.0, 0.25, 0);
 	glRotatef(-90, 1, 0, 0);
 	glutSolidCone(0.55, 2.05, 6, 6);
-	glPopMatrix();
-
-
+	glPopMatrix();	
 }
 
 void neck()
 {
 	//Neck 
-	glColor3f(0.68, 0.14, 0.21);
+	glColor3f(rF, gF, bF);
 	glPushMatrix();
 	glRotatef(-90.0, 1.0, 0.0, 0.0);
 	glTranslatef(0.0, 0.0, 0.0);
@@ -566,45 +658,37 @@ void neck()
 	glTranslatef(0.0, 1, 0);
 	bodyJoint_circle(0.2, 2);
 	glPopMatrix();
-
 }
 
 void rightShoulder()
 {
 	//Right Shoulder
-	glColor3f(0.98, 0.14, 0.21);
+	glColor3f(rF, gF, bF);
 	glPushMatrix();
 	glTranslatef(-1.85, 0.10, 0);
 	glRotatef(90, 0.12, 1, 0);
 	glutSolidCone(0.35, 2.25, 6, 6);
 	glPopMatrix();
-
-
+	
 	//Right Shoulder joint Circle
-	glColor3f(0.0, 0.0, 0.0);
 	glPushMatrix();
 	glTranslatef(0.0, 0.2, 0);
 	bodyJoint_circle(0.5, 2);
 	glPopMatrix();
-
-
 }
-
 
 
 void leftShoulder()
 {
 	//Left Shoulder
-	glColor3f(0.98, 0.14, 0.21);
+	glColor3f(rF, gF, bF);
 	glPushMatrix();
 	glTranslatef(1.85, 0.125, 0);
 	glRotatef(-90, -0.1, 1, 0.0);
 	glutSolidCone(0.35, 2.25, 6, 6);
 	glPopMatrix();
-
-
+	
 	//Left Shoulder Joint Circle
-	glColor3f(0.0, 0.0, 0.0);
 	glPushMatrix();
 	glTranslatef(0.0, 0.2, 0);
 	bodyJoint_circle(0.5, 2);
@@ -623,7 +707,6 @@ void rightElbow()
 void leftElbow()
 {
 	//Left Elbow
-	glColor3f(0.0, 0.0, 0.0);
 	glPushMatrix();
 	glTranslatef(0.0, 0.0, 0);
 	glRotatef(180, 1, 0, 0);
@@ -634,20 +717,16 @@ void leftElbow()
 void rightKnee()
 {
 	//Right Knee
-	glColor3f(0.0, 0.0, 0.0);
 	glPushMatrix();
 	glRotatef(180, 0, 1, 0);
-	glTranslatef(-0.15, 0.8, 0);
+	glTranslatef(0.0, 0.8, 0);
 	bodyJoint_circle(0.5, 2);
 	glPopMatrix();
-
-
 }
 
 void leftKnee()
 {
 	//Left Knee
-	glColor3f(0.0, 0.0, 0.0);
 	glPushMatrix();
 	glRotatef(180, 0, 1, 0);
 	glTranslatef(0.0, 0.8, 0);
@@ -658,7 +737,7 @@ void leftKnee()
 void leftFoot()
 {
 	//Left Foot
-	glColor3f(0.98, 0.14, 0.21);
+	glColor3f(rF, gF, bF);
 	glPushMatrix();
 	glTranslatef(0.0, 0.8, 0);
 	glRotatef(90, 1, 0, 0);
@@ -666,30 +745,27 @@ void leftFoot()
 	glPopMatrix();
 
 	//Left Foot Joint Circle
-	glColor3f(0.0, 0.0, 0.0);
 	glPushMatrix();
 	glTranslatef(0.0, 0.8, 0);
 	glRotatef(180, 0, 1, 0);
 	glTranslatef(0.0, -0.65, 0);
 	bodyJoint_circle(0.2, 2);
 	glPopMatrix();
-
 }
 
 void rightFoot()
 {
 	//Right Foot
-	glColor3f(0.98, 0.14, 0.21);
+	glColor3f(rF, gF, bF);
 	glPushMatrix();
-	glTranslatef(0.15, 0.8, 0);
+	glTranslatef(0.0, 0.8, 0);
 	glRotatef(90, 1, 0, 0);
 	glutSolidCone(0.75, 0.75, 6, 6);
 	glPopMatrix();
 
 	//Right Foot Joint Circle
-	glColor3f(0.0, 0.0, 0.0);
 	glPushMatrix();
-	glTranslatef(0.15, 0.15, 0);
+	glTranslatef(0.0, 0.15, 0);
 	glRotatef(180, 0, 1, 0);
 	bodyJoint_circle(0.2, 2);
 	glPopMatrix();
@@ -698,7 +774,7 @@ void rightFoot()
 void rightHand()
 {
 	//Right Hand
-	glColor3f(0.98, 0.14, 0.21);
+	glColor3f(rF, gF, bF);
 	glPushMatrix();
 	glTranslatef(0.0, 0.0, 0);
 	glRotatef(-90, 1, 0, 0);
@@ -706,7 +782,6 @@ void rightHand()
 	glPopMatrix();
 
 	//Right Hand Joint Circle
-	glColor3f(0.0, 0.0, 0.0);
 	glPushMatrix();
 	glRotatef(180, 0, 1, 0);
 	glTranslatef(0.0, 0.65, 0);
@@ -717,6 +792,8 @@ void rightHand()
 void leftHand()
 {
 	//Left Hand
+	glColor3f(rF, gF, bF);
+	//glColor3f(83.0 / 255.0, 172.0 / 255.0, 0.0);
 	glPushMatrix();
 	glTranslatef(0.0, 0.0, 0);
 	glRotatef(-90, 1, 0, 0);
@@ -724,7 +801,6 @@ void leftHand()
 	glPopMatrix();
 
 	//Left Hand Joint Circle
-	glColor3f(0.0, 0.0, 0.0);
 	glPushMatrix();
 	glRotatef(180, 0, 1, 0);
 	glTranslatef(0.0, 0.65, 0);
@@ -735,7 +811,8 @@ void leftHand()
 void left_upper_arm()
 {
 	//Left Upper Arm Cap
-	glColor3f(0.98, 0.14, 0.21);
+	glColor3f(rF, gF, bF);
+	//glColor3f(101.0/255.0, 101.0/255.0, 0.0);
 	glPushMatrix();
 	glTranslatef(0.0, 0.0, 0);
 	glRotatef(-90.0, 1.0, 0.0, 0.0);
@@ -743,7 +820,7 @@ void left_upper_arm()
 	glPopMatrix();
 
 	//Left Upper Arm
-	glColor3f(0.98, 0.14, 0.21);
+	//glColor3f(rF, gF, bF);
 	glPushMatrix();
 	glTranslatef(0.0, 0.0, 0);
 	glRotatef(90.0, 1.0, 0.0, 0.0);
@@ -760,16 +837,16 @@ void left_upper_arm()
 
 void left_lower_arm()
 {
-
 	//Left Lower Arm Cap
-	glColor3f(0.98, 0.14, 0.21);
+	glColor3f(rF, gF, bF);
+	//glColor3f(83.0 / 255.0, 172.0 / 255.0, 0.0);
 	glPushMatrix();
 	glRotatef(-90.0, 1.0, 0.0, 0.0);
 	glutSolidCone(LOWER_ARM_RADIUS - 0.15, 0.5, 10, 10);
 	glPopMatrix();
 
 	//Left Lower Arm
-	glColor3f(0.98, 0.14, 0.21);
+	//glColor3f(rF, gF, bF);
 	glPushMatrix();
 	glTranslatef(0.0, 0.0, 0);
 	glRotatef(90.0, 1.0, 0.0, 0.0);
@@ -787,7 +864,7 @@ void left_lower_arm()
 void right_upper_arm()
 {
 	//right upper Arm Cap
-	glColor3f(0.98, 0.14, 0.21);
+	glColor3f(rF, gF, bF);
 	glPushMatrix();
 	glTranslatef(0.0, 0.0, 0);
 	glRotatef(-90.0, 1.0, 0.0, 0.0);
@@ -795,7 +872,7 @@ void right_upper_arm()
 	glPopMatrix();
 
 	//right upper Arm
-	glColor3f(0.98, 0.14, 0.21);
+	glColor3f(rF, gF, bF);
 	glPushMatrix();
 	glTranslatef(0.0, 0.0, 0);
 	glRotatef(90.0, 1.0, 0.0, 0.0);
@@ -813,14 +890,14 @@ void right_lower_arm()
 {
 
 	//Right Lower Arm Cap
-	glColor3f(0.98, 0.14, 0.21);
+	glColor3f(rF, gF, bF);
 	glPushMatrix();
 	glRotatef(-90.0, 1.0, 0.0, 0.0);
 	glutSolidCone(LOWER_ARM_RADIUS - 0.15, 0.5, 10, 10);
 	glPopMatrix();
 
 	//Right Lower Arm Cap
-	glColor3f(0.98, 0.14, 0.21);
+	glColor3f(rF, gF, bF);
 	glPushMatrix();
 	glTranslatef(0.0, 0.0, 0);
 	glRotatef(90.0, 1.0, 0.0, 0.0);
@@ -837,7 +914,7 @@ void right_lower_arm()
 void left_upper_leg()
 {
 	//Left Upper Leg Cap
-	glColor3f(0.98, 0.14, 0.21);
+	glColor3f(rF, gF, bF);
 	glPushMatrix();
 	glTranslatef(0.0, 1.0, 0);
 	glRotatef(-90.0, 1.0, 0.0, 0.0);
@@ -845,20 +922,18 @@ void left_upper_leg()
 	glPopMatrix();
 
 	//Left Upper Leg
-	glColor3f(0.98, 0.14, 0.21);
+	glColor3f(rF, gF, bF);
 	glPushMatrix();
 	glTranslatef(0.0, 1.0, 0);
 	glRotatef(90.0, 1.0, 0.0, 0.0);
 	glutSolidCone(UPPER_LEG_RADIUS - 0.1, 0.5, 10, 10);
 	glPopMatrix();
-
-
 }
 
 void left_lower_leg()
 {
 	//Left lower Leg Cap
-	glColor3f(0.98, 0.14, 0.21);
+	glColor3f(rF, gF, bF);
 	glPushMatrix();
 	glTranslatef(0.0, 0.8, 0);
 	glRotatef(-90.0, 1.0, 0.0, 0.0);
@@ -867,7 +942,7 @@ void left_lower_leg()
 
 
 	//Left lower Leg
-	glColor3f(0.98, 0.14, 0.21);
+	glColor3f(rF, gF, bF);
 	glPushMatrix();
 	glTranslatef(0.0, 0.8, 0);
 	glRotatef(90.0, 1.0, 0.0, 0.0);
@@ -875,48 +950,42 @@ void left_lower_leg()
 	glPopMatrix();
 }
 
-
-
-
-
 void right_upper_leg()
 {
 	//right upper Leg Cap
-	glColor3f(0.98, 0.14, 0.21);
+	glColor3f(rF, gF, bF);
 	glPushMatrix();
-	glTranslatef(0.15, 1.0, 0);
+	glTranslatef(0.0, 1.0, 0);
 	glRotatef(-90.0, 1.0, 0.0, 0.0);
 	glutSolidCone(UPPER_LEG_RADIUS - 0.1, UPPER_LEG_HEIGHT, 10, 10);
 	glPopMatrix();
 
 	//right upper Leg
-	glColor3f(0.98, 0.14, 0.21);
+	glColor3f(rF, gF, bF);
 	glPushMatrix();
-	glTranslatef(0.15, 1.0, 0);
+	glTranslatef(0.0, 1.0, 0);
 	glRotatef(90.0, 1.0, 0.0, 0.0);
 	glutSolidCone(UPPER_LEG_RADIUS - 0.1, 0.5, 10, 10);
 	glPopMatrix();
-
 }
 
 void right_lower_leg()
 {
 	//right lower  Leg Cap
-	glColor3f(0.98, 0.14, 0.21);
+	glColor3f(rF, gF, bF);
 	glPushMatrix();
-	glTranslatef(0.15, 0.8, 0);
+	glTranslatef(0.0, 0.8, 0);
 	glRotatef(-90.0, 1.0, 0.0, 0.0);
 	glutSolidCone(LOWER_LEG_RADIUS - 0.2, LOWER_LEG_HEIGHT, 10, 10);
 	glPopMatrix();
 
 	//right lower  Leg 
-	glColor3f(0.98, 0.14, 0.21);
+	glColor3f(rF, gF, bF);
 	glPushMatrix();
-	glTranslatef(0.15, 0.8, 0);
+	glTranslatef(0.0, 0.8, 0);
 	glRotatef(90.0, 1.0, 0.0, 0.0);
 	glutSolidCone(LOWER_LEG_RADIUS - 0.2, 0.5, 10, 10);
 	glPopMatrix();
-
 }
 
 void drawText(char*string, int x, int y)
@@ -980,36 +1049,71 @@ void renderCylinder(float x1, float y1, float z1, float x2, float y2, float z2, 
 
 void IntializeRobotLight()
 {
-	GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 1.0 };
-	GLfloat mat_diffuse[] = { 1.0, 1.0, 1.0, 1.0 };
-	GLfloat mat_ambient[] = { 1.0, 1.0, 1.0, 1.0 };
-	GLfloat mat_shininess = { 100.0 };
-	GLfloat light_ambient[] = { 0.0, 0.0, 0.0, 1.0 };
-	GLfloat light_diffuse[] = { 0.4, 0.4, 0.4, 1.0 };
-	//GLfloat light_diffuse[] = { 1, 0.87, 0.75, 1.0 };
-	GLfloat light_specular[] = { 1.0, 1.0, 1.0, 1.0 };
-	GLfloat light_position[] = { -10.0, 0.0, 10.0, 0.0 };
+	GLfloat mat_ambient_0[] = { 0.2f, 0.2f, 0.2f, 1.0f };
+	GLfloat mat_diffuse_0[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	GLfloat mat_specular_0[] = { 1.0f, 1.0f, 4.0f, 1.0f };
+	GLfloat mat_position_0[] = { 0.0f, 0.0f, 4.0f, 0.0f };
+	//GLfloat mat_position_0[] = { 0.5f, 0.5f, 0.8f, 0.0f};	
+	GLfloat mat_shininess[] = { 128.0f };
 
-	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
-	glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
-	glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
+	//glLightfv(GL_LIGHT0, GL_AMBIENT, mat_ambient_0);
+	////glLightdv(GL_LIGHT0, GL_DIFFUSE, mat_diffuse_0);
+	//glLightfv(GL_LIGHT0, GL_SPECULAR, mat_specular_0);
+	//glLightfv(GL_LIGHT0, GL_POSITION, mat_position_0);
 
-	glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
-	glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
-	glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
-	glMaterialf(GL_FRONT, GL_SHININESS, mat_shininess);
+	glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient_0);
+	glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular_0);
+	glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse_0);
+	glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
 
-	glEnable(GL_SMOOTH);
+	/*GLfloat mat_ambient_1[] = { 0.1f, 0.1f, 0.1f, 1.0f };
+	GLfloat mat_diffuse_1[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	GLfloat mat_specular_1[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	GLfloat mat_position_1[] = { 8.5f, 8.5f, 3.0f, 1.0f };
+	GLfloat mat_spotdir_1[] = { 10.0f, 0.0f, 0.0f };*/
+
+	glLightfv(GL_LIGHT1, GL_SPECULAR, mat_specular_0);
+	glLightfv(GL_LIGHT1, GL_POSITION, mat_position_0);
+	glLightfv(GL_LIGHT1, GL_DIFFUSE, mat_diffuse_0);
+	glLightfv(GL_LIGHT1, GL_AMBIENT, mat_ambient_0);
+
+	/*glLightf(GL_LIGHT1, GL_CONSTANT_ATTENUATION, 1.5f);
+	glLightf(GL_LIGHT1, GL_LINEAR_ATTENUATION, 0.5f);
+	glLightf(GL_LIGHT1, GL_QUADRATIC_ATTENUATION, 0.2f);*/
+
+	/*glLightf(GL_LIGHT1, GL_SPOT_CUTOFF, 50.0f);
+	glLightfv(GL_LIGHT1, GL_SPOT_DIRECTION, mat_position_0);
+	glLightf(GL_LIGHT1, GL_SPOT_EXPONENT, 2.0f);*/
+
+	//GLfloat mat_ambient_2[] = { 0.3f, 0.3f, 0.3f, 1.0f };
+	//GLfloat mat_diffuse_2[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	//GLfloat mat_specular_2[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	////GLfloat mat_position_2[] = { 0.9f, -0.5f, 0.6f, 1.0f};	
+	////GLfloat mat_position_2[] = { -0.5f, 0.5f, 0.6f, 1.0f};	
+	//GLfloat mat_position_2[] = { 8.5f, 9.0f, 3.0f, 1.0f };
+
+	//glLightfv(GL_LIGHT2, GL_SPECULAR, mat_specular_2);
+	//glLightfv(GL_LIGHT2, GL_POSITION, mat_position_2);
+	//glLightfv(GL_LIGHT2, GL_DIFFUSE, mat_diffuse_2);
+	//glLightfv(GL_LIGHT2, GL_AMBIENT, mat_ambient_2);
+
+
 	glEnable(GL_LIGHTING);
-	glEnable(GL_LIGHT0);
-	glDepthFunc(GL_LEQUAL);
+	//glEnable(GL_LIGHT0);
+	glEnable(GL_LIGHT1);
+	//glEnable(GL_LIGHT2);
+
 	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LEQUAL);
 
-	//glClearColor(1.0, 1.0, 1.0, 1.0);
-	//glClearColor(0, 0, 0, 0);
+	::glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	//::glClearColor(0.0f, 0.0f, 0.0f, 0.0f);	
+	::glShadeModel(GL_SMOOTH);
+	//::glShadeModel(GL_FLAT);	
 
-	glColor3f(1.0, 0.0, 0.0);
+	//glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+	glEnable(GL_COLOR_MATERIAL);
+
 }
 
 void InitializeLight()
@@ -1035,32 +1139,32 @@ void InitializeLight()
 	GLfloat mat_diffuse_1[] = { 1.0f, 1.0f, 1.0f, 1.0f };
 	GLfloat mat_specular_1[] = { 1.0f, 1.0f, 1.0f, 1.0f };
 	GLfloat mat_position_1[] = { -8.5f, -8.5f, 3.0f, 1.0f };
-	GLfloat mat_spotdir_1[] = { -10.0f, 0.0f, 0.0f };
+	GLfloat mat_spotdir_1[] = { 10.0f, 0.0f, 5.0f };
 
-	glLightfv(GL_LIGHT1, GL_SPECULAR, mat_specular_1);
+	/*glLightfv(GL_LIGHT1, GL_SPECULAR, mat_specular_1);
 	glLightfv(GL_LIGHT1, GL_POSITION, mat_position_1);
 	glLightfv(GL_LIGHT1, GL_DIFFUSE, mat_diffuse_1);
-	glLightfv(GL_LIGHT1, GL_AMBIENT, mat_ambient_1);
+	glLightfv(GL_LIGHT1, GL_AMBIENT, mat_ambient_1);*/
 
 	/*glLightf(GL_LIGHT1, GL_CONSTANT_ATTENUATION, 1.5f);
 	glLightf(GL_LIGHT1, GL_LINEAR_ATTENUATION, 0.5f);
 	glLightf(GL_LIGHT1, GL_QUADRATIC_ATTENUATION, 0.2f);*/
 
-	glLightf(GL_LIGHT1, GL_SPOT_CUTOFF, 50.0f);
-	glLightfv(GL_LIGHT1, GL_SPOT_DIRECTION, mat_spotdir_1);
-	glLightf(GL_LIGHT1, GL_SPOT_EXPONENT, 2.0f);
+	glLightf(GL_LIGHT0, GL_SPOT_CUTOFF, 120.0f);
+	glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, mat_spotdir_1);
+	glLightf(GL_LIGHT0, GL_SPOT_EXPONENT, 2.0f);
 
-	GLfloat mat_ambient_2[] = { 0.3f, 0.3f, 0.3f, 1.0f };
-	GLfloat mat_diffuse_2[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-	GLfloat mat_specular_2[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-	//GLfloat mat_position_2[] = { 0.9f, -0.5f, 0.6f, 1.0f};	
-	//GLfloat mat_position_2[] = { -0.5f, 0.5f, 0.6f, 1.0f};	
-	GLfloat mat_position_2[] = { -8.5f, 9.0f, 3.0f, 1.0f };
+	//GLfloat mat_ambient_2[] = { 0.3f, 0.3f, 0.3f, 1.0f };
+	//GLfloat mat_diffuse_2[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	//GLfloat mat_specular_2[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	////GLfloat mat_position_2[] = { 0.9f, -0.5f, 0.6f, 1.0f};	
+	////GLfloat mat_position_2[] = { -0.5f, 0.5f, 0.6f, 1.0f};	
+	//GLfloat mat_position_2[] = { -8.5f, 9.0f, 3.0f, 1.0f };
 
-	glLightfv(GL_LIGHT2, GL_SPECULAR, mat_specular_2);
-	glLightfv(GL_LIGHT2, GL_POSITION, mat_position_2);
-	glLightfv(GL_LIGHT2, GL_DIFFUSE, mat_diffuse_2);
-	glLightfv(GL_LIGHT2, GL_AMBIENT, mat_ambient_2);
+	//glLightfv(GL_LIGHT2, GL_SPECULAR, mat_specular_2);
+	//glLightfv(GL_LIGHT2, GL_POSITION, mat_position_2);
+	//glLightfv(GL_LIGHT2, GL_DIFFUSE, mat_diffuse_2);
+	//glLightfv(GL_LIGHT2, GL_AMBIENT, mat_ambient_2);
 
 
 	glEnable(GL_LIGHTING);
@@ -1354,161 +1458,621 @@ void showInfo(/*std::stringstream &ss, int tWidth, int tHeight*/)
 
 void Robotdisplay(void)
 {
+	IntializeRobotLight();
+
 	glViewport(0, 0, width / 2, height);
 	glScissor(0, 0, width / 2, height);
+	// Draw Partition between viewports
+	glEnable(GL_SCISSOR_TEST);
+	glClearDepth(1.0);
+	glClearColor(0.9, 0.9, 0.9, 0.0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glOrtho(-15, 15, -15, 15, -15, 15);
-	glRotatef(rotate_, xr, yr, zr);
+	
+	
 	glMatrixMode(GL_MODELVIEW);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	
 	glLoadIdentity();
-	//glScalef(zoominout, zoominout, zoominout);
-	DrawGrid();
-	glColor3f(0.8, 0.4, 0.2);
-	traverse(&torso_node);
-
 	glPushMatrix();
-	glTranslatef(0.0, 1.0, 2.0);
-	glRotatef(-180, 0, 1, 0);
-	glRotatef(-180, 1, 0, 0);
-	drawCoordinate();
+		glColor3f(0.0, 0.0, 0.0);
+		glBegin(GL_LINES);
+			glVertex2f(15, -8);
+			glVertex2f(15, 15);
+		glEnd();
+		glColor3f(1.0, 1.0, 1.0);
 	glPopMatrix();
+	
+	glPushMatrix();
+		glRotatef(rotate_, xr, yr, zr);
+		glScalef(1.2, 1.2, 1.2);
+		glTranslatef(0, 3, 0);
+		DrawGrid();
+		glColor3f(0.8, 0.4, 0.2);
+		traverse(&torso_node);
 
-	showInfo();
+		glPushMatrix();
+			glTranslatef(0.0, 1.0, 2.0);
+			glRotatef(-180, 0, 1, 0);
+			glRotatef(-180, 1, 0, 0);
+			drawCoordinate();
+		glPopMatrix();
+	glPopMatrix();
+	//showInfo();
 
 }
 
-void drawTrajectorySphere(int index, float(&traj_b)[20014][4], float r, float g, float b)
+bool colorMatched(float r, float g, float b)
 {
+	float dis = sqrt((pointColor.r - r)*(pointColor.r - r) + (pointColor.g - g)*(pointColor.g - g) + (pointColor.b - b)*(pointColor.b - b));
+	//cout << dis << endl;
+	if (dis < 0.4)
+		return true;
+	else
+		return false;
+}
 
+void quatToAxisAngle(quaternion q, float &x, float &y, float &z, float &angle)
+{
+	float angle_rad = acos(q.mData[3]) * 2;
+	angle = angle_rad * 180 / PI;
+
+	x = q.mData[0] / sin(angle_rad / 2);
+	y = q.mData[1] / sin(angle_rad / 2);
+	z = q.mData[2] / sin(angle_rad / 2);
+}
+
+void axisToQuat(quaternion &q, float x, float y, float z, float angle)
+{
+	float angle_rad = angle * PI/180;
+	//angle = angle_rad * 180 / PI;
+	q.mData[3] = cos(angle_rad / 2);
+	q.mData[0] = x * sin(angle_rad / 2);
+	q.mData[1] = y * sin(angle_rad / 2);
+	q.mData[2] = z * sin(angle_rad / 2);
+}
+
+
+
+void drawTrajectorySphere(int index, float(&traj_b)[20014][4], float r, float g, float b, int sIndex, int boneID)
+{
+	float sphere_radius = 0.009;
+	
 	glColor3f(r, g, b);
 	float fnorm = sqrt(traj_b[index][1] * traj_b[index][1] + traj_b[index][2] * traj_b[index][2] + traj_b[index][3] * traj_b[index][3]);
 	glPushMatrix();
-	glTranslatef(1.011*traj_b[index][1] / fnorm, 1.011*traj_b[index][2] / fnorm, 1.011*traj_b[index][3] / fnorm);
-	glutSolidSphere(0.009, 30, 30);
+		glStencilFunc(GL_ALWAYS, sIndex, -1);
+		glTranslatef(1.011*traj_b[index][1] / fnorm, 1.011*traj_b[index][2] / fnorm, 1.011*traj_b[index][3] / fnorm);
+		glutSolidSphere(sphere_radius, 30, 30);
+		glStencilFunc(GL_ALWAYS, -1, -1);
+		if (stencilIndex == sIndex && colorMatched(r,g,b))
+		{
+			DrawSelectedCircle(0.01);
+			infoWindow.frameNo = sIndex - 1;
+			infoWindow.BoneID = boneID;
+			switch (boneID)
+			{
+				case 0: infoWindow.q0 = su.avatarData[sIndex - 1].b0.mData[3];
+						infoWindow.q1 = su.avatarData[sIndex - 1].b0.mData[0];
+						infoWindow.q2 = su.avatarData[sIndex - 1].b0.mData[1];
+						infoWindow.q3 = su.avatarData[sIndex - 1].b0.mData[2];
+						infoWindow.vx = traj_b[index][1] / fnorm;
+						infoWindow.vy = traj_b[index][2] / fnorm;
+						infoWindow.vz = traj_b[index][3] / fnorm;
+						quatToAxisAngle(su.avatarData[sIndex - 1].b0, infoWindow.ax, infoWindow.ay, infoWindow.az, infoWindow.angle);
+						break;
+
+				case 1: infoWindow.q0 = su.avatarData[sIndex - 1].b1.mData[3];
+						infoWindow.q1 = su.avatarData[sIndex - 1].b1.mData[0];
+						infoWindow.q2 = su.avatarData[sIndex - 1].b1.mData[1];
+						infoWindow.q3 = su.avatarData[sIndex - 1].b1.mData[2];
+						infoWindow.vx = traj_b[index][1] / fnorm;
+						infoWindow.vy = traj_b[index][2] / fnorm;
+						infoWindow.vz = traj_b[index][3] / fnorm;
+						quatToAxisAngle(su.avatarData[sIndex - 1].b1, infoWindow.ax, infoWindow.ay, infoWindow.az, infoWindow.angle);
+						break;
+
+				case 2: infoWindow.q0 = su.avatarData[sIndex - 1].b2.mData[3];
+						infoWindow.q1 = su.avatarData[sIndex - 1].b2.mData[0];
+						infoWindow.q2 = su.avatarData[sIndex - 1].b2.mData[1];
+						infoWindow.q3 = su.avatarData[sIndex - 1].b2.mData[2];
+						infoWindow.vx = traj_b[index][1] / fnorm;
+						infoWindow.vy = traj_b[index][2] / fnorm;
+						infoWindow.vz = traj_b[index][3] / fnorm;
+						quatToAxisAngle(su.avatarData[sIndex - 1].b2, infoWindow.ax, infoWindow.ay, infoWindow.az, infoWindow.angle);
+						break;
+
+				case 3: infoWindow.q0 = su.avatarData[sIndex - 1].b3.mData[3];
+						infoWindow.q1 = su.avatarData[sIndex - 1].b3.mData[0];
+						infoWindow.q2 = su.avatarData[sIndex - 1].b3.mData[1];
+						infoWindow.q3 = su.avatarData[sIndex - 1].b3.mData[2];
+						infoWindow.vx = traj_b[index][1] / fnorm;
+						infoWindow.vy = traj_b[index][2] / fnorm;
+						infoWindow.vz = traj_b[index][3] / fnorm;
+						quatToAxisAngle(su.avatarData[sIndex - 1].b3, infoWindow.ax, infoWindow.ay, infoWindow.az, infoWindow.angle);
+						break;
+
+				case 4: infoWindow.q0 = su.avatarData[sIndex - 1].b4.mData[3];
+						infoWindow.q1 = su.avatarData[sIndex - 1].b4.mData[0];
+						infoWindow.q2 = su.avatarData[sIndex - 1].b4.mData[1];
+						infoWindow.q3 = su.avatarData[sIndex - 1].b4.mData[2];
+						infoWindow.vx = traj_b[index][1] / fnorm;
+						infoWindow.vy = traj_b[index][2] / fnorm;
+						infoWindow.vz = traj_b[index][3] / fnorm;
+						quatToAxisAngle(su.avatarData[sIndex - 1].b4, infoWindow.ax, infoWindow.ay, infoWindow.az, infoWindow.angle);
+						break;
+
+				case 5: infoWindow.q0 = su.avatarData[sIndex - 1].b5.mData[3];
+						infoWindow.q1 = su.avatarData[sIndex - 1].b5.mData[0];
+						infoWindow.q2 = su.avatarData[sIndex - 1].b5.mData[1];
+						infoWindow.q3 = su.avatarData[sIndex - 1].b5.mData[2];
+						infoWindow.vx = traj_b[index][1] / fnorm;
+						infoWindow.vy = traj_b[index][2] / fnorm;
+						infoWindow.vz = traj_b[index][3] / fnorm;
+						quatToAxisAngle(su.avatarData[sIndex - 1].b5, infoWindow.ax, infoWindow.ay, infoWindow.az, infoWindow.angle);
+						break;
+
+				case 6: infoWindow.q0 = su.avatarData[sIndex - 1].b6.mData[3];
+						infoWindow.q1 = su.avatarData[sIndex - 1].b6.mData[0];
+						infoWindow.q2 = su.avatarData[sIndex - 1].b6.mData[1];
+						infoWindow.q3 = su.avatarData[sIndex - 1].b6.mData[2];
+						infoWindow.vx = traj_b[index][1] / fnorm;
+						infoWindow.vy = traj_b[index][2] / fnorm;
+						infoWindow.vz = traj_b[index][3] / fnorm;
+						quatToAxisAngle(su.avatarData[sIndex - 1].b6, infoWindow.ax, infoWindow.ay, infoWindow.az, infoWindow.angle);
+						break;
+
+				case 7: infoWindow.q0 = su.avatarData[sIndex - 1].b7.mData[3];
+						infoWindow.q1 = su.avatarData[sIndex - 1].b7.mData[0];
+						infoWindow.q2 = su.avatarData[sIndex - 1].b7.mData[1];
+						infoWindow.q3 = su.avatarData[sIndex - 1].b7.mData[2];
+						infoWindow.vx = traj_b[index][1] / fnorm;
+						infoWindow.vy = traj_b[index][2] / fnorm;
+						infoWindow.vz = traj_b[index][3] / fnorm;
+						quatToAxisAngle(su.avatarData[sIndex - 1].b7, infoWindow.ax, infoWindow.ay, infoWindow.az, infoWindow.angle);
+						break;
+
+				case 8: infoWindow.q0 = su.avatarData[sIndex - 1].b8.mData[3];
+						infoWindow.q1 = su.avatarData[sIndex - 1].b8.mData[0];
+						infoWindow.q2 = su.avatarData[sIndex - 1].b8.mData[1];
+						infoWindow.q3 = su.avatarData[sIndex - 1].b8.mData[2];
+						infoWindow.vx = traj_b[index][1] / fnorm;
+						infoWindow.vy = traj_b[index][2] / fnorm;
+						infoWindow.vz = traj_b[index][3] / fnorm;
+						quatToAxisAngle(su.avatarData[sIndex - 1].b8, infoWindow.ax, infoWindow.ay, infoWindow.az, infoWindow.angle);
+						break;
+
+				case 9: infoWindow.q0 = su.avatarData[sIndex - 1].b9.mData[3];
+						infoWindow.q1 = su.avatarData[sIndex - 1].b9.mData[0];
+						infoWindow.q2 = su.avatarData[sIndex - 1].b9.mData[1];
+						infoWindow.q3 = su.avatarData[sIndex - 1].b9.mData[2];
+						infoWindow.vx = traj_b[index][1] / fnorm;
+						infoWindow.vy = traj_b[index][2] / fnorm;
+						infoWindow.vz = traj_b[index][3] / fnorm;
+						quatToAxisAngle(su.avatarData[sIndex - 1].b0, infoWindow.ax, infoWindow.ay, infoWindow.az, infoWindow.angle);
+						break;
+
+
+			}
+			
+		}
+		
 	glPopMatrix();
+	
 }
 
+void drawTextBox(float x, float y, float r, float g, float b)
+{
+	glDisable(GL_LIGHTING);
+	glPushMatrix();
+	glTranslatef(x, y, 0);
+		glColor3f(r,g,b);
+		glBegin(GL_QUADS);
+		glVertex2f(0.1, 0.1);
+		glVertex2f(0.1, -0.2);
+		glVertex2f(-0.1, -0.2);
+		glVertex2f(-0.1, 0.1);
+	glEnd();
+	glColor3f(1.0, 1.0, 1.0);
+	glPopMatrix();
+	glEnable(GL_LIGHTING);
+}
+
+void EditWindow()
+{
+	glViewport(width / 2, 0, width / 2, height / 4);
+	glScissor(width / 2, 0, width / 2, height / 4);
+	glEnable(GL_SCISSOR_TEST);
+	glClearDepth(1.0);
+	glClearColor(0.78, 0.86, 0.94, 0.0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	// ------ Draw Boundry for Graph ------------- // 
+	glPushMatrix();
+		glColor3f(0.0, 0.0, 0.0);
+		glBegin(GL_LINES);
+
+			/*glVertex2f(-2, -1.5);
+			glVertex2f(-2, 2.5);*/
+
+			glVertex2f(-2, 2.5);
+			glVertex2f(2, 2.5);
+
+			glVertex2f(2, 2.5);
+			glVertex2f(2, -1.7);
+
+			glVertex2f(2, -1.7);
+			glVertex2f(-2, -1.7);
+		glEnd();
+		glColor3f(1.0, 1.0, 1.0);
+	glPopMatrix();
+	//-------------------- slider bar ---------------------------
+	glPushMatrix();
+		glColor3f(0.0, 0.0, 0.0);
+		glBegin(GL_LINES);
+			glVertex2f(1.7, 1.5);
+			glVertex2f(1.7, -0.5);
+		glEnd();
+		glColor3f(1.0, 1.0, 1.0);
+	glPopMatrix();
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrtho(-1, 1, -1, 1, -1, 10);
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	float tcolor[4] = { 1, 1, 1, 1 };
+	float lableColor[4] = { 0, 0, 0, 1 };
+	float pos[3];
+	std::stringstream ss;
+	ss << "Frame No.";
+	pos[0] = -0.8; pos[1] = 0.65; pos[2] = 0;
+	drawString3D(ss.str().c_str(), pos, lableColor, font);
+	drawTextBox(-0.7, 0.4, 0.333, 0.420, 0.184); // Frame No. - Dark Olive Green
+	ss.str("");
+	ss << infoWindow.frameNo;
+	pos[0] = -0.75; pos[1] = 0.28; pos[2] = 0;
+	drawString3D(ss.str().c_str(), pos, tcolor, font);
+
+	ss.str("");
+	ss << "Bone ID.";
+	pos[0] = -0.8; pos[1] = -0.15; pos[2] = 0;
+	drawString3D(ss.str().c_str(), pos, lableColor, font);
+	drawTextBox(-0.7, -0.4, 0.333, 0.420, 0.184); // Bone ID - Dark Olive Green
+	ss.str("");
+	ss << infoWindow.BoneID;
+	pos[0] = -0.75; pos[1] = -0.5; pos[2] = 0;
+	drawString3D(ss.str().c_str(), pos, tcolor, font);
+
+	ss.str("");
+	ss << "Selected Quaternion's Axis and angle";
+	pos[0] = -0.3; pos[1] = 0.8; pos[2] = 0;
+	drawString3D(ss.str().c_str(), pos, lableColor, font);
+
+	ss.str("");
+	ss << "Angle";
+	pos[0] = -0.35; pos[1] = 0.53; pos[2] = 0;
+	drawString3D(ss.str().c_str(), pos, lableColor, font);
+	drawTextBox(-0.3, 0.4, 0.000, 0.000, 0.000); // Angle - black
+	ss.str("");
+	ss << std::setprecision(2) << infoWindow.angle;
+	pos[0] = -0.35; pos[1] = 0.3; pos[2] = 0;
+	drawString3D(ss.str().c_str(), pos, tcolor, font);
+
+	ss.str("");
+	ss << "X";
+	pos[0] = -0.0; pos[1] = 0.53; pos[2] = 0;
+	drawString3D(ss.str().c_str(), pos, lableColor, font);
+	drawTextBox(-0.0, 0.4, 1, 0, 0); // X - red
+	ss.str("");
+	ss << std::setprecision(2) << infoWindow.ax;
+	pos[0] = -0.1; pos[1] = 0.3; pos[2] = 0;
+	drawString3D(ss.str().c_str(), pos, tcolor, font);
+
+	ss.str("");
+	ss << "Y";
+	pos[0] = 0.22; pos[1] = 0.53; pos[2] = 0;
+	drawString3D(ss.str().c_str(), pos, lableColor, font);
+	drawTextBox(0.25, 0.4, 0, 1, 0); // Y - Green
+	ss.str("");
+	ss << std::setprecision(2) << infoWindow.ay;
+	pos[0] = 0.17; pos[1] = 0.3; pos[2] = 0;
+	drawString3D(ss.str().c_str(), pos, tcolor, font);
+	
+	ss.str("");
+	ss << "Z";
+	pos[0] = 0.5; pos[1] = 0.53; pos[2] = 0;
+	drawString3D(ss.str().c_str(), pos, lableColor, font);
+	drawTextBox(0.5, 0.4, 0, 0, 1); // Z - Blue
+	ss.str("");
+	ss << std::setprecision(2) << infoWindow.az;
+	pos[0] = 0.45; pos[1] = 0.3; pos[2] = 0;
+	drawString3D(ss.str().c_str(), pos, tcolor, font);
+
+
+	ss.str("");
+	ss << "Quat {w,x,y,z}: ";
+	ss << std::setprecision(2) << "{ " << infoWindow.q0 << ", " << infoWindow.q1 << ", " << infoWindow.q2 << ", " << infoWindow.q3 << "  }";
+	pos[0] = -0.4; pos[1] = -0.15; pos[2] = 0;
+	drawString3D(ss.str().c_str(), pos, lableColor, font);
+
+	ss.str("");
+	ss << "Point {x,y,z}: ";
+	ss << std::setprecision(2) <<"{ "<< infoWindow.vx << ", " << infoWindow.vy << ", " << infoWindow.vz << " }";
+	pos[0] = -0.4; pos[1] = -0.55; pos[2] = 0;
+	drawString3D(ss.str().c_str(), pos, lableColor, font);
+	//drawTextBox(0.0, -0.4, 1, 0, 0); // Vector X - red
+	//ss.str("");
+	//ss << "Y";
+	//pos[0] = 0.25; pos[1] = -0.28; pos[2] = 0;
+	//drawString3D(ss.str().c_str(), pos, tcolor, font);
+	//drawTextBox(0.25, -0.4, 0, 1, 0); // Vector Y - green
+	//ss.str("");
+	//ss << "Z";
+	//pos[0] = 0.5; pos[1] = -0.28; pos[2] = 0;
+	//drawString3D(ss.str().c_str(), pos, tcolor, font);
+	//drawTextBox(0.5, -0.4, 0, 0, 1); // Vector Z - blue
+	//-------------------- slider bar ---------------------------
+	glDisable(GL_LIGHTING);
+	glPushMatrix();
+	glTranslatef(0.85, infoWindow.sliderVal, 0);
+		glColor3f(0.196, 0.804, 0.196);
+		glBegin(GL_QUADS);
+		glVertex2f(0.05, 0.1);
+		glVertex2f(0.05, -0.1);
+		glVertex2f(-0.05, -0.1);
+		glVertex2f(-0.05, 0.1);
+	glEnd();
+	glColor3f(1.0, 1.0, 1.0);
+	glPopMatrix();
+	glEnable(GL_LIGHTING);
+}
+void showInformation()
+{
+	glViewport(0, 0, width / 2, height / 4);
+	glScissor(0, 0, width / 2, height / 4);
+	glEnable(GL_SCISSOR_TEST);
+	glClearDepth(1.0);
+	glClearColor(0.78, 0.86, 0.94, 0.0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	// ------ Draw Boundry for Show Information ------------- // 
+	glPushMatrix();
+		glColor3f(0.0, 0.0, 0.0);
+		glBegin(GL_LINES);
+			glVertex2f(-2, -1.7);
+			glVertex2f(-2, 2.5);
+
+			glVertex2f(-2, 2.5);
+			glVertex2f(2, 2.5);
+
+			glVertex2f(2, 2.5);
+			glVertex2f(2, -1.7);
+
+			glVertex2f(2, -1.7);
+			glVertex2f(-2, -1.7);
+		glEnd();
+		glColor3f(1.0, 1.0, 1.0);
+	glPopMatrix();
+	//-----------------------Show information------------------------//
+	float tcolor[4] = { 1, 1, 1, 1 };
+	float lableColor[4] = { 0, 0, 0, 1 };
+	float lableColor1[4] = { 0.2, 0.2, 1, 1 };
+	float pos[3];
+	std::stringstream ss;
+	ss << "Unit Motion";
+	pos[0] = -1.3; pos[1] = 1.45; pos[2] = 0;
+	drawString3D(ss.str().c_str(), pos, lableColor1, font);
+	
+	ss.str("");
+	ss << "1." << infoWindow.um1;
+	pos[0] = -1.85; pos[1] = 1.0; pos[2] = 0;
+	drawString3D(ss.str().c_str(), pos, lableColor, font);
+
+	ss.str("");
+	ss << "2." << infoWindow.um2;
+	pos[0] = -1.85; pos[1] = 0.5; pos[2] = 0;
+	drawString3D(ss.str().c_str(), pos, lableColor, font);
+	
+	ss.str("");
+	ss << "3." << infoWindow.um3;
+	pos[0] = -1.85; pos[1] = 0.0; pos[2] = 0;
+	drawString3D(ss.str().c_str(), pos, lableColor, font);
+
+	ss.str("");
+	ss << "4." << infoWindow.um4;
+	pos[0] = -1.85; pos[1] = -0.5; pos[2] = 0;
+	drawString3D(ss.str().c_str(), pos, lableColor, font);
+
+	ss.str("");
+	ss << "5." << infoWindow.um5;
+	pos[0] = -0.85; pos[1] = 1.0; pos[2] = 0;
+	drawString3D(ss.str().c_str(), pos, lableColor, font);
+
+	ss.str("");
+	ss << "6." << infoWindow.um6;
+	pos[0] = -0.85; pos[1] = 0.5; pos[2] = 0;
+	drawString3D(ss.str().c_str(), pos, lableColor, font);
+
+	ss.str("");
+	ss << "7." << infoWindow.um7;
+	pos[0] = -0.85; pos[1] = 0.0; pos[2] = 0;
+	drawString3D(ss.str().c_str(), pos, lableColor, font);
+
+	ss.str("");
+	ss << "8." << infoWindow.um8;
+	pos[0] = -0.85; pos[1] = -0.5; pos[2] = 0;
+	drawString3D(ss.str().c_str(), pos, lableColor, font);
+
+	ss.str("");
+	ss << "Modular Sensing";
+	pos[0] = -0.3; pos[1] = 1.95; pos[2] = 0;
+	drawString3D(ss.str().c_str(), pos, lableColor1, font);
+
+	ss.str("");
+	ss << infoWindow.motionType;
+	pos[0] = 0.5; pos[1] = 0.53; pos[2] = 0;
+	drawString3D(ss.str().c_str(), pos, lableColor1, font);
+	
+	ss.str("");
+	ss <<  infoWindow.fm1;
+	pos[0] = 0.55; pos[1] = 0.0; pos[2] = 0;
+	drawString3D(ss.str().c_str(), pos, lableColor, font);
+
+	ss.str("");
+	ss << infoWindow.fm2;
+	pos[0] = 0.55; pos[1] = -0.5; pos[2] = 0;
+	drawString3D(ss.str().c_str(), pos, lableColor, font);
+
+}
 void drawTrajectory(void)
 {
 	InitializeLight();
 
-	glViewport(width / 2, 0, width / 2, height);
-	glScissor(width / 2, 0, width / 2, height);
+	glViewport(width / 2, height /4, width/2, height);
+	glScissor(width / 2, height / 4, width/2, height);
+	// ------ Draw Boundry for Show Information ------------- // 
+	glEnable(GL_SCISSOR_TEST);
+	glClearDepth(1.0);
+	glClearColor(0.9, 0.9, 0.9, 0.0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glOrtho(-2, 2, -2, 2, -1, 10);
+	glOrtho(-2, 2, -1.7, 2.5, -2, 10);
 
 	glMatrixMode(GL_MODELVIEW);
-
+	glClearColor(1.000, 0.753, 0.796, 1);
 	glPushMatrix();
-	glLoadIdentity();
-	gluLookAt(
-		pointTranslateX, pointTranslateY, pointTranslateZ,
-		0.0f, 0.0f, 0.0f,
-		0.0f, 1.0f, 0.0f
-	);
+		glLoadIdentity();
+		gluLookAt(
+			pointTranslateX, pointTranslateY, pointTranslateZ,
+			0.0f, 0.0f, 0.0f,
+			0.0f, 1.0f, 0.0f
+		);
 
-	glScalef(zval - 2.5, zval - 2.5, zval - 2.5);
+		glScalef(zval - 2.5, zval - 2.5, zval - 2.5);
 
+		glDisable(GL_LIGHT1);
+		glLineWidth(2.0);
+		glColor3f(1.0, 1.0, 1.0);
+		glBindTexture(GL_TEXTURE_2D, texture_id[0]);
+		glRotatef(-180, 0, 1, 0);
+		glRotatef(-90, 1, 0, 0);
+		//glTranslatef(0, -5, 0);
+		gluSphere(sphere, 1.0, 50, 50);
+		glDisable(GL_TEXTURE_2D);
+	
+		glEnable(GL_LIGHT1);
+		drawcenterCoordinate();
+		//float r = 1, g = 0, b = 0;
 
-	glLineWidth(2.0);
-	glColor3f(1.0, 1.0, 1.0);
-	glBindTexture(GL_TEXTURE_2D, texture_id[0]);
-	glRotatef(-180, 0, 1, 0);
-	glRotatef(-90, 1, 0, 0);
-	gluSphere(sphere, 1.0, 50, 50);
-	glDisable(GL_TEXTURE_2D);
-	drawcenterCoordinate();
-	float r = 1, g = 0, b = 0;
-
-	int j = 0;
-	for (int i = 0; i < trajCount; i++)
-	{
-		drawTrajectorySphere(i, traj_b0, 0.0, 0.0, 0.0); //black
-		drawTrajectorySphere(i, traj_b1, 1.0, 0.0, 0.0); //red
-		drawTrajectorySphere(i, traj_b2, 1.0, 0.5, 0.0); //orange
-		drawTrajectorySphere(i, traj_b3, 1.0, 1.0, 0.0); //Yellow
-		drawTrajectorySphere(i, traj_b4, 0.0, 1.0, 0.0); //Bright green
-		drawTrajectorySphere(i, traj_b5, 0.0, 1.0, 1.0); //Cyan
-		drawTrajectorySphere(i, traj_b6, 0.0, 0.0, 1.0); //Blue
-		drawTrajectorySphere(i, traj_b7, 0.5, 0.0, 1.0); //Voilet
-		drawTrajectorySphere(i, traj_b8, 1.0, 0.0, 1.0); //Magenta
-		drawTrajectorySphere(i, traj_b9, 0.4, 0.5, 0.8); //Indigo		
-	}
-
-	for (int i = 0; i < dbCount; i++)
-	{
-		glColor3f(1, 0, 1);
-
-		float fnorm = sqrt(uDB_data[i][1] * uDB_data[i][1] + uDB_data[i][2] * uDB_data[i][2] + uDB_data[i][3] * uDB_data[i][3]);
-		glPushMatrix();
-		glTranslatef(1.011*uDB_data[i][1] / fnorm, 1.011*uDB_data[i][2] / fnorm, 1.011*uDB_data[i][3] / fnorm);
-		glutSolidSphere(0.009, 30, 30);
-
-		glPopMatrix();
-
-		glPushMatrix();
-		glColor3f(1, 0.4, 0);
-
-		fnorm = sqrt(lDB_data[i][1] * lDB_data[i][1] + lDB_data[i][2] * lDB_data[i][2] + lDB_data[i][3] * lDB_data[i][3]);
-		glTranslatef(1.011*lDB_data[i][1] / fnorm, 1.011*lDB_data[i][2] / fnorm, 1.011*lDB_data[i][3] / fnorm);
-		glutSolidSphere(0.009, 30, 30);
-
-		glPopMatrix();
-	}
-	for (int i = 0; i < dbCount; i++)
-	{
-
-		glDisable(GL_LIGHTING);
-
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-		glEnable(GL_CULL_FACE);
-
-		glColor4f(0.13, 0.54, 0.13, 0.3);
-		glPushMatrix();
-		float fnorm = sqrt(lDB_data[i][1] * lDB_data[i][1] + lDB_data[i][2] * lDB_data[i][2] + lDB_data[i][3] * lDB_data[i][3]);
-		if (i > 1 && i <= 49)
-			renderCylinder_convenient(lDB_data[i - 1][1] / fnorm, lDB_data[i - 1][2] / fnorm, lDB_data[i - 1][3] / fnorm, lDB_data[i][1] / fnorm, lDB_data[i][2] / fnorm, lDB_data[i][3] / fnorm, 0.15, 30);
-
-		if (i == 1 || i == 50)
+		int j = 0;
+		for (int i = 0; i < trajCount; i++)
 		{
-			glTranslatef(1.011*lDB_data[i][1] / fnorm, 1.011*lDB_data[i][2] / fnorm, 1.011*lDB_data[i][3] / fnorm);
-			glutSolidSphere(0.15, 30, 30);
+			//glStencilFunc(GL_ALWAYS, trajCount, -1);
+			drawTrajectorySphere(i, traj_b0, 0.0, 0.0, 0.0, i + 1, 0); //black
+			//glStencilFunc(GL_ALWAYS, 1000 + trajCount, -1);
+			drawTrajectorySphere(i, traj_b1, 1.0, 0.0, 0.0, i + 1, 1); //red
+			//glStencilFunc(GL_ALWAYS, 2000 + trajCount, -1);
+			drawTrajectorySphere(i, traj_b2, 1.0, 0.5, 0.0, i + 1, 2); //orange
+			//glStencilFunc(GL_ALWAYS, 3000 + trajCount, -1);
+			drawTrajectorySphere(i, traj_b3, 1.0, 1.0, 0.0,  i + 1, 3); //Yellow
+			//glStencilFunc(GL_ALWAYS, 4000 + trajCount, -1);
+			drawTrajectorySphere(i, traj_b4, 0.0, 1.0, 0.0, i + 1, 4); //Bright green
+			//glStencilFunc(GL_ALWAYS, 5000 + trajCount, -1);
+			drawTrajectorySphere(i, traj_b5, 0.0, 1.0, 1.0, i + 1, 5); //Cyan
+			//glStencilFunc(GL_ALWAYS, 6000 + trajCount, -1);
+			drawTrajectorySphere(i, traj_b6, 0.0, 0.0, 1.0, i + 1, 6); //Blue
+			//glStencilFunc(GL_ALWAYS, 7000 + trajCount, -1);
+			drawTrajectorySphere(i, traj_b7, 0.5, 0.0, 1.0, i + 1, 7); //Voilet
+			//glStencilFunc(GL_ALWAYS, 8000 + trajCount, -1);
+			drawTrajectorySphere(i, traj_b8, 1.0, 0.0, 1.0, i + 1, 8); //Magenta
+			//glStencilFunc(GL_ALWAYS, 9000 + trajCount, -1);
+			drawTrajectorySphere(i, traj_b9, 0.4, 0.5, 0.8, i + 1, 9); //Indigo		
 		}
-		glPopMatrix();
+	
+		for (int i = 0; i < dbCount; i++)
+		{
+			glColor3f(1, 0, 1);
 
-		glDisable(GL_BLEND);
-		glDisable(GL_CULL_FACE);
-		glEnable(GL_LIGHTING);
+			float fnorm = sqrt(uDB_data[i][1] * uDB_data[i][1] + uDB_data[i][2] * uDB_data[i][2] + uDB_data[i][3] * uDB_data[i][3]);
+			glPushMatrix();
+			glTranslatef(1.011*uDB_data[i][1] / fnorm, 1.011*uDB_data[i][2] / fnorm, 1.011*uDB_data[i][3] / fnorm);
+			glutSolidSphere(0.009, 30, 30);
 
-	}
+			glPopMatrix();
+
+			glPushMatrix();
+			glColor3f(1, 0.4, 0);
+
+			fnorm = sqrt(lDB_data[i][1] * lDB_data[i][1] + lDB_data[i][2] * lDB_data[i][2] + lDB_data[i][3] * lDB_data[i][3]);
+			glTranslatef(1.011*lDB_data[i][1] / fnorm, 1.011*lDB_data[i][2] / fnorm, 1.011*lDB_data[i][3] / fnorm);
+			glutSolidSphere(0.009, 30, 30);
+
+			glPopMatrix();
+		}
+
+		for (int i = 0; i < dbCount; i++)
+		{
+
+			glDisable(GL_LIGHTING);
+
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+			glEnable(GL_CULL_FACE);
+
+			glColor4f(0.13, 0.54, 0.13, 0.3);
+			glPushMatrix();
+			float fnorm = sqrt(lDB_data[i][1] * lDB_data[i][1] + lDB_data[i][2] * lDB_data[i][2] + lDB_data[i][3] * lDB_data[i][3]);
+			if (i > 1 && i <= 49)
+				renderCylinder_convenient(lDB_data[i - 1][1] / fnorm, lDB_data[i - 1][2] / fnorm, lDB_data[i - 1][3] / fnorm, lDB_data[i][1] / fnorm, lDB_data[i][2] / fnorm, lDB_data[i][3] / fnorm, 0.15, 30);
+
+			if (i == 1 || i == 50)
+			{
+				glTranslatef(1.011*lDB_data[i][1] / fnorm, 1.011*lDB_data[i][2] / fnorm, 1.011*lDB_data[i][3] / fnorm);
+				glutSolidSphere(0.15, 30, 30);
+			}
+			glPopMatrix();
+
+			glDisable(GL_BLEND);
+			glDisable(GL_CULL_FACE);
+			glEnable(GL_LIGHTING);
+
+		}
 	glPopMatrix();
 
 }
 
 void Display(void)
 {
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClearStencil(0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	glEnable(GL_POLYGON_SMOOTH);
-
+	glEnable(GL_STENCIL_TEST);
+	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 	/*char pcResult[250] = 'Hello';
 	sprintf(charstring, "PC : %d ", pcResult);
 	drawText(charstring, 10, 80);*/
 	glDisable(GL_TEXTURE_2D);
+	//glEnable(GL_POLYGON_SMOOTH);
+	//glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+	/*glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);*/
+	glStencilFunc(GL_ALWAYS, -1, -1);
+	//glEnable(GL_CULL_FACE);
 	Robotdisplay();
+	glDisable(GL_BLEND);
 	glEnable(GL_TEXTURE_2D);
-	//glDisable(GL_COLOR_MATERIAL);
+	glDisable(GL_LIGHT0);
 	drawTrajectory();
 	//glEnable(GL_COLOR_MATERIAL);
 	/*fourSphere();
 	TextDispaly();*/
-
+	showInformation();
+	EditWindow();
+	
 	glFlush();
 	glutSwapBuffers();
 }
@@ -1547,7 +2111,7 @@ void matchDBTrajectory(char * Ufile, char * Lfile)
 	}
 }
 
-void writeData()
+void writeData(int writeType)
 {
 	time_t curr_time;
 	curr_time = time(NULL);
@@ -1555,38 +2119,47 @@ void writeData()
 
 	ofstream avatarDataFile;
 
-	sprintf_s(fileName, "CData\\AvatarData-00%d-%d%d%d.txt", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
-	avatarDataFile.open(fileName);
 
-	if (subOption == 1) 
+	if (writeType == 0)
 	{
-		avatarDataFile << "FULLBODY\t" << 1 << "\n" << "Frames:" << "\t" << trajCount << "\n";
+		sprintf_s(fileName, "CData\\AvatarData-00%d-%d%d%d.txt", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
+		avatarDataFile.open(fileName);
+	}
+	else
+	{
+		sprintf_s(fileName, "Load\\FormFile.txt");
+		avatarDataFile.open(fileName);
 	}
 
-	if (subOption == 2)
+	if (su.subOption == 1)
 	{
-		avatarDataFile << "UPPERBODY\t" << 2 << "\n" << "Frames:" << "\t" << trajCount << "\n";
+		avatarDataFile << "FULLBODY\t" << 1 << "\n" << "Frames:" << "\t" << su.noOfFrames << "\n";
 	}
 
-	if (subOption == 3)
+	if (su.subOption == 2)
 	{
-		avatarDataFile << "LOWERBODY\t" << 3 << "\n" << "Frames:" << "\t" << trajCount << "\n";
+		avatarDataFile << "UPPERBODY\t" << 2 << "\n" << "Frames:" << "\t" << su.noOfFrames << "\n";
 	}
 
-		for (int tCount = 0; tCount < trajCount; tCount++)
-		{
-			avatarDataFile << avatarData[tCount].b0.mData[3] << "\t" << avatarData[tCount].b0.mData[0] << "\t" << avatarData[tCount].b0.mData[1] << "\t" << avatarData[tCount].b0.mData[2] << "\t"
-				<< avatarData[tCount].b1.mData[3] << "\t" << avatarData[tCount].b1.mData[0] << "\t" << avatarData[tCount].b1.mData[1] << "\t" << avatarData[tCount].b1.mData[2] << "\t"
-				<< avatarData[tCount].b2.mData[3] << "\t" << avatarData[tCount].b2.mData[0] << "\t" << avatarData[tCount].b2.mData[1] << "\t" << avatarData[tCount].b2.mData[2] << "\t"
-				<< avatarData[tCount].b3.mData[3] << "\t" << avatarData[tCount].b3.mData[0] << "\t" << avatarData[tCount].b3.mData[1] << "\t" << avatarData[tCount].b3.mData[2] << "\t"
-				<< avatarData[tCount].b4.mData[3] << "\t" << avatarData[tCount].b4.mData[0] << "\t" << avatarData[tCount].b4.mData[1] << "\t" << avatarData[tCount].b4.mData[2] << "\t"
-				<< avatarData[tCount].b5.mData[3] << "\t" << avatarData[tCount].b5.mData[0] << "\t" << avatarData[tCount].b5.mData[1] << "\t" << avatarData[tCount].b5.mData[2] << "\t"
-				<< avatarData[tCount].b6.mData[3] << "\t" << avatarData[tCount].b6.mData[0] << "\t" << avatarData[tCount].b6.mData[1] << "\t" << avatarData[tCount].b6.mData[2] << "\t"
-				<< avatarData[tCount].b7.mData[3] << "\t" << avatarData[tCount].b7.mData[0] << "\t" << avatarData[tCount].b7.mData[1] << "\t" << avatarData[tCount].b7.mData[2] << "\t"
-				<< avatarData[tCount].b8.mData[3] << "\t" << avatarData[tCount].b8.mData[0] << "\t" << avatarData[tCount].b8.mData[1] << "\t" << avatarData[tCount].b8.mData[2] << "\t"
-				<< avatarData[tCount].b9.mData[3] << "\t" << avatarData[tCount].b9.mData[0] << "\t" << avatarData[tCount].b9.mData[1] << "\t" << avatarData[tCount].b9.mData[2] << "\n";
-		}
-	
+	if (su.subOption == 3)
+	{
+		avatarDataFile << "LOWERBODY\t" << 3 << "\n" << "Frames:" << "\t" << su.noOfFrames << "\n";
+	}
+
+	for (int tCount = 0; tCount < su.noOfFrames; tCount++)
+	{
+		avatarDataFile << su.avatarData[tCount].b0.mData[3] << "\t" << su.avatarData[tCount].b0.mData[0] << "\t" << su.avatarData[tCount].b0.mData[1] << "\t" << su.avatarData[tCount].b0.mData[2] << "\t"
+			<< su.avatarData[tCount].b1.mData[3] << "\t" << su.avatarData[tCount].b1.mData[0] << "\t" << su.avatarData[tCount].b1.mData[1] << "\t" << su.avatarData[tCount].b1.mData[2] << "\t"
+			<< su.avatarData[tCount].b2.mData[3] << "\t" << su.avatarData[tCount].b2.mData[0] << "\t" << su.avatarData[tCount].b2.mData[1] << "\t" << su.avatarData[tCount].b2.mData[2] << "\t"
+			<< su.avatarData[tCount].b3.mData[3] << "\t" << su.avatarData[tCount].b3.mData[0] << "\t" << su.avatarData[tCount].b3.mData[1] << "\t" << su.avatarData[tCount].b3.mData[2] << "\t"
+			<< su.avatarData[tCount].b4.mData[3] << "\t" << su.avatarData[tCount].b4.mData[0] << "\t" << su.avatarData[tCount].b4.mData[1] << "\t" << su.avatarData[tCount].b4.mData[2] << "\t"
+			<< su.avatarData[tCount].b5.mData[3] << "\t" << su.avatarData[tCount].b5.mData[0] << "\t" << su.avatarData[tCount].b5.mData[1] << "\t" << su.avatarData[tCount].b5.mData[2] << "\t"
+			<< su.avatarData[tCount].b6.mData[3] << "\t" << su.avatarData[tCount].b6.mData[0] << "\t" << su.avatarData[tCount].b6.mData[1] << "\t" << su.avatarData[tCount].b6.mData[2] << "\t"
+			<< su.avatarData[tCount].b7.mData[3] << "\t" << su.avatarData[tCount].b7.mData[0] << "\t" << su.avatarData[tCount].b7.mData[1] << "\t" << su.avatarData[tCount].b7.mData[2] << "\t"
+			<< su.avatarData[tCount].b8.mData[3] << "\t" << su.avatarData[tCount].b8.mData[0] << "\t" << su.avatarData[tCount].b8.mData[1] << "\t" << su.avatarData[tCount].b8.mData[2] << "\t"
+			<< su.avatarData[tCount].b9.mData[3] << "\t" << su.avatarData[tCount].b9.mData[0] << "\t" << su.avatarData[tCount].b9.mData[1] << "\t" << su.avatarData[tCount].b9.mData[2] << "\n";
+	}
+
 	avatarDataFile.close();
 
 	fileCount++;
@@ -1595,93 +2168,93 @@ void writeData()
 
 void writeAvatarData(int tCount)
 {
-	avatarData[tCount].b0 = avatar.b0;
-	avatarData[tCount].b1 = avatar.b1;
-	avatarData[tCount].b2 = avatar.b2;
-	avatarData[tCount].b3 = avatar.b3;
-	avatarData[tCount].b4 = avatar.b4;
-	avatarData[tCount].b5 = avatar.b5;
-	avatarData[tCount].b6 = avatar.b6;
-	avatarData[tCount].b7 = avatar.b7;
-	avatarData[tCount].b8 = avatar.b8;
-	avatarData[tCount].b9 = avatar.b9;
+	su.avatarData[tCount].b0 = avatar.b0;
+	su.avatarData[tCount].b1 = avatar.b1;
+	su.avatarData[tCount].b2 = avatar.b2;
+	su.avatarData[tCount].b3 = avatar.b3;
+	su.avatarData[tCount].b4 = avatar.b4;
+	su.avatarData[tCount].b5 = avatar.b5;
+	su.avatarData[tCount].b6 = avatar.b6;
+	su.avatarData[tCount].b7 = avatar.b7;
+	su.avatarData[tCount].b8 = avatar.b8;
+	su.avatarData[tCount].b9 = avatar.b9;
 }
 
-void readAvatarData()
-{
-	int count = 0;
-	int tCount = 0;
-
-	std::ifstream _filestream("./Load/FormFile.txt");
-	std::string _line;
-	int _option;
-	std::string _dummy;
-	int lineCount = 0;
-
-	while (std::getline(_filestream, _line))
-	{
-		std::stringstream _linestream;
-		_linestream << _line;
-		if (count == 0)
-		{
-			_linestream >> _line >> _option; subOption = _option;  count++; continue;
-		}
-
-		if (count == 1)
-		{
-			_linestream >> _line >> tCount; dsize = tCount;  count++; continue;
-		}
-
-		switch (_option)
-		{
-		case 1:
-		case 2:
-		case 3:
-
-			_linestream
-				>> avatarData[lineCount].b0.mData[3] >> avatarData[lineCount].b0.mData[0] >> avatarData[lineCount].b0.mData[1] >> avatarData[lineCount].b0.mData[2]
-				>> avatarData[lineCount].b1.mData[3] >> avatarData[lineCount].b1.mData[0] >> avatarData[lineCount].b1.mData[1] >> avatarData[lineCount].b1.mData[2]
-				>> avatarData[lineCount].b2.mData[3] >> avatarData[lineCount].b2.mData[0] >> avatarData[lineCount].b2.mData[1] >> avatarData[lineCount].b2.mData[2]
-				>> avatarData[lineCount].b3.mData[3] >> avatarData[lineCount].b3.mData[0] >> avatarData[lineCount].b3.mData[1] >> avatarData[lineCount].b3.mData[2]
-				>> avatarData[lineCount].b4.mData[3] >> avatarData[lineCount].b4.mData[0] >> avatarData[lineCount].b4.mData[1] >> avatarData[lineCount].b4.mData[2]
-				>> avatarData[lineCount].b5.mData[3] >> avatarData[lineCount].b5.mData[0] >> avatarData[lineCount].b5.mData[1] >> avatarData[lineCount].b5.mData[2]
-				>> avatarData[lineCount].b6.mData[3] >> avatarData[lineCount].b6.mData[0] >> avatarData[lineCount].b6.mData[1] >> avatarData[lineCount].b6.mData[2]
-				>> avatarData[lineCount].b7.mData[3] >> avatarData[lineCount].b7.mData[0] >> avatarData[lineCount].b7.mData[1] >> avatarData[lineCount].b7.mData[2]
-				>> avatarData[lineCount].b8.mData[3] >> avatarData[lineCount].b8.mData[0] >> avatarData[lineCount].b8.mData[1] >> avatarData[lineCount].b8.mData[2]
-				>> avatarData[lineCount].b9.mData[3] >> avatarData[lineCount].b9.mData[0] >> avatarData[lineCount].b9.mData[1] >> avatarData[lineCount].b9.mData[2];
-
-			lineCount++;
-			break;
-
-		/*case 2:
-
-			_linestream
-				>> avatarData[lineCount].b0.mData[3] >> avatarData[lineCount].b0.mData[0] >> avatarData[lineCount].b0.mData[1] >> avatarData[lineCount].b0.mData[2]
-				>> avatarData[lineCount].b2.mData[3] >> avatarData[lineCount].b2.mData[0] >> avatarData[lineCount].b2.mData[1] >> avatarData[lineCount].b2.mData[2]
-				>> avatarData[lineCount].b3.mData[3] >> avatarData[lineCount].b3.mData[0] >> avatarData[lineCount].b3.mData[1] >> avatarData[lineCount].b3.mData[2]
-				>> avatarData[lineCount].b4.mData[3] >> avatarData[lineCount].b4.mData[0] >> avatarData[lineCount].b4.mData[1] >> avatarData[lineCount].b4.mData[2]
-				>> avatarData[lineCount].b5.mData[3] >> avatarData[lineCount].b5.mData[0] >> avatarData[lineCount].b5.mData[1] >> avatarData[lineCount].b5.mData[2];
-			lineCount++;
-			break;
-
-		case 3:
-
-			_linestream
-				>> avatarData[lineCount].b0.mData[3] >> avatarData[lineCount].b0.mData[0] >> avatarData[lineCount].b0.mData[1] >> avatarData[lineCount].b0.mData[2]
-				>> avatarData[lineCount].b6.mData[3] >> avatarData[lineCount].b6.mData[0] >> avatarData[lineCount].b6.mData[1] >> avatarData[lineCount].b6.mData[2]
-				>> avatarData[lineCount].b7.mData[3] >> avatarData[lineCount].b7.mData[0] >> avatarData[lineCount].b7.mData[1] >> avatarData[lineCount].b7.mData[2]
-				>> avatarData[lineCount].b8.mData[3] >> avatarData[lineCount].b8.mData[0] >> avatarData[lineCount].b8.mData[1] >> avatarData[lineCount].b8.mData[2]
-				>> avatarData[lineCount].b9.mData[3] >> avatarData[lineCount].b9.mData[0] >> avatarData[lineCount].b9.mData[1] >> avatarData[lineCount].b9.mData[2];
-
-			lineCount++;
-			break;*/
-
-		default:
-			break;
-
-		}
-	}
-}
+//void readAvatarData()
+//{
+//	int count = 0;
+//	int tCount = 0;
+//
+//	std::ifstream _filestream("./Load/FormFile.txt");
+//	std::string _line;
+//	int _option;
+//	std::string _dummy;
+//	int lineCount = 0;
+//
+//	while (std::getline(_filestream, _line))
+//	{
+//		std::stringstream _linestream;
+//		_linestream << _line;
+//		if (count == 0)
+//		{
+//			_linestream >> _line >> _option; subOption = _option;  count++; continue;
+//		}
+//
+//		if (count == 1)
+//		{
+//			_linestream >> _line >> tCount; dsize = tCount;  count++; continue;
+//		}
+//
+//		switch (_option)
+//		{
+//		case 1:
+//		case 2:
+//		case 3:
+//
+//			_linestream
+//				>> avatarData[lineCount].b0.mData[3] >> avatarData[lineCount].b0.mData[0] >> avatarData[lineCount].b0.mData[1] >> avatarData[lineCount].b0.mData[2]
+//				>> avatarData[lineCount].b1.mData[3] >> avatarData[lineCount].b1.mData[0] >> avatarData[lineCount].b1.mData[1] >> avatarData[lineCount].b1.mData[2]
+//				>> avatarData[lineCount].b2.mData[3] >> avatarData[lineCount].b2.mData[0] >> avatarData[lineCount].b2.mData[1] >> avatarData[lineCount].b2.mData[2]
+//				>> avatarData[lineCount].b3.mData[3] >> avatarData[lineCount].b3.mData[0] >> avatarData[lineCount].b3.mData[1] >> avatarData[lineCount].b3.mData[2]
+//				>> avatarData[lineCount].b4.mData[3] >> avatarData[lineCount].b4.mData[0] >> avatarData[lineCount].b4.mData[1] >> avatarData[lineCount].b4.mData[2]
+//				>> avatarData[lineCount].b5.mData[3] >> avatarData[lineCount].b5.mData[0] >> avatarData[lineCount].b5.mData[1] >> avatarData[lineCount].b5.mData[2]
+//				>> avatarData[lineCount].b6.mData[3] >> avatarData[lineCount].b6.mData[0] >> avatarData[lineCount].b6.mData[1] >> avatarData[lineCount].b6.mData[2]
+//				>> avatarData[lineCount].b7.mData[3] >> avatarData[lineCount].b7.mData[0] >> avatarData[lineCount].b7.mData[1] >> avatarData[lineCount].b7.mData[2]
+//				>> avatarData[lineCount].b8.mData[3] >> avatarData[lineCount].b8.mData[0] >> avatarData[lineCount].b8.mData[1] >> avatarData[lineCount].b8.mData[2]
+//				>> avatarData[lineCount].b9.mData[3] >> avatarData[lineCount].b9.mData[0] >> avatarData[lineCount].b9.mData[1] >> avatarData[lineCount].b9.mData[2];
+//
+//			lineCount++;
+//			break;
+//
+//		/*case 2:
+//
+//			_linestream
+//				>> avatarData[lineCount].b0.mData[3] >> avatarData[lineCount].b0.mData[0] >> avatarData[lineCount].b0.mData[1] >> avatarData[lineCount].b0.mData[2]
+//				>> avatarData[lineCount].b2.mData[3] >> avatarData[lineCount].b2.mData[0] >> avatarData[lineCount].b2.mData[1] >> avatarData[lineCount].b2.mData[2]
+//				>> avatarData[lineCount].b3.mData[3] >> avatarData[lineCount].b3.mData[0] >> avatarData[lineCount].b3.mData[1] >> avatarData[lineCount].b3.mData[2]
+//				>> avatarData[lineCount].b4.mData[3] >> avatarData[lineCount].b4.mData[0] >> avatarData[lineCount].b4.mData[1] >> avatarData[lineCount].b4.mData[2]
+//				>> avatarData[lineCount].b5.mData[3] >> avatarData[lineCount].b5.mData[0] >> avatarData[lineCount].b5.mData[1] >> avatarData[lineCount].b5.mData[2];
+//			lineCount++;
+//			break;
+//
+//		case 3:
+//
+//			_linestream
+//				>> avatarData[lineCount].b0.mData[3] >> avatarData[lineCount].b0.mData[0] >> avatarData[lineCount].b0.mData[1] >> avatarData[lineCount].b0.mData[2]
+//				>> avatarData[lineCount].b6.mData[3] >> avatarData[lineCount].b6.mData[0] >> avatarData[lineCount].b6.mData[1] >> avatarData[lineCount].b6.mData[2]
+//				>> avatarData[lineCount].b7.mData[3] >> avatarData[lineCount].b7.mData[0] >> avatarData[lineCount].b7.mData[1] >> avatarData[lineCount].b7.mData[2]
+//				>> avatarData[lineCount].b8.mData[3] >> avatarData[lineCount].b8.mData[0] >> avatarData[lineCount].b8.mData[1] >> avatarData[lineCount].b8.mData[2]
+//				>> avatarData[lineCount].b9.mData[3] >> avatarData[lineCount].b9.mData[0] >> avatarData[lineCount].b9.mData[1] >> avatarData[lineCount].b9.mData[2];
+//
+//			lineCount++;
+//			break;*/
+//
+//		default:
+//			break;
+//
+//		}
+//	}
+//}
 
 void rotateBone(quaternion q, treenode &joint, float tX, float tY, float tZ)
 {
@@ -1790,7 +2363,7 @@ bool isNotSameQuat(quaternion currentQuat, quaternion previousQuat)
 
 	//if (uqPA.mData[3] >= 0.99999)
 	//{
-	//	parent = uqPrevInvsPA.Inverse();
+	//	parent = uqPrevInvsPA.Inverse();b
 	//	//printf("Skip upper arm\n");
 	//}
 	return true;
@@ -1798,14 +2371,13 @@ bool isNotSameQuat(quaternion currentQuat, quaternion previousQuat)
 
 void calaculateTrajectory(quaternion parent, quaternion child, TVec3 &parentVec, TVec3 &childVec)
 {
-	TVec3 trajVec;
-	quaternion tempQuat2 = BodyQuat.mutiplication(parent);
+	quaternion tempQuat1 = BodyQuat.mutiplication(parent);
 
-	quaternion tempQuat1 = tempQuat2.mutiplication(child);//Case-2 usf_q
+	quaternion tempQuat2 = tempQuat1.mutiplication(child);//Case-2 usf_q
 
 
-	quaternion lTransfBodyQuat = tempQuat1;
-	quaternion uTransfBodyQuat = tempQuat2;
+	quaternion lTransfBodyQuat = tempQuat2;
+	quaternion uTransfBodyQuat = tempQuat1;
 	quaternion vQuat(tempVec._x, tempVec._y, tempVec._z, 0);
 
 	lTransfBodyQuat = lTransfBodyQuat.mutiplication(vQuat.mutiplication(lTransfBodyQuat.Inverse()));
@@ -2393,34 +2965,40 @@ void idle()
 
 	break;
 
+	
+
 	case 8:
 	{
 		if (bReadFile)
 		{
-			switch (subOption)
+			switch (su.subOption)
 			{
 			case 1:
 			{
-				if (trajCount >= dsize)
+				if (trajCount >= su.noOfFrames)
 				{
 					bReadFile = false;
 					isize = 0;
 					outDataL.close();
 					outDataU.close();
+					su.fullBodytoXYZ();
+					//SphereUtility su2 = su;
+					//su.vectorsToQuat();
+					writeData(0);
 					matchDBTrajectory("Load\\UFormFile.csv", "Load\\LFormFile.csv");
 					break;
 				}
 
-				avatar.b0 = avatarData[trajCount].b0;
-				avatar.b1 = avatarData[trajCount].b1;
-				avatar.b2 = avatarData[trajCount].b2;
-				avatar.b3 = avatarData[trajCount].b3;
-				avatar.b4 = avatarData[trajCount].b4;
-				avatar.b5 = avatarData[trajCount].b5;
-				avatar.b6 = avatarData[trajCount].b6;
-				avatar.b7 = avatarData[trajCount].b7;
-				avatar.b8 = avatarData[trajCount].b8;
-				avatar.b9 = avatarData[trajCount].b9;
+				avatar.b0 = su.avatarData[trajCount].b0;
+				avatar.b1 = su.avatarData[trajCount].b1;
+				avatar.b2 = su.avatarData[trajCount].b2;
+				avatar.b3 = su.avatarData[trajCount].b3;
+				avatar.b4 = su.avatarData[trajCount].b4;
+				avatar.b5 = su.avatarData[trajCount].b5;
+				avatar.b6 = su.avatarData[trajCount].b6;
+				avatar.b7 = su.avatarData[trajCount].b7;
+				avatar.b8 = su.avatarData[trajCount].b8;
+				avatar.b9 = su.avatarData[trajCount].b9;
 
 				rotateBody(avatar);
 
@@ -2502,7 +3080,7 @@ void idle()
 			{
 
 
-				if (trajCount >= dsize)
+				if (trajCount >= su.noOfFrames)
 				{
 					bReadFile = false;
 					isize = 0;
@@ -2512,11 +3090,11 @@ void idle()
 					break;
 				}
 
-				avatar.b0 = avatarData[trajCount].b0;
-				avatar.b2 = avatarData[trajCount].b2;
-				avatar.b3 = avatarData[trajCount].b3;
-				avatar.b4 = avatarData[trajCount].b4;
-				avatar.b5 = avatarData[trajCount].b5;
+				avatar.b0 = su.avatarData[trajCount].b0;
+				avatar.b2 = su.avatarData[trajCount].b2;
+				avatar.b3 = su.avatarData[trajCount].b3;
+				avatar.b4 = su.avatarData[trajCount].b4;
+				avatar.b5 = su.avatarData[trajCount].b5;
 
 				rotateBody(avatar);
 				
@@ -2576,11 +3154,11 @@ void idle()
 					break;
 				}
 
-				avatar.b0 = avatarData[trajCount].b0;
-				avatar.b6 = avatarData[trajCount].b6;
-				avatar.b7 = avatarData[trajCount].b7;
-				avatar.b8 = avatarData[trajCount].b8;
-				avatar.b9 = avatarData[trajCount].b9;
+				avatar.b0 = su.avatarData[trajCount].b0;
+				avatar.b6 = su.avatarData[trajCount].b6;
+				avatar.b7 = su.avatarData[trajCount].b7;
+				avatar.b8 = su.avatarData[trajCount].b8;
+				avatar.b9 = su.avatarData[trajCount].b9;
 
 				rotateBody(avatar);
 
@@ -2639,7 +3217,25 @@ void idle()
 
 	case 9:
 	{
+		trajCount = 0;
+		LindexP = 0;
+		memset(traj_b0, 0, 80056 * (sizeof(float)));
+		memset(traj_b1, 0, 80056 * (sizeof(float)));
+		memset(traj_b2, 0, 80056 * (sizeof(float)));
+		memset(traj_b3, 0, 80056 * (sizeof(float)));
+		memset(traj_b4, 0, 80056 * (sizeof(float)));
+		memset(traj_b5, 0, 80056 * (sizeof(float)));
+		memset(traj_b6, 0, 80056 * (sizeof(float)));
+		memset(traj_b7, 0, 80056 * (sizeof(float)));
+		memset(traj_b8, 0, 80056 * (sizeof(float)));
+		memset(traj_b9, 0, 80056 * (sizeof(float)));
+		memset(cIndexArray, 0, 200 * (sizeof(int)));
+		CenterIndex = 0;
+		isFirst = true;
 
+		avatar = { qInit,qInit,qInit,qInit,qInit,qInit,qInit,qInit,qInit,qInit };
+
+		rotateBody(avatar);
 	}
 	break;
 
@@ -2712,8 +3308,8 @@ void idle()
 			quaternion tempQuat1 = BodyQuat.mutiplication(reset_U);
 			quaternion tempQuat2 = tempQuat1.mutiplication(reset_L);
 
-			TVector3 TransfBodyQuat1 = tempQuat2.quternionMatrices(tempQuat2, tempVec);
-			TVector3 TransfBodyQuat2 = tempQuat1.quternionMatrices(tempQuat1, tempVec);
+			TVec3 TransfBodyQuat1 = tempQuat2.quternionMatrices(tempQuat2, tempVec);
+			TVec3 TransfBodyQuat2 = tempQuat1.quternionMatrices(tempQuat1, tempVec);
 
 			///////////////////////////////////
 
@@ -2741,7 +3337,98 @@ void idle()
 		}
 	}
 	break;
+
+	case 20:
+		avatar.b0 = su.avatarData[infoWindow.frameNo].b0;
+		avatar.b1 = su.avatarData[infoWindow.frameNo].b1;
+		avatar.b2 = su.avatarData[infoWindow.frameNo].b2;
+		avatar.b3 = su.avatarData[infoWindow.frameNo].b3;
+		avatar.b4 = su.avatarData[infoWindow.frameNo].b4;
+		avatar.b5 = su.avatarData[infoWindow.frameNo].b5;
+		avatar.b6 = su.avatarData[infoWindow.frameNo].b6;
+		avatar.b7 = su.avatarData[infoWindow.frameNo].b7;
+		avatar.b8 = su.avatarData[infoWindow.frameNo].b8;
+		avatar.b9 = su.avatarData[infoWindow.frameNo].b9;
+
+		rotateBody(avatar);
+
+		TVec3 b0Vec, b1Vec;
+
+		quaternion vQuat(tempVec._x, tempVec._y, tempVec._z, 0);
+
+		quaternion uTransfBodyQuat = avatar.b0.mutiplication(vQuat.mutiplication(avatar.b0.Inverse()));
+
+		traj_b0[infoWindow.frameNo][0] = 1;
+		traj_b0[infoWindow.frameNo][1] = uTransfBodyQuat.mData[0];
+		traj_b0[infoWindow.frameNo][2] = uTransfBodyQuat.mData[1];
+		traj_b0[infoWindow.frameNo][3] = uTransfBodyQuat.mData[2];
+
+		calaculateTrajectory(avatar.b1, avatar.b1, b0Vec, b1Vec);
+
+		traj_b1[infoWindow.frameNo][0] = 1;
+		traj_b1[infoWindow.frameNo][1] = b0Vec._x;
+		traj_b1[infoWindow.frameNo][2] = b0Vec._y;
+		traj_b1[infoWindow.frameNo][3] = b0Vec._z;
+
+
+		TVec3 b2Vec, b3Vec;
+		calaculateTrajectory(avatar.b2, avatar.b3, b2Vec, b3Vec);
+
+		traj_b2[infoWindow.frameNo][0] = 1;
+		traj_b2[infoWindow.frameNo][1] = b2Vec._x;
+		traj_b2[infoWindow.frameNo][2] = b2Vec._y;
+		traj_b2[infoWindow.frameNo][3] = b2Vec._z;
+
+		traj_b3[infoWindow.frameNo][0] = 1;
+		traj_b3[infoWindow.frameNo][1] = b3Vec._x;
+		traj_b3[infoWindow.frameNo][2] = b3Vec._y;
+		traj_b3[infoWindow.frameNo][3] = b3Vec._z;
+
+		TVec3 b4Vec, b5Vec;
+		calaculateTrajectory(avatar.b4, avatar.b5, b4Vec, b5Vec);
+
+		traj_b4[infoWindow.frameNo][0] = 1;
+		traj_b4[infoWindow.frameNo][1] = b4Vec._x;
+		traj_b4[infoWindow.frameNo][2] = b4Vec._y;
+		traj_b4[infoWindow.frameNo][3] = b4Vec._z;
+
+		traj_b5[infoWindow.frameNo][0] = 1;
+		traj_b5[infoWindow.frameNo][1] = b5Vec._x;
+		traj_b5[infoWindow.frameNo][2] = b5Vec._y;
+		traj_b5[infoWindow.frameNo][3] = b5Vec._z;
+
+		TVec3 b6Vec, b7Vec;
+		calaculateTrajectory(avatar.b6, avatar.b7, b6Vec, b7Vec);
+
+		traj_b6[infoWindow.frameNo][0] = 1;
+		traj_b6[infoWindow.frameNo][1] = b6Vec._x;
+		traj_b6[infoWindow.frameNo][2] = b6Vec._y;
+		traj_b6[infoWindow.frameNo][3] = b6Vec._z;
+
+		traj_b7[infoWindow.frameNo][0] = 1;
+		traj_b7[infoWindow.frameNo][1] = b7Vec._x;
+		traj_b7[infoWindow.frameNo][2] = b7Vec._y;
+		traj_b7[infoWindow.frameNo][3] = b7Vec._z;
+
+		TVec3 b8Vec, b9Vec;
+		calaculateTrajectory(avatar.b8, avatar.b9, b8Vec, b9Vec);
+
+		traj_b8[infoWindow.frameNo][0] = 1;
+		traj_b8[infoWindow.frameNo][1] = b8Vec._x;
+		traj_b8[infoWindow.frameNo][2] = b8Vec._y;
+		traj_b8[infoWindow.frameNo][3] = b8Vec._z;
+
+		traj_b9[infoWindow.frameNo][0] = 1;
+		traj_b9[infoWindow.frameNo][1] = b9Vec._x;
+		traj_b9[infoWindow.frameNo][2] = b9Vec._y;
+		traj_b9[infoWindow.frameNo][3] = b9Vec._z;
+
+
+		break;
+
 	}
+
+
 	glutPostRedisplay();
 }
 
@@ -2784,6 +3471,7 @@ void computeIntialpoint()
 	tempVec._x = x / fnorm;
 	tempVec._y = y / fnorm;
 	tempVec._z = z / fnorm;
+	printf("Body-Quat Vec = %f,%f,%f\n", tempVec._x, tempVec._y, tempVec._z);
 }
 
 void myinit()
@@ -3044,6 +3732,38 @@ void mouseWheel(int button, int dir, int x, int y)
 	glutPostRedisplay();
 }
 
+void getSelectedColor()
+{
+	if (infoWindow.selectedColor == 'd' || infoWindow.selectedColor == 'r' || infoWindow.selectedColor == 'g' || infoWindow.selectedColor == 'b')
+	{
+		float dis = sqrt((pixelColor.r - 0.196078)*(pixelColor.r - 0.196078) + (pixelColor.g - 0.803921640)*(pixelColor.g - 0.803921640) + (pixelColor.b - 0.196078449)*(pixelColor.b - 0.196078449));
+		
+		if (dis < 0.01)
+		{
+			infoWindow.sliderEnabled = true; return;
+		}
+		else
+		{
+			infoWindow.sliderEnabled = false;
+			infoWindow.sliderVal = 0;
+		}
+	}
+	if ( pixelColor.r == 1 && pixelColor.g == 0 && pixelColor.b == 0)
+		infoWindow.selectedColor = 'r';
+	else if ( pixelColor.r == 0 && pixelColor.g == 1 && pixelColor.b == 0)
+		infoWindow.selectedColor = 'g';
+	else if ( pixelColor.r == 0 && pixelColor.g == 0 && pixelColor.b == 1)
+		infoWindow.selectedColor = 'b';
+	else if ( pixelColor.r == 0 && pixelColor.g == 0 && pixelColor.b == 0)
+		infoWindow.selectedColor = 'd';
+	else
+	{
+		infoWindow.selectedColor = 'n';
+		infoWindow.sliderEnabled = false;
+		infoWindow.sliderVal = 0;
+	}
+}
+
 void mouseEvent(int button, int state, int x, int y)
 {
 	//if (button == 3) // It's a wheel event
@@ -3055,6 +3775,37 @@ void mouseEvent(int button, int state, int x, int y)
 	//{
 	//	zoominout = zoominout-0.1;
 	//}
+
+	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
+	{
+		float cl[4];
+		
+		if (y < 680 && x > 900)
+		{
+			glReadPixels(x, height - y - 1, 1, 1, GL_STENCIL_INDEX, GL_UNSIGNED_INT, &stencilIndex);
+			glReadPixels(x, height - y - 1, 1, 1, GL_RGBA, GL_FLOAT, &pointColor);
+			infoWindow.selectedColor = 'n';
+			infoWindow.sliderEnabled = false;
+			infoWindow.sliderVal = 0;
+		}
+		else
+		{
+			glReadPixels(x, height - y - 1, 1, 1, GL_RGBA, GL_FLOAT, &pixelColor);
+			getSelectedColor();
+		}
+			
+		if (stencilIndex == 0)
+		{
+				infoWindow.frameNo = 0;
+				infoWindow.BoneID = 0;
+		}
+			
+		prevy = y;
+		printf("Clicked on pixel %d, %d, color (%f,%f,%f,%f), sindex %u, scolor %c\n",
+		x, y, pixelColor.r, pixelColor.g, pixelColor.b, pixelColor.a, stencilIndex,infoWindow.selectedColor);
+		
+	}
+
 	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
 	{
 		mouseDown = true;
@@ -3068,7 +3819,7 @@ void mouseEvent(int button, int state, int x, int y)
 }
 void mouseMotion(int x, int y)
 {
-	if (mouseDown)
+	if (mouseDown && !infoWindow.sliderEnabled)
 	{
 		yrot = -(x + xdiff);
 		xrot = y + ydiff;
@@ -3088,12 +3839,161 @@ void mouseMotion(int x, int y)
 		//printf("pointTranslateX = %f\tpointTranslateY = %f\tpointTranslateZ = %f\n", pointTranslateX, pointTranslateY, pointTranslateZ);
 		glutPostRedisplay();
 	}
+	
+	if (mouseDown && infoWindow.sliderEnabled)
+	{
+		infoWindow.sliderVal = infoWindow.sliderVal - ((float)y - (float)prevy)/100.0f;
+		if (infoWindow.sliderVal < -0.5) infoWindow.sliderVal = -0.5;
+		if (infoWindow.sliderVal > 0.5) infoWindow.sliderVal = 0.5;
+		cout << infoWindow.sliderVal << endl;
+		prevy = y;
+		quaternion selectedQuat;
+		//change values
+		if (infoWindow.selectedColor == 'd')
+		{
+			
+			if(infoWindow.sliderVal > prevSliderVal)
+				infoWindow.angle = infoWindow.angle + 1;
+			else if (infoWindow.sliderVal < prevSliderVal)
+				infoWindow.angle = infoWindow.angle - 1;
+		}
+
+		if (infoWindow.selectedColor == 'r')
+		{
+			if (infoWindow.sliderVal > prevSliderVal)
+				infoWindow.ax = infoWindow.ax + 0.01;
+			else if (infoWindow.sliderVal < prevSliderVal)
+				infoWindow.ax = infoWindow.ax - 0.01;
+		}
+
+		if (infoWindow.selectedColor == 'g')
+		{
+			if (infoWindow.sliderVal > prevSliderVal)
+				infoWindow.ay = infoWindow.ay + 0.01;
+			else if (infoWindow.sliderVal < prevSliderVal)
+				infoWindow.ay = infoWindow.ay - 0.01;
+		}
+		if (infoWindow.selectedColor == 'b')
+		{
+			if (infoWindow.sliderVal > prevSliderVal)
+				infoWindow.az = infoWindow.az + 0.01;
+			else if (infoWindow.sliderVal < prevSliderVal)
+				infoWindow.az = infoWindow.az - 0.01;
+		}
+		float fnorm = sqrt((infoWindow.ax)*(infoWindow.ax) + (infoWindow.ay)*(infoWindow.ay) + (infoWindow.az)*(infoWindow.az));
+		axisToQuat(selectedQuat, infoWindow.ax/fnorm, infoWindow.ay/fnorm, infoWindow.az/fnorm, infoWindow.angle);
+		selectedQuat.normalize();
+
+		switch (infoWindow.BoneID)
+		{
+			case 0: su.avatarData[infoWindow.frameNo].b0 = selectedQuat; break;
+			case 1: su.avatarData[infoWindow.frameNo].b1 = selectedQuat; break;
+			case 2: su.avatarData[infoWindow.frameNo].b2 = selectedQuat; break;
+			case 3: su.avatarData[infoWindow.frameNo].b3 = selectedQuat; break;
+			case 4: su.avatarData[infoWindow.frameNo].b4 = selectedQuat; break;
+			case 5: su.avatarData[infoWindow.frameNo].b5 = selectedQuat; break;
+			case 6: su.avatarData[infoWindow.frameNo].b6 = selectedQuat; break;
+			case 7: su.avatarData[infoWindow.frameNo].b7 = selectedQuat; break;
+			case 8: su.avatarData[infoWindow.frameNo].b8 = selectedQuat; break;
+			case 9: su.avatarData[infoWindow.frameNo].b9 = selectedQuat; break;
+			default:
+				break;
+		}
+		//change values end
+		option = 20;  //changing avatar and poiunt on sphere
+		prevSliderVal = infoWindow.sliderVal;
+		
+		glutPostRedisplay();
+
+	}
+}
+
+
+void readInfoData(std::string fileName)
+{
+	int count = 0;
+	int tCount = 0;
+
+	std::ifstream _filestream(fileName);
+	std::string _line, _line2, _line3;
+	int _option;
+	std::string _dummy;
+	int lineCount = 0;
+
+	while (std::getline(_filestream, _line))
+	{
+		std::stringstream _linestream;
+		_linestream << _line;
+		if (count == 0)
+		{
+			_linestream >>  infoWindow.um1;  count++; continue;
+		}
+
+		if (count == 1)
+		{
+			_linestream >>  infoWindow.um2; count++; continue;
+		}
+		if (count == 2)
+		{
+			_linestream >>  infoWindow.um3;  count++; continue;
+		}
+
+		if (count == 3)
+		{
+			_linestream >>  infoWindow.um4; count++; continue;
+		}
+		if (count == 4)
+		{
+			_linestream >>  infoWindow.fm1; count++;  continue;
+		}	
+
+		if (count == 5)
+		{
+			_linestream >> infoWindow.um5;  count++; continue;
+		}
+
+		if (count == 6)
+		{
+			_linestream >> infoWindow.um6; count++; continue;
+		}
+		if (count == 7)
+		{
+			_linestream >> infoWindow.um7;  count++; continue;
+		}
+
+		if (count == 8)
+		{
+			_linestream >> infoWindow.um8; count++; continue;
+		}
+		
+		if (count == 9)
+		{
+			_linestream >> infoWindow.fm2; count++;  continue;
+		}
+
+		if (count == 10)
+		{
+			_linestream >> infoWindow.motionType >> _line >> _line2;
+
+			_line3 = " ";
+			strcat(infoWindow.motionType, _line3.c_str());
+			strcat(infoWindow.motionType, _line.c_str()); 
+			strcat(infoWindow.motionType, _line3.c_str());
+			strcat(infoWindow.motionType, _line2.c_str());
+
+			 count++;  continue;
+		}
+
+	}
 }
 
 void keyBoardEvent(unsigned char key, int x, int y)
 {
 	//printf("key_code =%d  \n", key);
-
+	if (key == 'w')
+	{
+		writeData(1);
+	}
 	if (key == 115)//key "s"
 	{
 		if (connectXS.stop_and_restart_everything) {
@@ -3114,9 +4014,27 @@ void keyBoardEvent(unsigned char key, int x, int y)
 		//connectXS.waitForConnections = false;
 	}
 
-	if (key == 99)//key "c"
+	if (key == 'c')//key "c"
 	{
-		//connectXS.bxMTdisconnect = true;
+		trajCount = 0;
+		LindexP = 0;
+		memset(traj_b0, 0, 80056 * (sizeof(float)));
+		memset(traj_b1, 0, 80056 * (sizeof(float)));
+		memset(traj_b2, 0, 80056 * (sizeof(float)));
+		memset(traj_b3, 0, 80056 * (sizeof(float)));
+		memset(traj_b4, 0, 80056 * (sizeof(float)));
+		memset(traj_b5, 0, 80056 * (sizeof(float)));
+		memset(traj_b6, 0, 80056 * (sizeof(float)));
+		memset(traj_b7, 0, 80056 * (sizeof(float)));
+		memset(traj_b8, 0, 80056 * (sizeof(float)));
+		memset(traj_b9, 0, 80056 * (sizeof(float)));
+		memset(cIndexArray, 0, 200 * (sizeof(int)));
+		CenterIndex = 0;
+		isFirst = true;	
+
+		avatar = { qInit,qInit,qInit,qInit,qInit,qInit,qInit,qInit,qInit,qInit };
+
+		rotateBody(avatar);
 	}
 
 	if (key == 114)//key "r"
@@ -3166,16 +4084,14 @@ void keyBoardEvent(unsigned char key, int x, int y)
 			memset(traj_b7, 0, 80056 * (sizeof(float)));
 			memset(traj_b8, 0, 80056 * (sizeof(float)));
 			memset(traj_b9, 0, 80056 * (sizeof(float)));
-
 			memset(cIndexArray, 0, 200 * (sizeof(int)));
 			CenterIndex = 0;
 			start = std::clock();
 			isFirst = true;
-
 		}
 		else
 		{
-			writeData();
+			writeData(0);
 			//matchDBTrajectory(UfileName, LfileName);
 
 		}
@@ -3183,10 +4099,10 @@ void keyBoardEvent(unsigned char key, int x, int y)
 		Comparision::resetDiagnosis();
 	}
 
-	if (key == 49) //Key-1
+	if (key == '1') //Key-1
 	{
-		readAvatarData();
-
+		//readAvatarData();
+		su.readAvatarData("./Load/FormFile.txt");
 		bReadFile = true;
 		trajCount = 0;
 
@@ -3203,6 +4119,13 @@ void keyBoardEvent(unsigned char key, int x, int y)
 
 		start = std::clock();
 		Comparision::resetDiagnosis();
+	}
+	if (key == '2') //Key-2
+	{
+		//readAvatarData();
+		readInfoData("./Load/InfoFile.txt");
+		bReadFile = true;
+		
 	}
 
 	if (key == '7')
@@ -3522,14 +4445,15 @@ void dataCapture(int id)
 int targc;
 char** targv;
 
-DWORD WINAPI RoboticArm(LPVOID lpParam)
+DWORD WINAPI AvatarMotion(LPVOID lpParam)
 {
 	glutInit(&targc, targv);
-	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
+	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH | GLUT_MULTISAMPLE | GLUT_STENCIL);
 	glutInitWindowSize(width, height);
-	glutCreateWindow("Robot");
+	glutCreateWindow("Motion-Sphere");
 
 	myinit();
+	//glutFullScreen();
 	glutReshapeFunc(myReshape);
 	glutIdleFunc(idle);
 	glutDisplayFunc(Display);
@@ -3547,14 +4471,17 @@ DWORD WINAPI RoboticArm(LPVOID lpParam)
 	glutAddMenuEntry(" Start Xsens ", 0);
 	glutAddSubMenu(" Data Capture", dataCaptureSub);
 
+	glutAddMenuEntry(" Reset Sensor", 2);
+
 	glutAddMenuEntry(" Read file ", 8);
 	glutAddMenuEntry(" Read DB file ", 10);
-	//glutAddMenuEntry(" Calibration ", 9);
-	glutAddMenuEntry(" Reset ", 2);
+	glutAddMenuEntry(" Clear Data", 9);
+	
 	glutAddMenuEntry(" Side View ", 3);
 	glutAddMenuEntry(" Front View ", 4);
 	glutAddMenuEntry(" 3/4 View ", 5);
 	glutAddMenuEntry(" Top View ", 6);
+
 	glutAddMenuEntry(" Close ", 7);
 
 	glutAttachMenu(GLUT_RIGHT_BUTTON);
@@ -3616,7 +4543,7 @@ main()
 
 	// Create thread 2.
 	Handle_Of_Thread_2 = CreateThread(NULL, 0,
-		RoboticArm, &Data_Of_Thread_2, 0, NULL);
+		AvatarMotion, &Data_Of_Thread_2, 0, NULL);
 	if (Handle_Of_Thread_2 == NULL)
 		ExitProcess(Data_Of_Thread_2);
 

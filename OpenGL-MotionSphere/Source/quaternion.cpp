@@ -1,8 +1,45 @@
+/*
+*	BSD 3-Clause License
+*
+*	Copyright (c) 2018, OpenAI, VELab, GSAIM, Chung-Ang University.
+*
+*	All rights reserved.
+*
+*	Redistribution and use in source and binary forms, with or without modification, are permitted provided
+*  that the following conditions are met:
+*
+*	1. Redistributions of source code must retain the above copyright notice, this list of conditions and the
+*	   following disclaimer.
+*
+*	2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+*     the following disclaimer in the documentation and/or other materials provided with the distribution.
+*
+*	3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or
+*     promote products derived from this software without specific prior written permission.
+*
+*	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+*	WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+*	PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+*	ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
+*	TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+*	HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+*	NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
+*	OF SUCH DAMAGE.
+*
+*/
+
 #include "quaternion.h"
 
 #include <iostream>
 
 #define M_PI 3.14159;
+
+/** \brief @Quaternion Functions
+*  \note This class enables  Quaternion: Multiplication, Normalization, Inverse, conversion to- Eulers, Matrix.
+*  \authors: Ashok Kumar Patil <ashokpatil03@hotmail.com>
+*			 Adithya Balasubramanyam <adithyakoundinya@gmail.com>
+*			
+*/
 
 quaternion::quaternion(){
 
@@ -15,7 +52,7 @@ quaternion::quaternion(double x, double y, double z, double w) {
 	mData[3] = w;
 }
 
-quaternion::quaternion(TVector3 complex, double real) {
+quaternion::quaternion(TVec3 complex, double real) {
 	mData[0] = complex._x; mData[1] = complex._y; mData[2] = complex._z;
 	mData[3] = real;
 }
@@ -61,14 +98,14 @@ void quaternion::real(double r) {
 	mData[3] = r;
 }
 
-TVector3 quaternion::complex() const{	
+TVec3 quaternion::complex() const{	
 	
-	TVector3 data;
+	TVec3 data;
 	data._x = mData[0]; data._y = mData[1]; data._z = mData[2];	
 	return data;
 }
 
-void quaternion::complex(const TVector3& c) {
+void quaternion::complex(const TVec3& c) {
 	mData[0] = c._x; mData[1] = c._y;  mData[2] = c._z;
 }
 
@@ -151,9 +188,9 @@ quaternion quaternion::mutiplication(quaternion Q) {
 	return mul;
 }
 
-TVector3 quaternion::quternionMatrices(quaternion Q, TVector3 vecPoint)
+TVec3 quaternion::quternionMatrices(quaternion Q, TVec3 vecPoint)
 {
-	TVector3 w;
+	TVec3 w;
 	
 	w._x = (2 * (Q.mData[3] * Q.mData[3]) - 1 + 2 * (Q.mData[0] * Q.mData[0])) * vecPoint._x 
 		+ (2 * (Q.mData[0] * Q.mData[1]) - 2 * (Q.mData[3] * Q.mData[2])) * vecPoint._y 
@@ -170,7 +207,7 @@ TVector3 quaternion::quternionMatrices(quaternion Q, TVector3 vecPoint)
 	return w;
 }
 
-void quaternion::quaternionToEulerAngles(quaternion q, TVector3& RPY)
+void quaternion::quaternionToEulerAngles(quaternion q, TVec3& RPY)
 {
 	// roll (x-axis rotation)
 	double sinr_cosp = 2.0 * (q.mData[3] * q.mData[0] + q.mData[1] * q.mData[2]);

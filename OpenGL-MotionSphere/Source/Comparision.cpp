@@ -1,3 +1,33 @@
+/*
+*	BSD 3-Clause License
+*
+*	Copyright (c) 2018, OpenAI, VELab, GSAIM, Chung-Ang University.
+*
+*	All rights reserved.
+*
+*	Redistribution and use in source and binary forms, with or without modification, are permitted provided
+*  that the following conditions are met:
+*
+*	1. Redistributions of source code must retain the above copyright notice, this list of conditions and the
+*	   following disclaimer.
+*
+*	2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+*     the following disclaimer in the documentation and/or other materials provided with the distribution.
+*
+*	3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or
+*     promote products derived from this software without specific prior written permission.
+*
+*	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+*	WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+*	PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+*	ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
+*	TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+*	HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+*	NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
+*	OF SUCH DAMAGE.
+*
+*/
+
 #include <windows.h>
 
 #include <stdlib.h> 
@@ -11,6 +41,13 @@
 #include <iterator>
 #include <sstream>
 
+
+/** \brief @Motion Trajectory Daignosis
+*  \note This class enables  Comparision between two motion trajectories, Calaculate angular distance.
+*  \authors: Adithya Balasubramanyam <adithyakoundinya@gmail.com>
+*			 Ashok Kumar Patil <ashokpatil03@hotmail.com>
+*
+*/
 
 #define SAMPLESIZE 100.0f
 #define PI 3.14159265359
@@ -27,7 +64,7 @@ ostream& operator<<(ostream& os, quaternion& q)
 	return os;
 }
 
-ostream& operator<<(ostream& os, TVector3& q)
+ostream& operator<<(ostream& os, TVec3& q)
 {
 	cout << q._x << "," << q._y << "," << q._z;
 	return os;
@@ -119,7 +156,7 @@ float Comparision::getDiffBtwTrajectory(char* usf1File, char* lsf1File, char* us
 	float sumOfDistance = 0;
 	
 	// Initializing the initial Vector
-	TVector3 tempVec;
+	TVec3 tempVec;
 	quaternion BodyQuat(1.29947E-16, 0.707106781, -0.707106781, 1.41232E-32);
 	tempVec._x = 0;
 	tempVec._y = 0;
@@ -154,12 +191,12 @@ float Comparision::getDiffBtwTrajectory(char* usf1File, char* lsf1File, char* us
 		quaternion tempQuat = BodyQuat.mutiplication(usf1[(int)round(val1)]);
 		quaternion tempQuat1 = tempQuat.mutiplication(lsf1[(int)round(val1)]);//Case-2 usf_q
 																			  //cout << usf1[(int)round(val1)] << "," << lsf1[(int)round(val1)] << endl;
-		TVector3 TransfBodyQuat1 = tempQuat1.quternionMatrices(tempQuat1, tempVec);
+		TVec3 TransfBodyQuat1 = tempQuat1.quternionMatrices(tempQuat1, tempVec);
 
 		tempQuat = BodyQuat.mutiplication(usf2[(int)round(val2)]);
 		quaternion tempQuat2 = tempQuat.mutiplication(lsf2[(int)round(val2)]);//Case-2 usf_q
 																			  //cout << usf2[(int)round(val2)] << "," << lsf2[(int)round(val2)] << endl;
-		TVector3 TransfBodyQuat2 = tempQuat2.quternionMatrices(tempQuat2, tempVec);
+		TVec3 TransfBodyQuat2 = tempQuat2.quternionMatrices(tempQuat2, tempVec);
 		/////////////////////////////////////////////////////////////
 		float angularDist = getAngularDistance(TransfBodyQuat1, TransfBodyQuat2);
 		sumOfDistance = sumOfDistance + angularDist;
@@ -182,12 +219,12 @@ float Comparision::getDiffBtwTrajectory(char* usf1File, char* lsf1File, char* us
 			quaternion tempQuat = BodyQuat.mutiplication(usf1[(int)round(j)]);
 			quaternion tempQuat1 = tempQuat.mutiplication(lsf1[(int)round(j)]);//Case-2 usf_q
 																				  //cout << usf1[(int)round(val1)] << "," << lsf1[(int)round(val1)] << endl;
-			TVector3 TransfBodyQuat1 = tempQuat1.quternionMatrices(tempQuat1, tempVec);
+			TVec3 TransfBodyQuat1 = tempQuat1.quternionMatrices(tempQuat1, tempVec);
 
 			tempQuat = BodyQuat.mutiplication(usf2[(int)round(val2)]);
 			quaternion tempQuat2 = tempQuat.mutiplication(lsf2[(int)round(val2)]);//Case-2 usf_q
 																				  //cout << usf2[(int)round(val2)] << "," << lsf2[(int)round(val2)] << endl;
-			TVector3 TransfBodyQuat2 = tempQuat2.quternionMatrices(tempQuat2, tempVec);
+			TVec3 TransfBodyQuat2 = tempQuat2.quternionMatrices(tempQuat2, tempVec);
 			/////////////////////////////////////////////////////////////
 			float angularDist = getAngularDistance(TransfBodyQuat1, TransfBodyQuat2);
 			if (angularDist < minDist)
@@ -229,12 +266,12 @@ float Comparision::getDiffBtwTrajectory(char* usf1File, char* lsf1File, char* us
 	//	quaternion tempQuat = BodyQuat.mutiplication(usf1[(int)round(val1)]);
 	//	quaternion tempQuat1 = tempQuat.mutiplication(lsf1[(int)round(val1)]);//Case-2 usf_q
 	//	//cout << usf1[(int)round(val1)] << "," << lsf1[(int)round(val1)] << endl;
-	//	TVector3 TransfBodyQuat1 = tempQuat1.quternionMatrices(tempQuat1, tempVec);
+	//	TVec3 TransfBodyQuat1 = tempQuat1.quternionMatrices(tempQuat1, tempVec);
 
 	//	tempQuat = BodyQuat.mutiplication(usf2[(int)round(val2)]);
 	//	quaternion tempQuat2 = tempQuat.mutiplication(lsf2[(int)round(val2)]);//Case-2 usf_q
 	//	//cout << usf2[(int)round(val2)] << "," << lsf2[(int)round(val2)] << endl;
-	//	TVector3 TransfBodyQuat2 = tempQuat2.quternionMatrices(tempQuat2, tempVec);
+	//	TVec3 TransfBodyQuat2 = tempQuat2.quternionMatrices(tempQuat2, tempVec);
 	//	/////////////////////////////////////////////////////////////
 	//	float angularDist = getAngularDistance(TransfBodyQuat1, TransfBodyQuat2);
 	//	sumOfDistance = sumOfDistance + angularDist;
@@ -248,7 +285,7 @@ float Comparision::getDiffBtwTrajectory(char* usf1File, char* lsf1File, char* us
 	return sumOfDistance / SAMPLESIZE;
 }
 
-float Comparision:: getAngularDistance(TVector3 v1, TVector3 v2)
+float Comparision:: getAngularDistance(TVec3 v1, TVec3 v2)
 {
 	/*float distance = sqrt((v1._x - v2._x)*(v1._x - v2._x) +
 		(v1._y - v2._y)*(v1._y - v2._y) +
@@ -268,8 +305,8 @@ void Comparision::curveDiagnosis(quaternion usf2[], quaternion lsf2[], int noOfP
 {
 	//speed
 	Curveproperty.speed = (float) (noOfPoints / 60.0) * 1000.0;
-	TVector3 lowerFBQ, upperFBQ; // upper and lower first body quats
-	TVector3 tempVec;
+	TVec3 lowerFBQ, upperFBQ; // upper and lower first body quats
+	TVec3 tempVec;
 	float maxUL = 0, maxLL = 0;
 	
 	quaternion BodyQuat(1.29947E-16, 0.707106781, -0.707106781, 1.41232E-32);
@@ -307,8 +344,8 @@ void Comparision::curveDiagnosis(quaternion usf2[], quaternion lsf2[], int noOfP
 		quaternion tempQuat1 = BodyQuat.mutiplication(usf2[i]);
 		quaternion tempQuat2 = tempQuat1.mutiplication(lsf2[i]);
 
-		TVector3 TransfBodyQuat1 = tempQuat2.quternionMatrices(tempQuat2, tempVec);
-		TVector3 TransfBodyQuat2 = tempQuat1.quternionMatrices(tempQuat1, tempVec);
+		TVec3 TransfBodyQuat1 = tempQuat2.quternionMatrices(tempQuat2, tempVec);
+		TVec3 TransfBodyQuat2 = tempQuat1.quternionMatrices(tempQuat1, tempVec);
 
 		/*float lowerLength = sqrt((lowerFBQ._x - TransfBodyQuat1._x)*(lowerFBQ._x - TransfBodyQuat1._x) +
 			(lowerFBQ._y - TransfBodyQuat1._y)*(lowerFBQ._y - TransfBodyQuat1._y) +
