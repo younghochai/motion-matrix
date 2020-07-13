@@ -14,7 +14,7 @@ set (INCLUDEDIR "${PROJECT_SOURCE_DIR}/include")
 
 
 #include_directories (${PCL_INCLUDE_DIRS})
-link_directories    (${PROJECT_SOURCE_DIR}/externLib)
+link_directories    (${PROJECT_SOURCE_DIR}/Lib)
 #add_definitions     (${PCL_DEFINITIONS})
 #include_directories("${PROJECT_SOURCE_DIR}")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
@@ -24,8 +24,9 @@ include_directories("${INCLUDEDIR}/Xsens")
 include_directories("${INCLUDEDIR}/fgl")
 include_directories("${SCRDIR}/externLib")
 
-SET  (project_SOURCES "${SCRDIR}/iaMain.cpp" "${SCRDIR}/externLib/XsensConnection.cpp" "${SCRDIR}/iaQuaternion.cpp" "${SCRDIR}/iaAcquireGesture.cpp" "${SCRDIR}/iaPositionTracking.cpp" "${SCRDIR}/iaSphereUtility.cpp" "${SCRDIR}/iaVitruvianAvatar.cpp" "${SCRDIR}/iaMotionSphere.cpp")
-SET  (project_HEADERS "${SCRDIR}/externLib/XsensConnection.h" "${INCLUDEDIR}/iaQuaternion.h" "${INCLUDEDIR}/iaAcquireGesture.h" "${INCLUDEDIR}/iaPositionTracking.h" "${INCLUDEDIR}/iaSphereUtility.h" "${INCLUDEDIR}/iaVitruvianAvatar.h" "${INCLUDEDIR}/iaMotionSphere.h")
+
+SET  (project_SOURCES "${SCRDIR}/iaMain.cpp" "${SCRDIR}/iaQuaternion.cpp" "${SCRDIR}/iaAcquireGesture.cpp" "${SCRDIR}/iaPositionTracking.cpp" "${SCRDIR}/iaSphereUtility.cpp" "${SCRDIR}/iaVitruvianAvatar.cpp" "${SCRDIR}/iaMotionSphere.cpp" "${SCRDIR}/externLib/XsensConnection.cpp" "${SCRDIR}/externLib/tgaload.cpp" "${SCRDIR}/externLib/Model_PLY.cpp")
+SET  (project_HEADERS "${INCLUDEDIR}/iaQuaternion.h" "${INCLUDEDIR}/iaAcquireGesture.h" "${INCLUDEDIR}/iaPositionTracking.h" "${INCLUDEDIR}/iaSphereUtility.h" "${INCLUDEDIR}/iaVitruvianAvatar.h" "${INCLUDEDIR}/iaMotionSphere.h" "${SCRDIR}/externLib/tgaload.h" "${SCRDIR}/externLib/Model_PLY.h" "${SCRDIR}/externLib/VelodyneCapture.h")
 
 add_executable(OpenIA ${project_SOURCES} ${project_HEADERS} )
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT OpenIA)
@@ -58,6 +59,36 @@ add_custom_command(
 	POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory CData
 	)
+	
+add_custom_command(
+	TARGET OpenIA
+	POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory LiDARData
+	)
+	
+add_custom_command(
+	TARGET OpenIA
+	POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory PositionData
+	)
+	
+add_custom_command(
+	TARGET OpenIA
+	POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory SkeletonData
+	)
+add_custom_command(
+	TARGET OpenIA
+	POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory Target
+	)
+	
+add_custom_command(
+	TARGET OpenIA
+	POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory TotalCapture
+	)
+
 
 #foreach( file_i ${FILENAME})
 #    add_custom_command(

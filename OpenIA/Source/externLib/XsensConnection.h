@@ -46,7 +46,7 @@
 #include <utility>
 
 //Quaternion processing
-#include "quaternion1.h"
+#include "iaQuaternion.h"
 
 
 struct XsensIMU {
