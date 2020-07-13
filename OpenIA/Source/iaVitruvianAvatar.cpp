@@ -159,7 +159,7 @@ void drawHead(JointSegment &neck)
 		vtkSmartPointer<vtkTexture>::New();
 	vtkSmartPointer<vtkJPEGReader> reader =
 		vtkSmartPointer<vtkJPEGReader>::New();
-	reader->SetFileName("headmap.jpg");
+	reader->SetFileName("..\\src\\data\\avtar\\headmap.jpg");
 	// Apply the texture
 	texture->SetInputConnection(reader->GetOutputPort());
 
@@ -407,7 +407,7 @@ void drawFloor()
 	vtkSmartPointer<vtkTexture> planeTexture = vtkSmartPointer<vtkTexture>::New();
 	vtkSmartPointer<vtkJPEGReader> reader = vtkSmartPointer<vtkJPEGReader>::New();
 	// Read the image which will be the texture
-	reader->SetFileName("floor.jpg");
+	reader->SetFileName("..\\src\\data\\avtar\\floor.jpg");
 	// Apply the texture
 	planeTexture->SetInputConnection(reader->GetOutputPort());
 	planeTexture->SetRepeat(true);
@@ -455,14 +455,14 @@ void drawAvatar()
 	drawBoneSegment(rightElbowUpperArm, rightShoulderSegment,scaling, false, "DimGray"); // right upper arm
 	scaling[0] = 2.5; scaling[1] = 0.5; scaling[2] = 2.5;
 	drawBoneSegment(rightHandLowerArm, rightElbowUpperArm,scaling, false, "DimGray"); // right lower arm
-	drawCube(rightHandLowerArm, rightHand, 15,"RightHand.obj");
+	drawCube(rightHandLowerArm, rightHand, 15,"..\\src\\data\\avtar\\RightHand.obj");
 
 	scaling[0] = 3.5; scaling[1] = 0.5; scaling[2] = 3.5;
 	drawBoneSegment(leftShoulderSegment, neckToChin,scaling, false, "DimGray"); // left shoulder
 	drawBoneSegment(leftElbowUpperArm, leftShoulderSegment,scaling, false, "DimGray"); // left upper arm
 	scaling[0] = 2.5; scaling[1] = 0.5; scaling[2] = 2.5;
 	drawBoneSegment(leftHandLowerArm, leftElbowUpperArm,scaling, false, "DimGray"); // left lower arm
-	drawCube(leftHandLowerArm, leftHand, 15,"LeftHand.obj");
+	drawCube(leftHandLowerArm, leftHand, 15,"..\\src\\data\\avtar\\LeftHand.obj");
 }
 
 void rotateAvatar(Avatar avatar)
@@ -1055,15 +1055,15 @@ void VitruvianAvatar::initializeVetruvianVtkAvatar()
 
 	//------------------------------- read obj files --------------------------------
 	// readRightHand.
-	rightHand.handSource->SetFileName("RightHand.obj");
+	rightHand.handSource->SetFileName("..\\src\\data\\avtar\\RightHand.obj");
 	rightHand.handSource->Update();
 
 	// readLeftHand.
-	leftHand.handSource->SetFileName("LeftHand.obj");
+	leftHand.handSource->SetFileName("..\\src\\data\\avtar\\LeftHand.obj");
 	leftHand.handSource->Update();
 
 	//readHead
-	headSource->SetFileName("humanHead.obj");
+	headSource->SetFileName("..\\src\\data\\avtar\\humanHead.obj");
 	headSource->Update();
 
 	updatejoints();
