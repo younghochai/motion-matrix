@@ -35,8 +35,8 @@ pcl::PointXYZ  pelvPosition;
 ofstream posDataFile;
 char file_Name[1024];
 //char fileMS[1024];
-char dirName[1024];
-char dirName2[1024];
+char dirName[1024] = "LiDARData";
+char dirName2[1024] = "PositionData";
 int fileIndex = 0;
 int frameIndex = 0;
 int motionIndex = 0;
@@ -780,7 +780,7 @@ void PositionTracking::LiDARDataReader2()
 			if (PositionTracking::recordData)
 			{
 				std::stringstream s;
-				s << ".\\" << dirName << "\\motionFrame" << framesCountL2 << ".pcd";
+				s << ".\\" << dirName << "\\LiDAR-2-" << framesCountL2 << ".pcd";
 
 				std::string savefile = s.str();
 
@@ -957,7 +957,7 @@ void PositionTracking::LiDARDataReader1()
 			if (PositionTracking::recordData)
 			{
 				std::stringstream s;
-				s << ".\\" << dirName << "\\motionFrame" << framesCountL1 << ".pcd";
+				s << ".\\" << dirName << "\\LiDAR-1-" << framesCountL1 << ".pcd";
 
 				std::string savefile = s.str();
 
@@ -1501,6 +1501,8 @@ void PositionTracking::positionDetection(VitruvianAvatar &vAvatar)
 			cout << "Max truth-> X:" << maxPt.x  << "\t Y:" << maxPt.y  << "\t Z:" << maxPt.z  << endl;
 
 			cout << "Ground truth-> X:" << groundPoint[0] << "\t Y:" << groundPoint[1] << "\t Z:" << groundPoint[2] << "\t Delta:" << deltaXY << endl;
+			
+			
 			//---------------------
 			std::stringstream s2;
 			s2 << ".\\Target\\Calib2.pcd";
@@ -1648,7 +1650,6 @@ void PositionTracking::positionDetection(VitruvianAvatar &vAvatar)
 					pcl::io::savePCDFileASCII(savefile, tempCloud);
 
 					cout << "Cloud saved!!!!!!" << endl;
-
 				}
 
 				pcl::copyPointCloud(tempCloud, *cloudB);
@@ -2100,14 +2101,14 @@ void PositionTracking::positionDetection(VitruvianAvatar &vAvatar)
 				curr_time = time(NULL);
 				tm *tm_local = localtime(&curr_time);
 				
-				sprintf_s(fileName, ".\\BoneData\\RAboneData-%d%d%d.txt",  tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
-				RAboneDataFile.open(fileName);	
-				sprintf_s(fileName, ".\\BoneData\\LAboneData-%d%d%d.txt", tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
-				LAboneDataFile.open(fileName);
-				sprintf_s(fileName, ".\\BoneData\\RLboneData-%d%d%d.txt", tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
-				RLboneDataFile.open(fileName);
-				sprintf_s(fileName, ".\\BoneData\\LLboneData-%d%d%d.txt", tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
-				LLboneDataFile.open(fileName);
+				//sprintf_s(fileName, ".\\BoneData\\RAboneData-%d%d%d.txt",  tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
+				//RAboneDataFile.open(fileName);	
+				//sprintf_s(fileName, ".\\BoneData\\LAboneData-%d%d%d.txt", tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
+				//LAboneDataFile.open(fileName);
+				//sprintf_s(fileName, ".\\BoneData\\RLboneData-%d%d%d.txt", tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
+				//RLboneDataFile.open(fileName);
+				//sprintf_s(fileName, ".\\BoneData\\LLboneData-%d%d%d.txt", tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
+				//LLboneDataFile.open(fileName);
 
 				sprintf_s(fileName, ".\\SkeletonData\\RawIMUData-00%d-%d%d%d.txt", 0, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
 				rawDataFile.open(fileName);
@@ -2123,9 +2124,7 @@ void PositionTracking::positionDetection(VitruvianAvatar &vAvatar)
 			updateLowerBody(diffR, diffL); // Lower body traslation to the ground point
 
 			//Save raw quaternion data to file
-			Avatar getRaw  = myAcquire.getRawQ();
-
-			
+			Avatar getRaw  = myAcquire.getRawQ();			
 
 			rawDataFile
 				<< getRaw.b0.mData[3] << "\t" << getRaw.b0.mData[0] << "\t" << getRaw.b0.mData[1] << "\t" << getRaw.b0.mData[2] << "\t"
@@ -2247,7 +2246,7 @@ void PositionTracking::positionDetection(VitruvianAvatar &vAvatar)
 			rKnee[2] = rPlv[2]  + (-rFootQuat1.mData[0] * uLegLength);
 
 			rFootQuat1.normalize();
-			RLboneDataFile << rFootQuat1.mData[3] << "\t" << rFootQuat1.mData[0] << "\t" << rFootQuat1.mData[1] << "\t" << rFootQuat1.mData[2] << "\t";
+			//RLboneDataFile << rFootQuat1.mData[3] << "\t" << rFootQuat1.mData[0] << "\t" << rFootQuat1.mData[1] << "\t" << rFootQuat1.mData[2] << "\t";
 
 			//Right Kneepoint <- upper Right Leg orientation
 
@@ -2260,7 +2259,7 @@ void PositionTracking::positionDetection(VitruvianAvatar &vAvatar)
 			rFoot[2] = rKnee[2] + (-rKneeQuat1.mData[0] *lLegLength);
 
 			rKneeQuat1.normalize();
-			RLboneDataFile << rKneeQuat1.mData[3] << "\t" << rKneeQuat1.mData[0] << "\t" << rKneeQuat1.mData[1] << "\t" << rKneeQuat1.mData[2] << "\n";
+			//RLboneDataFile << rKneeQuat1.mData[3] << "\t" << rKneeQuat1.mData[0] << "\t" << rKneeQuat1.mData[1] << "\t" << rKneeQuat1.mData[2] << "\n";
 
 				//Left Foot <- Lower Left Leg orientation		
 			quaternion lFootQuat1(vector[0], vector[1], -vector[2], 0);
@@ -2272,7 +2271,7 @@ void PositionTracking::positionDetection(VitruvianAvatar &vAvatar)
 			lKnee[2] = lPlv[2]  + (-lFootQuat1.mData[0] * uLegLength);
 
 			lFootQuat1.normalize();
-			LLboneDataFile << lFootQuat1.mData[3] << "\t" << lFootQuat1.mData[0] << "\t" << lFootQuat1.mData[1] << "\t" << lFootQuat1.mData[2] << "\t";
+			//LLboneDataFile << lFootQuat1.mData[3] << "\t" << lFootQuat1.mData[0] << "\t" << lFootQuat1.mData[1] << "\t" << lFootQuat1.mData[2] << "\t";
 
 			//Left Kneepoint <- upper Left Leg orientation
 			quaternion lKneeQuat1(vector[0], vector[1], -vector[2], 0);
@@ -2284,7 +2283,7 @@ void PositionTracking::positionDetection(VitruvianAvatar &vAvatar)
 			lFoot[2] = lKnee[2] + (-lKneeQuat1.mData[0] * lLegLength);
 
 			lKneeQuat1.normalize();
-			LLboneDataFile << lKneeQuat1.mData[3] << "\t" << lKneeQuat1.mData[0] << "\t" << lKneeQuat1.mData[1] << "\t" << lKneeQuat1.mData[2] << "\n";
+			//LLboneDataFile << lKneeQuat1.mData[3] << "\t" << lKneeQuat1.mData[0] << "\t" << lKneeQuat1.mData[1] << "\t" << lKneeQuat1.mData[2] << "\n";
 
 		//-------------------------------------------------------------------------------------------------------
 
@@ -2331,7 +2330,7 @@ void PositionTracking::positionDetection(VitruvianAvatar &vAvatar)
 			rUarm[2] = rShldr[2] + (-rUarmQuat.mData[0] * uArmLength);
 			
 			rUarmQuat.normalize();
-			RAboneDataFile << rUarmQuat.mData[0] << "\t" << rUarmQuat.mData[1] << "\t" << rUarmQuat.mData[2] << "\t" << rUarmQuat.mData[3] << "\t";
+			//RAboneDataFile << rUarmQuat.mData[0] << "\t" << rUarmQuat.mData[1] << "\t" << rUarmQuat.mData[2] << "\t" << rUarmQuat.mData[3] << "\t";
 					   
 			//Rotate Left upperArm
 			quaternion lUarmQuat(vector[0], vector[1], -vector[2], 0);
@@ -2341,7 +2340,7 @@ void PositionTracking::positionDetection(VitruvianAvatar &vAvatar)
 			lUarm[2] = lShldr[2] + (-lUarmQuat.mData[0] * uArmLength);
 
 			lUarmQuat.normalize();
-			LAboneDataFile  << lUarmQuat.mData[0] << "\t" << lUarmQuat.mData[1] << "\t" << lUarmQuat.mData[2] << "\t" << lUarmQuat.mData[3] << "\t";
+			//LAboneDataFile  << lUarmQuat.mData[0] << "\t" << lUarmQuat.mData[1] << "\t" << lUarmQuat.mData[2] << "\t" << lUarmQuat.mData[3] << "\t";
 
 			//Rotate Right LowerArm
 			quaternion rLarmQuat(vector[0], vector[1], -vector[2], 0);
@@ -2351,7 +2350,7 @@ void PositionTracking::positionDetection(VitruvianAvatar &vAvatar)
 			rLarm[2] = rUarm[2] + (-rLarmQuat.mData[0] * lArmLength);
 
 			rLarmQuat.normalize();
-			RAboneDataFile  << rLarmQuat.mData[0] << "\t" << rLarmQuat.mData[1] << "\t" << rLarmQuat.mData[2] << "\t" << rLarmQuat.mData[3] << "\n";
+			//RAboneDataFile  << rLarmQuat.mData[0] << "\t" << rLarmQuat.mData[1] << "\t" << rLarmQuat.mData[2] << "\t" << rLarmQuat.mData[3] << "\n";
 
 			//Rotate Left LowerArm
 			quaternion lLarmQuat(vector[0], vector[1], -vector[2], 0);
@@ -2361,7 +2360,7 @@ void PositionTracking::positionDetection(VitruvianAvatar &vAvatar)
 			lLarm[2] = lUarm[2] + (-lLarmQuat.mData[0] * lArmLength);
 
 			lLarmQuat.normalize();
-			LAboneDataFile  << lLarmQuat.mData[0] << "\t" << lLarmQuat.mData[1] << "\t" << lLarmQuat.mData[2] << "\t" << lLarmQuat.mData[3] << "\n";
+			//LAboneDataFile  << lLarmQuat.mData[0] << "\t" << lLarmQuat.mData[1] << "\t" << lLarmQuat.mData[2] << "\t" << lLarmQuat.mData[3] << "\n";
 
 			updateBoneJoints(frameIndex);//Update Bone jounts in array to save to file
 			//
@@ -2447,10 +2446,10 @@ void PositionTracking::positionDetection(VitruvianAvatar &vAvatar)
 		if (!PositionTracking::recordData)
 		{
 					
-			RAboneDataFile.close();
-			LAboneDataFile.close();
-			RLboneDataFile.close();
-			LLboneDataFile.close();
+			//RAboneDataFile.close();
+			//LAboneDataFile.close();
+			//RLboneDataFile.close();
+			//LLboneDataFile.close();
 
 			rawDataFile.close();
 		}
@@ -2479,7 +2478,7 @@ void PositionTracking::positionDetection(VitruvianAvatar &vAvatar)
 				myAcquire.readFileQuatData("TotalCapture.txt");//read Rawquat form file
 			
 				//Save bone vector to a file
-				time_t curr_time;
+				/*time_t curr_time;
 				curr_time = time(NULL);
 				tm *tm_local = localtime(&curr_time);
 
@@ -2490,7 +2489,7 @@ void PositionTracking::positionDetection(VitruvianAvatar &vAvatar)
 				sprintf_s(fileName, ".\\BoneData\\FRLboneData-%d%d%d.txt", tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
 				FRLboneDataFile.open(fileName);
 				sprintf_s(fileName, ".\\BoneData\\FLLboneData-%d%d%d.txt", tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
-				FLLboneDataFile.open(fileName);
+				FLLboneDataFile.open(fileName);*/
 			}
 
 

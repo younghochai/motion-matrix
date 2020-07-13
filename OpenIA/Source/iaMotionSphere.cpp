@@ -1309,7 +1309,7 @@ void startFresh()
 	memset(exptraj_b7, 0, 80056 * (sizeof(float)));
 	memset(exptraj_b8, 0, 80056 * (sizeof(float)));
 	memset(exptraj_b9, 0, 80056 * (sizeof(float)));
-	expertSU.readAvatarData("RotationData/ExpertFormFile.txt");
+	expertSU.readAvatarData("..\\src\\data\\RotationData\\ExpertFormFile.txt");
 	expertSU.fullBodytoXYZ();
 	expTrajCount = 0;
 	loadexpTraj();
@@ -1627,7 +1627,7 @@ void sphereInitialize()
 	glEnable(GL_BLEND);							// Enable Blending       (disable alpha testing)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	tgaLoad("ModifiedMGRS.tga", &temp_image, TGA_FREE | TGA_LOW_QUALITY);
+	tgaLoad("..\\src\\data\\ModifiedMGRS.tga", &temp_image, TGA_FREE | TGA_LOW_QUALITY);
 
 
 	//glEnable(GL_CULL_FACE);
@@ -1770,12 +1770,12 @@ void menu(int id)
 int MotionSphere::sphereMainLoop(MotionSphere newms, char* windowName)
 {
 	ms = newms;
-	rightHandPLY.Load("ply\\Right_Hand.ply");
-	leftHandPLY.Load("ply\\RiggedLeftHand.ply");
-	leftFootPLY.Load("ply\\Left_foot.ply");
-	rightFootPLY.Load("ply\\Right_foot.ply");
-	kneePLY.Load("ply\\knee.ply");
-	elbowPLY.Load("ply\\elbow2.ply");
+	rightHandPLY.Load("..\\src\\data\\ms\\Right_Hand.ply");
+	leftHandPLY.Load("..\\src\\data\\ms\\RiggedLeftHand.ply");
+	leftFootPLY.Load("..\\src\\data\\ms\\Left_foot.ply");
+	rightFootPLY.Load("..\\src\\data\\ms\\Right_foot.ply");
+	kneePLY.Load("..\\src\\data\\ms\\knee.ply");
+	elbowPLY.Load("..\\src\\data\\ms\\elbow2.ply");
 	/*loadobj("test_hand.obj", vertex);*/
 	/*tinyobj::attrib_t attrib;
 	std::vector<tinyobj::shape_t> shapes;
