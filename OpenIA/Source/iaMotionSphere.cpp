@@ -1,6 +1,7 @@
 ﻿#include "iaMotionSphere.h"
 #include <iostream>
 #include <iomanip>
+#include "iaVitruvianAvatar.h"
 #include "Model_PLY.h"
 
 using namespace std;
@@ -70,6 +71,7 @@ int indexDB = 0;
 bool bReadFile = false;
 bool bReadDBFile = false;
 bool toggleOption = true;
+bool toggleEdit = false;
 int isize = 0;
 int dsize = 0;
 int idbsize = 0;
@@ -107,7 +109,8 @@ float exptraj_b7[20014][4];
 float exptraj_b8[20014][4];
 float exptraj_b9[20014][4];
 
-float stencilHash[255][2];
+float stencilHash[10][255];
+
 quaternion BodyQuat(1.29947E-16, 0.707106781, -0.707106781, 1.41232E-32);
 
 bool MotionSphere::keyPressed;
@@ -538,9 +541,6 @@ void drawTriangles(float centerX, float centerY, float centerZ, float angle)
 			glPushMatrix();
 
 			glTranslatef(1.011*centerX, 1.011*centerY, 1.011*centerZ);
-			//glRotatef(90, 0, 1, 0);
-			//glLoadIdentity();
-			//glMultMatrixf(matrix);
 			glBegin(GL_LINES);
 			for (float t = 0; t < 1; t = t + 0.1)
 			{
@@ -581,21 +581,38 @@ void drawTriangles(float centerX, float centerY, float centerZ, float angle)
 	}
 	glutPostRedisplay();
 }
+Avatar getFirstInverse(int index)
+{
+	Avatar result;
+	result.b0 = ms.su->avatarData[index].b0.mutiplication(ms.su->avatarData[1].b0.Inverse());
+	result.b1 = ms.su->avatarData[index].b1.mutiplication(ms.su->avatarData[1].b1.Inverse());
+	result.b2 = ms.su->avatarData[index].b2.mutiplication(ms.su->avatarData[1].b2.Inverse());
+	result.b3 = ms.su->avatarData[index].b3.mutiplication(ms.su->avatarData[1].b3.Inverse());
+	result.b4 = ms.su->avatarData[index].b4.mutiplication(ms.su->avatarData[1].b4.Inverse());
+	result.b5 = ms.su->avatarData[index].b5.mutiplication(ms.su->avatarData[1].b5.Inverse());
+	result.b6 = ms.su->avatarData[index].b6.mutiplication(ms.su->avatarData[1].b6.Inverse());
+	result.b7 = ms.su->avatarData[index].b7.mutiplication(ms.su->avatarData[1].b7.Inverse());
+	result.b8 = ms.su->avatarData[index].b8.mutiplication(ms.su->avatarData[1].b8.Inverse());
+	result.b9 = ms.su->avatarData[index].b9.mutiplication(ms.su->avatarData[1].b9.Inverse());
+
+	return result;
+}
 
 quaternion getQuatByIndex(int boneID, int index, SphereUtility *su)
 {
+	Avatar firstInverse = getFirstInverse(index);
 	switch (boneID)
 	{
-	case 0: return su->avatarData[index].b0; break;
-	case 1: return su->avatarData[index].b1; break;
-	case 2: return su->avatarData[index].b2; break;
-	case 3: return su->avatarData[index].b3; break;
-	case 4: return su->avatarData[index].b4; break;
-	case 5: return su->avatarData[index].b5; break;
-	case 6: return su->avatarData[index].b6; break;
-	case 7: return su->avatarData[index].b7; break;
-	case 8: return su->avatarData[index].b8; break;
-	case 9: return su->avatarData[index].b9; break;
+		case 0: return firstInverse.b0; /*su->avatarData[index].b0;*/ break;
+		case 1: return firstInverse.b0.Inverse().mutiplication(firstInverse.b1);  break;
+		case 2: return firstInverse.b1.Inverse().mutiplication(firstInverse.b2);  break;
+		case 3: return firstInverse.b2.Inverse().mutiplication(firstInverse.b3);  break;
+		case 4: return firstInverse.b1.Inverse().mutiplication(firstInverse.b4);  break;
+		case 5: return firstInverse.b4.Inverse().mutiplication(firstInverse.b5);  break;
+		case 6: return firstInverse.b0.Inverse().mutiplication(firstInverse.b6);  break;
+		case 7: return firstInverse.b6.Inverse().mutiplication(firstInverse.b7);  break;
+		case 8: return firstInverse.b0.Inverse().mutiplication(firstInverse.b8);  break;
+		case 9: return firstInverse.b8.Inverse().mutiplication(firstInverse.b9);  break;
 	}
 }
 
@@ -610,7 +627,7 @@ void drawPLYByBoneID(int boneID)
 	case 5: leftHandPLY.Draw(); break;
 
 	case 6: kneePLY.Draw(); break;
-	case 7:  rightFootPLY.Draw(); break;
+	case 7: rightFootPLY.Draw(); break;
 
 	case 8:	kneePLY.Draw(); break;
 	case 9: leftFootPLY.Draw(); break;
@@ -619,21 +636,28 @@ void drawPLYByBoneID(int boneID)
 	}
 }
 
+
+
 void sphereDraw(int index, float(&traj_b)[20014][4], float r, float g, float b, int sIndex, int boneID, bool expert)
 {
 	SphereUtility *currentSU;
+	double mr, mg, mb;
+	
+
+	if (stencilIndex > 0)
+		VitruvianAvatar::vitruvianAvatarUpdate = getFirstInverse(stencilIndex - 1);
+	else
+		VitruvianAvatar::vitruvianAvatarUpdate = getFirstInverse(trajCount-1);
+
 	if (expert)
 	{
 		currentSU = &expertSU;
-		//cout << "Expert: " << traj_b[index][1]<<","<<traj_b[index][2]<<","<<traj_b[index][3] << "\t";
 	}
 
 	else
 	{
 		currentSU = ms.su;
-		//cout << "Novice: " << traj_b[index][1] << "," << traj_b[index][2] << "," << traj_b[index][3] << endl;
 	}
-
 
 	quaternion q = getQuatByIndex(boneID, index, currentSU);
 	float angle = acos(q.mData[3]);
@@ -643,8 +667,6 @@ void sphereDraw(int index, float(&traj_b)[20014][4], float r, float g, float b, 
 	//glDisable(GL_LIGHTING);
 	glColor3f(r, g, b);
 	float fnorm = sqrt(traj_b[index][1] * traj_b[index][1] + traj_b[index][2] * traj_b[index][2] + traj_b[index][3] * traj_b[index][3]);
-
-
 
 	//End of Drawing Line
 	float theta, phi, psi;
@@ -662,46 +684,37 @@ void sphereDraw(int index, float(&traj_b)[20014][4], float r, float g, float b, 
 	{
 		dist = getDistance(traj_b[index][1], traj_b[index][2], traj_b[index][3], traj_b[printIndex[boneID]][1], traj_b[printIndex[boneID]][2], traj_b[printIndex[boneID]][3]);
 		twist = currentSU->twistAngles[index][boneID];
-		/*if(expert)
-			cout <<"Expert:" <<twist << endl;
-		else
-			cout << "Novice:" << twist << endl;*/
 	}
 
-	if (index > 0)
+	if (index > 0 && toggleOption)
 	{
 		glLineWidth(3.0f);
 		glPushMatrix();
-		/*glBegin(GL_LINES);
-			glVertex3f(1.01*traj_b[index][1] / fnorm, 1.01*traj_b[index][2] / fnorm, 1.01*traj_b[index][3] / fnorm);
-			glVertex3f(1.01*traj_b[index - 1][1] / fnorm, 1.01*traj_b[index - 1][2] / fnorm, 1.01*traj_b[index - 1][3] / fnorm);
-		glEnd();*/
-
 		renderCylinder_convenient(-1.01*traj_b[index - 1][1] / fnorm, -1.01*traj_b[index - 1][2] / fnorm, 1.01*traj_b[index - 1][3] / fnorm,
 			-1.01*traj_b[index][1] / fnorm, -1.01*traj_b[index][2] / fnorm, 1.01*traj_b[index][3] / fnorm, 0.01, 0.01, 30, false);
 		glPopMatrix();
+
+		
 	}
 
-	if (index == 0 || dist > 0.3 || index == currentSU->noOfFrames - 1 || index == trajCount - 1)
+	glPushMatrix();
+	theta = asin(traj_b[index][3] / fnorm) * 180 / PI;
+	phi = atan2(traj_b[index][1] / fnorm, -traj_b[index][2] / fnorm) * 180 / PI;
+	ri = 0.03;
+	if (stencilIndex == sIndex && stencilIndex != 0)
 	{
-		/*theta = asin(traj_b[index][3] / fnorm) * 180 / PI;
-		phi = atan2(traj_b[index][1] / fnorm, -traj_b[index][2] / fnorm) * 180 / PI;*/
-
+		ss.str("");
+		ss << setprecision(2) << (twist) * 180 / PI;
+		pos[0] = 1.3*cos(theta*PI / 180)*sin(-phi * PI / 180); pos[1] = 1.3*cos(theta*PI / 180)*cos(-phi * PI / 180); pos[2] = 1.3*sin(theta*PI / 180);
+		drawString3D(ss.str().c_str(), pos, textColor, font);
+		ri = 0.05;
+	}
+	if (index == 0 || index % 10 == 0 /*|| dist > 0.3*/ || index == currentSU->noOfFrames - 1 || index == trajCount - 1)
+	{
 		if (index == 0)
 		{
 			printIndex[boneID] = 0;
 			arrowIndex = 0;
-		}
-
-		//cout << cos(theta*PI / 180)*sin((phi+10)*PI / 180) << "," << cos(theta*PI / 180)*cos((phi + 10)*PI / 180) << "," << sin(theta*PI / 180) << "->" << traj_b[index][1] / fnorm << "," << traj_b[index][2] / fnorm << "," << traj_b[index][3] / fnorm << endl;
-		ri = 0.03;
-		if (stencilIndex == sIndex && stencilIndex != 0)
-		{
-			ss.str("");
-			ss << setprecision(2) << (twist / 2) * 180 / PI;
-			pos[0] = 1.3*cos(theta*PI / 180)*sin(phi*PI / 180); pos[1] = 1.3*cos(theta*PI / 180)*cos(phi *PI / 180); pos[2] = 1.3*sin(theta*PI / 180);
-			drawString3D(ss.str().c_str(), pos, textColor, font);
-			ri = 0.05;
 		}
 
 		//Find the Vector between the immidiate previous point to identify the axis of rotation.
@@ -718,109 +731,20 @@ void sphereDraw(int index, float(&traj_b)[20014][4], float r, float g, float b, 
 		currentSU->vecNormalize(orderedPair);
 		currentSU->vecNormalize(orderedPairZ);
 
-		//if (traj_b[index][3] > 0)
-		//	s = { -traj_b[index][1] / fnorm, -traj_b[index][2] / fnorm, sqrt(1 + tan(acos(traj_b[index][3]))) - traj_b[index][3] / fnorm };
-		//else
-		//	s = { -traj_b[index][1] / fnorm, -traj_b[index][2] / fnorm, sqrt(1 + tan(acos(traj_b[index][3]))) + traj_b[index][3] / fnorm };
-		//ms.su->vecNormalize(s);
-
-		//psi = acos(ms.su->vecDotProduct(s, orderedPair));
-		//TVec3 axis = ms.su->vecCrossProduct(orderedPair, { 0,1,0 });
-		//float a = acos(ms.su->vecDotProduct(orderedPair, {0,1,0}));
-		//ms.su->vecNormalize(axis);
-
-		//float theta, phi;
-		//theta = asin(traj_b[index][3] / fnorm) * 180 / PI;
-		//phi = atan2(traj_b[index][1] / fnorm, -traj_b[index][2] / fnorm) * 180 / PI;
-		////if (phi <= -180)
-		////{
-		////	phi = 180-phi;
-		////	theta = theta - 88;
-		////}
-		glPushMatrix();
-
-
-
-		//glTranslatef(1.02*traj_b[index][1] / fnorm, 1.02*traj_b[index][2] / fnorm, 1.02*traj_b[index][3] / fnorm);
-
-		//glRotatef(ms.su->twistAngles[index][boneID]*180/PI, orderedPair._x, orderedPair._y, orderedPair._z);
-
-		//	cout << index << "," << -ms.su->twistAngles[index][boneID] * 180 / PI << endl;
-			/*if(index > 0)
-			{
-				suRotateCube(traj_b[index - step][1], traj_b[index - step][2], traj_b[index - step][3], traj_b[index][1], traj_b[index][2], traj_b[index][3]);
-			}*/
-			//glRotatef((a*180/PI), axis._x, axis._y, axis._z);
-
-			//glRotatef(90, traj_b[index][1] / fnorm, traj_b[index][2] / fnorm, traj_b[index][3] / fnorm);
-
-
-		glStencilFunc(GL_ALWAYS, sIndex, -1);
 		glDisable(GL_CULL_FACE);
-		if (index >= 0 && toggleOption)
+
+		if (index >= 0 && toggleOption && boneID > 1)
 		{
 
-			//glRotatef((a * 180 / PI)/2, traj_b[index][1] / fnorm, traj_b[index][2] / fnorm, traj_b[index][3] / fnorm);
-			//glRotatef(twist * 180 / PI, traj_b[index][1] / fnorm, traj_b[index][2] / fnorm, traj_b[index][3] / fnorm);
-
-
-			//glRotatef(-(a * 180 / PI)+90, axis._x, axis._y, axis._z);
-			//glRotatef(-phi, 0, 0, 1);
-			//glRotatef(theta+90, 1, 0, 0);
-			//cout <<index<<"," << -(a * 180 / PI) + 90 << axis._x<<","<<axis._y<<","<<axis._z<<endl;
-
-			//---------------------------------------
-			/*glEnableClientState(GL_VERTEX_ARRAY);
-			glEnableClientState(GL_NORMAL_ARRAY);*/
-			//glPushMatrix();
-			//glTranslated(0, 0, 0);
-			//glPushMatrix();
-
-			//glRotatef(twist * 180 / PI, traj_b[index][1] / fnorm, traj_b[index][2] / fnorm, traj_b[index][3] / fnorm);
-			//glRotatef(-180, 1, 0, 0);
-			//Rotatef(180, 0, 0, 1);
-
-			//glRotatef(((twist * 180 / PI)+ 180), 0, 0, 1);
-			//glScalef(0.1, 0.1, 0.1);
-			/*if (index > 0 && toggleOption)
-			{*/
-			double mr, mg, mb;
 			glPushMatrix();
 			glTranslatef(-1.07*traj_b[index][1] / fnorm, -1.07*traj_b[index][2] / fnorm, 1.07*traj_b[index][3] / fnorm);
 			glRotatef(-angle, axisX, axisY, -axisZ);
-			getColorByAngle(2 * twist * 180 / PI, mr, mg, mb);
-			//cout <<index<< " :angle = " << angle / 2 << endl;
+			getColorByAngle(twist * 180 / PI, mr, mg, mb);
 			glColor3f(mr, mg, mb);
+			glStencilFunc(GL_ALWAYS, sIndex, -1);
 			drawPLYByBoneID(boneID);
-			glPushMatrix();
-			glRotatef(-90, 1, 0, 0);
-			sphereAxis(0.06, false);
-			glPopMatrix();
-			glPopMatrix();
-			/*}*/
-		}
-
-		if (index >= 0 && !toggleOption || boneID == 0 || boneID == 1)
-		{
-			glEnable(GL_LIGHTING);
-			glPushMatrix();
-			glTranslatef(-1.02*traj_b[index][1] / fnorm, -1.02*traj_b[index][2] / fnorm, 1.02*traj_b[index][3] / fnorm);
-
-			/*glRotatef(-(a * 180 / PI) + 90, axis._x, axis._y, axis._z);*/
-			glRotatef(twist * 180 / PI, orderedPair._x, orderedPair._y, orderedPair._z);
-			//glRotatef(-angle, axisX, axisY, -axisZ);
-			//glRotatef(angle/2, orderedPair._x, orderedPair._y, orderedPair._z);
-			renderColoredCube_convenient(-1.01*traj_b[index - 1][1] / fnorm, -1.01*traj_b[index - 1][2] / fnorm, 1.01*traj_b[index - 1][3] / fnorm,
-				-1.01*traj_b[index][1] / fnorm, -1.01*traj_b[index][2] / fnorm, 1.01*traj_b[index][3] / fnorm, 0.03, 0.1, 30, true);
-			//sphereColoredCube(ri);
-			//sphereAxis(0.06, false);
 			glPopMatrix();
 		}
-		glStencilFunc(GL_ALWAYS, -1, -1);
-		glPopMatrix();
-		/*if(!toggleOption)
-			drawTriangles(traj_b[index][1] / fnorm, -traj_b[index][2] / fnorm, traj_b[index][3] / fnorm, twist);*/
-			//cout << index << "," << printIndex << "," << arrowIndex<<endl;
 		if (expert)
 		{
 			arrowIndex = expertPrintIndex + (index - expertPrintIndex) / 2;
@@ -835,17 +759,32 @@ void sphereDraw(int index, float(&traj_b)[20014][4], float r, float g, float b, 
 			glColor3f(0.000, 0.000, 0.000);
 		}
 
-		if (arrowIndex > 0)
+		if (arrowIndex > 0 && toggleOption)
 			renderCylinder_convenient(-1.01*traj_b[arrowIndex - 1][1] / fnorm, -1.01*traj_b[arrowIndex - 1][2] / fnorm, 1.01*traj_b[arrowIndex - 1][3] / fnorm,
 				-1.01*traj_b[arrowIndex][1] / fnorm, -1.01*traj_b[arrowIndex][2] / fnorm, 1.01*traj_b[arrowIndex][3] / fnorm, 0.03, 0.05, 30, true);
 	}
 	//Draw A line between Points
-
+	if (index >= 0 && !toggleOption || boneID == 0 || boneID == 1)
+	{
+		glDisable(GL_CULL_FACE);
+		glEnable(GL_LIGHTING);
+		glPushMatrix();
+		glTranslatef(-1.02*traj_b[index][1] / fnorm, -1.02*traj_b[index][2] / fnorm, 1.02*traj_b[index][3] / fnorm);
+		glStencilFunc(GL_ALWAYS, sIndex, -1);
+		getColorByAngle(twist * 180 / PI, mr, mg, mb);
+		glColor3f(mr, mg, mb);
+		glutSolidSphere(ri, 30, 30);
+		glPopMatrix();
+	}
+	glStencilFunc(GL_ALWAYS, -1, -1);
+	glPopMatrix();
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_LIGHTING);
 }
 
-void drawTrajectory(GLint minWidth, GLint minHeight, GLsizei maxWidth, GLsizei maxHeight, bool rotationFlag, float &x, float &y, float &z, float &zv, int selectSphere)
+/* Draws the trajectory on the sphere
+*/
+void drawTrajectory(GLint minWidth, GLint minHeight, GLsizei maxWidth, GLsizei maxHeight, bool rotationFlag, float &camX, float &camY, float &camZ, float &zv, int selectSphere)
 {
 	InitializeLight();
 	// ------ Draw Boundry for Show Information ------------- // 
@@ -856,11 +795,12 @@ void drawTrajectory(GLint minWidth, GLint minHeight, GLsizei maxWidth, GLsizei m
 	glEnable(GL_SCISSOR_TEST);
 	glClearDepth(1.0);
 	glClearColor(0.690, 0.769, 0.871, 0.0);
+	//glClearColor(1, 1, 1, 0.0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	glEnable(GL_LIGHTING);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glOrtho(-zv, zv, -zv, zv, -10, 10);
+	glOrtho(-zv, zv, -zv, zv, -5, 10);
 
 	glMatrixMode(GL_MODELVIEW);
 	//glDisable(GL_DEPTH_TEST);
@@ -873,11 +813,10 @@ void drawTrajectory(GLint minWidth, GLint minHeight, GLsizei maxWidth, GLsizei m
 	//if (rotationFlag)
 	{
 		gluLookAt(
-			x, y, z,
+			camX, camY, camZ,
 			0.0f, 0.0f, 0.0f,
 			0.0f, 1.0f, 0.0f
 		);
-		//glScalef(zv - 2.5, zv - 2.5, zv - 2.5);
 	}
 
 	//glDisable(GL_LIGHT1);
@@ -916,7 +855,7 @@ void drawTrajectory(GLint minWidth, GLint minHeight, GLsizei maxWidth, GLsizei m
 		{
 		case 0:
 
-			sphereDraw(i, traj_b0, 0.0, 0.0, 0.0, i + 1, 0, false); //black
+			sphereDraw(i, traj_b0, 0.000, 0.980, 0.604, i + 1, 0, false); //black
 			if (enableComparision) {
 				sphereDraw(j, exptraj_b0, 0.0, 0.0, 0.0, j + 1, 0, true);
 			}
@@ -927,73 +866,104 @@ void drawTrajectory(GLint minWidth, GLint minHeight, GLsizei maxWidth, GLsizei m
 				sphereDraw(j, exptraj_b1, 0.0, 0.0, 0.0, j + 1, 1, true);
 			break;
 
-		case 2:		sphereDraw(i, traj_b2, 1.0, 0.5, 0.0, i + 1, 2, false); //orange
-					//cout <<"("<<i<<","<<j<<")"<< ":  "<<traj_b2[i][1] << "," << traj_b2[i][2] << "," << traj_b2[i][3] << "->";
-					//cout << exptraj_b2[j][1] << "," << exptraj_b2[j][2] << "," << exptraj_b2[j][3] << endl;
+		case 2:		//sphereDraw(i, traj_b2, 1.0, 0.5, 0.0, i + 1, 2,false); //orange
+			sphereDraw(i, traj_b2, 1.0, 0.0, 0.0, i + 1, 2, false);
+			//cout <<"("<<i<<","<<j<<")"<< ":  "<<traj_b2[i][1] << "," << traj_b2[i][2] << "," << traj_b2[i][3] << "->";
+			//cout << exptraj_b2[j][1] << "," << exptraj_b2[j][2] << "," << exptraj_b2[j][3] << endl;
 			if (enableComparision)
 				sphereDraw(j, exptraj_b2, 0.0, 0.0, 0.0, j + 1, 2, true);
 			break;
 
-		case 3:		sphereDraw(i, traj_b3, 1.0, 1.0, 0.0, i + 1, 3, false); //Yellow
+		case 3:		sphereDraw(i, traj_b3, 1.0, 0.0, 0.0/*1.0, 1.0, 0.0*/, i + 1, 3, false); //Yellow
 			if (enableComparision)
 				sphereDraw(j, exptraj_b3, 0.0, 0.0, 0.0, j + 1, 3, true);
 			break;
 
-		case 4:		sphereDraw(i, traj_b4, 0.0, 1.0, 0.0, i + 1, 4, false); //Bright green
+		case 4:		sphereDraw(i, traj_b4, 1.0, 0.0, 0.0/*0.0, 1.0, 0.0*/, i + 1, 4, false); //Bright green
 			if (enableComparision)
 				sphereDraw(j, exptraj_b4, 0.0, 0.0, 0.0, j + 1, 4, true);
 			break;
 
-		case 5:		sphereDraw(i, traj_b5, 0.0, 1.0, 1.0, i + 1, 5, false); //Cyan
+		case 5:		sphereDraw(i, traj_b5, 1.0, 0.0, 0.0/*0.0, 1.0, 1.0*/, i + 1, 5, false); //Cyan
 			if (enableComparision)
 				sphereDraw(j, exptraj_b5, 0.0, 0.0, 0.0, j + 1, 5, true);
 			break;
 
-		case 6:		sphereDraw(i, traj_b6, 0.0, 0.0, 1.0, i + 1, 6, false); //Blue
+		case 6:		sphereDraw(i, traj_b6, 1.0, 0.0, 0.0/*0.0, 0.0, 1.0*/, i + 1, 6, false); //Blue
 			if (enableComparision)
 				sphereDraw(j, exptraj_b6, 0.0, 0.0, 0.0, j + 1, 6, true);
 			break;
 
-		case 7:		sphereDraw(i, traj_b7, 0.5, 0.0, 1.0, i + 1, 7, false); //Voilet
+		case 7:		sphereDraw(i, traj_b7, 1.0, 0.0, 0.0/*0.5, 0.0, 1.0*/, i + 1, 7, false); //Voilet
 			if (enableComparision)
 				sphereDraw(j, exptraj_b7, 0.0, 0.0, 0.0, j + 1, 7, true);
 			break;
 
-		case 8:		sphereDraw(i, traj_b8, 1.0, 0.0, 1.0, i + 1, 8, false); //Magenta
+		case 8:		sphereDraw(i, traj_b8, 1.0, 0.0, 0.0/*1.0, 0.0, 1.0*/, i + 1, 8, false); //Magenta
 			if (enableComparision)
 				sphereDraw(j, exptraj_b8, 0.0, 0.0, 0.0, j + 1, 8, true);
 			break;
 
-		case 9:		sphereDraw(i, traj_b9, 0.4, 0.5, 0.8, i + 1, 9, false); //Indigo
+		case 9:		sphereDraw(i, traj_b9, 1.0, 0.0, 0.0/*0.4, 0.5, 0.8*/, i + 1, 9, false); //Indigo
 			if (enableComparision)
 				sphereDraw(j, exptraj_b9, 0.0, 0.0, 0.0, j + 1, 9, true);
 			break;
 
 		case 10:	sphereDraw(i, traj_b2, 1.0, 0.5, 0.0, i + 1, 2, false);
 			sphereDraw(i, traj_b3, 1.0, 1.0, 0.0, i + 1, 3, false);
+			if (enableComparision)
+			{
+				sphereDraw(j, exptraj_b2, 0.412, 0.412, 0.412, j + 1, 2, true);
+				sphereDraw(j, exptraj_b3, 0.439, 0.502, 0.565, j + 1, 3, true);
+			}
 			break;
 
 		case 11:	sphereDraw(i, traj_b4, 0.0, 1.0, 0.0, i + 1, 4, false);
 			sphereDraw(i, traj_b5, 0.0, 1.0, 1.0, i + 1, 5, false);
+			if (enableComparision)
+			{
+				sphereDraw(j, exptraj_b4, 0.412, 0.412, 0.412, j + 1, 4, true);
+				sphereDraw(j, exptraj_b5, 0.439, 0.502, 0.565, j + 1, 5, true);
+			}
 			break;
 
 		case 12:	sphereDraw(i, traj_b6, 0.0, 0.0, 1.0, i + 1, 6, false);
 			sphereDraw(i, traj_b7, 0.5, 0.0, 1.0, i + 1, 7, false);
+			if (enableComparision)
+			{
+				sphereDraw(j, exptraj_b6, 0.412, 0.412, 0.412, j + 1, 6, true);
+				sphereDraw(j, exptraj_b7, 0.439, 0.502, 0.565, j + 1, 7, true);
+			}
 			break;
 
 		case 13:	sphereDraw(i, traj_b8, 1.0, 0.0, 1.0, i + 1, 8, false);
 			sphereDraw(i, traj_b9, 0.4, 0.5, 0.8, i + 1, 9, false);
+			if (enableComparision)
+			{
+				sphereDraw(j, exptraj_b8, 0.412, 0.412, 0.412, j + 1, 8, true);
+				sphereDraw(j, exptraj_b9, 0.439, 0.502, 0.565, j + 1, 9, true);
+			}
 			break;
 
 		case 14:	if (selectSphere == 1)
 		{
 			sphereDraw(i, traj_b2, 1.0, 0.5, 0.0, i + 1, 2, false);
 			sphereDraw(i, traj_b3, 1.0, 1.0, 0.0, i + 1, 3, false);
+			if (enableComparision)
+			{
+				sphereDraw(j, exptraj_b2, 0.412, 0.412, 0.412, j + 1, 2, true);
+				sphereDraw(j, exptraj_b3, 0.439, 0.502, 0.565, j + 1, 3, true);
+			}
 		}
 					if (selectSphere == 2)
 					{
 						sphereDraw(i, traj_b4, 0.0, 1.0, 0.0, i + 1, 4, false);
 						sphereDraw(i, traj_b5, 0.0, 1.0, 1.0, i + 1, 5, false);
+						if (enableComparision)
+						{
+							sphereDraw(j, exptraj_b4, 0.412, 0.412, 0.412, j + 1, 4, true);
+							sphereDraw(j, exptraj_b5, 0.439, 0.502, 0.565, j + 1, 5, true);
+						}
 					}
 					break;
 
@@ -1001,11 +971,21 @@ void drawTrajectory(GLint minWidth, GLint minHeight, GLsizei maxWidth, GLsizei m
 		{
 			sphereDraw(i, traj_b6, 1.0, 0.5, 0.0, i + 1, 6, false);
 			sphereDraw(i, traj_b7, 1.0, 1.0, 0.0, i + 1, 7, false);
+			if (enableComparision)
+			{
+				sphereDraw(j, exptraj_b6, 0.412, 0.412, 0.412, j + 1, 6, true);
+				sphereDraw(j, exptraj_b7, 0.439, 0.502, 0.565, j + 1, 7, true);
+			}
 		}
 					if (selectSphere == 2)
 					{
 						sphereDraw(i, traj_b8, 0.0, 1.0, 0.0, i + 1, 8, false);
 						sphereDraw(i, traj_b9, 0.0, 1.0, 1.0, i + 1, 9, false);
+						if (enableComparision)
+						{
+							sphereDraw(j, exptraj_b8, 0.412, 0.412, 0.412, j + 1, 8, true);
+							sphereDraw(j, exptraj_b9, 0.439, 0.502, 0.565, j + 1, 9, true);
+						}
 					}
 					break;
 
@@ -1013,21 +993,41 @@ void drawTrajectory(GLint minWidth, GLint minHeight, GLsizei maxWidth, GLsizei m
 		{
 			sphereDraw(i, traj_b2, 1.0, 0.5, 0.0, i + 1, 2, false);
 			sphereDraw(i, traj_b3, 1.0, 1.0, 0.0, i + 1, 3, false);
+			if (enableComparision)
+			{
+				sphereDraw(j, exptraj_b2, 0.412, 0.412, 0.412, j + 1, 2, true);
+				sphereDraw(j, exptraj_b3, 0.439, 0.502, 0.565, j + 1, 3, true);
+			}
 		}
 					if (selectSphere == 2)
 					{
 						sphereDraw(i, traj_b4, 0.0, 1.0, 0.0, i + 1, 4, false);
 						sphereDraw(i, traj_b5, 0.0, 1.0, 1.0, i + 1, 5, false);
+						if (enableComparision)
+						{
+							sphereDraw(j, exptraj_b4, 0.412, 0.412, 0.412, j + 1, 4, true);
+							sphereDraw(j, exptraj_b5, 0.439, 0.502, 0.565, j + 1, 5, true);
+						}
 					}
 					if (selectSphere == 3)
 					{
 						sphereDraw(i, traj_b6, 1.0, 0.5, 0.0, i + 1, 6, false);
 						sphereDraw(i, traj_b7, 1.0, 1.0, 0.0, i + 1, 7, false);
+						if (enableComparision)
+						{
+							sphereDraw(j, exptraj_b6, 0.412, 0.412, 0.412, j + 1, 6, true);
+							sphereDraw(j, exptraj_b7, 0.439, 0.502, 0.565, j + 1, 7, true);
+						}
 					}
 					if (selectSphere == 4)
 					{
 						sphereDraw(i, traj_b8, 0.0, 1.0, 0.0, i + 1, 8, false);
 						sphereDraw(i, traj_b9, 0.0, 1.0, 1.0, i + 1, 9, false);
+						if (enableComparision)
+						{
+							sphereDraw(j, exptraj_b8, 0.412, 0.412, 0.412, j + 1, 8, true);
+							sphereDraw(j, exptraj_b9, 0.439, 0.502, 0.565, j + 1, 9, true);
+						}
 					}
 					break;
 
@@ -1040,11 +1040,11 @@ void drawTrajectory(GLint minWidth, GLint minHeight, GLsizei maxWidth, GLsizei m
 	glPopMatrix();
 }
 
+/* Callback: runs in an infinte glut loop
+*/
 void sphereDisplay(void)
 {
 	InitializeLight();
-
-
 	glClearDepth(1.0);
 
 	glClearStencil(0);
@@ -1057,9 +1057,7 @@ void sphereDisplay(void)
 
 	glDisable(GL_TEXTURE_2D);
 
-	//glDisable(GL_BLEND);
 	glEnable(GL_TEXTURE_2D);
-	//glDisable(GL_LIGHT0);
 	if (sphereID <= 13)
 	{
 		drawTrajectory(ms.minWidth, ms.minHeight, ms.maxWidth, ms.maxHeight, true, pointTranslateX, pointTranslateY, pointTranslateZ, zval, 0);
@@ -1076,24 +1074,35 @@ void sphereDisplay(void)
 		drawTrajectory(ms.maxWidth / 2, ms.maxHeight / 2, ms.maxWidth / 2, ms.maxHeight / 2, rotEnable2, pointTranslateX2, pointTranslateY2, pointTranslateZ2, zval2, 2);
 		drawTrajectory(ms.minWidth, ms.minHeight, ms.maxWidth / 2, ms.maxHeight / 2, rotEnable3, pointTranslateX3, pointTranslateY3, pointTranslateZ3, zval3, 3);
 		drawTrajectory(ms.maxWidth / 2, ms.minHeight, ms.maxWidth / 2, ms.maxHeight / 2, rotEnable4, pointTranslateX4, pointTranslateY4, pointTranslateZ4, zval4, 4);
-
-
 	}
-
-
 	glFlush();
 	glutSwapBuffers();
 }
-
+/* Callback: The mouse click event is defined based on the number of view ports enabled
+*/
 void sphereMouseEvent(int button, int state, int x, int y)
 {
-
 	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
+	{
+		mouseDown = true;
+	}
+	else
+		mouseDown = false;
+
+	if (mouseDown && toggleEdit)
+	{
+		glReadPixels(x, ms.maxHeight - y - 1, 1, 1, GL_STENCIL_INDEX, GL_UNSIGNED_INT, &stencilIndex);
+		printf("The stensil-index = %d\n", stencilIndex);
+		xdiff = (yrot + x);
+		ydiff = -y + xrot;
+	}
+
+	if (mouseDown && !toggleEdit)
 	{
 		glReadPixels(x, ms.maxHeight - y - 1, 1, 1, GL_STENCIL_INDEX, GL_UNSIGNED_INT, &stencilIndex);
 		glReadPixels(x, ms.maxHeight - y - 1, 1, 1, GL_RGBA, GL_FLOAT, &pointColor);
 
-		mouseDown = true;
+		//mouseDown = true;
 
 		xdiff = (yrot + x);
 		ydiff = -y + xrot;
@@ -1145,13 +1154,64 @@ void sphereMouseEvent(int button, int state, int x, int y)
 			}
 		}
 	}
-	else
-		mouseDown = false;
 }
 
-void sphereMotionMotion(int x, int y)
+/* Callback: Mouse movement on the sphere on left mouse down enables sphere rotation
+*/
+void sphereMouseMotion(int x, int y)
 {
-	if (mouseDown)
+	if (mouseDown && toggleEdit && stencilIndex > 1)
+	{
+		yrot = -(x + xdiff);
+		xrot = (y + ydiff);
+		if (xrot > 89) xrot = 89.0f;
+		if (xrot < -89) xrot = -89.0f;
+
+		printf("(xrot, ytor)=(%f, %f)\n", xrot, yrot);
+		double X = 1 * (cos(xrot*PI / 180) * sin(yrot*PI / 180));
+		double Y = 1 * (sin(xrot*PI / 180));
+		double Z = 1 * (cos(xrot*PI / 180) * cos(yrot*PI / 180));
+
+		switch (sphereID)
+		{
+		case 0:	traj_b0[stencilIndex - 1][1] = X;
+			traj_b0[stencilIndex - 1][2] = Y;
+			traj_b0[stencilIndex - 1][3] = Z; break;
+		case 1:	traj_b1[stencilIndex - 1][1] = X;
+			traj_b1[stencilIndex - 1][2] = Y;
+			traj_b1[stencilIndex - 1][3] = Z; break;
+		case 2:	traj_b2[stencilIndex - 1][1] = X;
+			traj_b2[stencilIndex - 1][2] = Y;
+			traj_b2[stencilIndex - 1][3] = Z; break;
+		case 3: traj_b3[stencilIndex - 1][1] = X;
+			traj_b3[stencilIndex - 1][2] = Y;
+			traj_b3[stencilIndex - 1][3] = Z; break;
+		case 4: traj_b4[stencilIndex - 1][1] = X;
+			traj_b4[stencilIndex - 1][2] = Y;
+			traj_b4[stencilIndex - 1][3] = Z; break;
+		case 5:	traj_b5[stencilIndex - 1][1] = X;
+			traj_b5[stencilIndex - 1][2] = Y;
+			traj_b5[stencilIndex - 1][3] = Z; break;
+		case 6: traj_b6[stencilIndex - 1][1] = X;
+			traj_b6[stencilIndex - 1][2] = Y;
+			traj_b6[stencilIndex - 1][3] = Z; break;
+		case 7: traj_b7[stencilIndex - 1][1] = X;
+			traj_b7[stencilIndex - 1][2] = Y;
+			traj_b7[stencilIndex - 1][3] = Z; break;
+		case 8: traj_b8[stencilIndex - 1][1] = X;
+			traj_b8[stencilIndex - 1][2] = Y;
+			traj_b8[stencilIndex - 1][3] = Z; break;
+		case 9: traj_b9[stencilIndex - 1][1] = X;
+			traj_b9[stencilIndex - 1][2] = Y;
+			traj_b9[stencilIndex - 1][3] = Z; break;
+		default:
+			break;
+		}
+
+
+
+	}
+	if (mouseDown && !toggleEdit)
 	{
 		yrot = -(x + xdiff);
 		xrot = y + ydiff;
@@ -1161,7 +1221,7 @@ void sphereMotionMotion(int x, int y)
 		pointTranslateX = zval * (cos(xrot*PI / 180) * sin(yrot*PI / 180));
 		pointTranslateY = zval * (sin(xrot*PI / 180));
 		pointTranslateZ = zval * (cos(xrot*PI / 180) * cos(yrot*PI / 180));
-
+		//printf("Changing values on the sphere (x, y, z) = (%f, %f, %f)\n", pointTranslateX, pointTranslateY, pointTranslateZ);
 		if (rotEnable1)
 		{
 			pointTranslateX1 = pointTranslateX;
@@ -1190,18 +1250,11 @@ void sphereMotionMotion(int x, int y)
 			pointTranslateZ4 = pointTranslateZ;
 
 		}
-
-		//if (pointTranslateY > 3.49)
-		//{
-		//	pointTranslateX = -pointTranslateX;
-		//	//pointTranslateY = -pointTranslateY;
-		//	pointTranslateZ = -pointTranslateZ;
-		//}
-		//printf("pointTranslateX = %f\tpointTranslateY = %f\tpointTranslateZ = %f\n", pointTranslateX, pointTranslateY, pointTranslateZ);
 		glutPostRedisplay();
 	}
 }
-
+/* Callback: Reshape function for the openGL window
+*/
 void sphereReshape(int w, int h)
 {
 	glViewport(0, 0, w, h);
@@ -1216,6 +1269,9 @@ void sphereReshape(int w, int h)
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 }
+
+/* Calculate the 3D normalized points (swing) and the twist angle
+*/
 void calculateTrajectory(quaternion parent, quaternion child, TVec3 &parentVec, TVec3 &childVec, float &tAngleParent, float &tAngleChild)
 {
 	//TRANFORMATION OF SENSROR FRAME TO BODY FRAME
@@ -1241,7 +1297,8 @@ void calculateTrajectory(quaternion parent, quaternion child, TVec3 &parentVec, 
 	tAngleChild = ms.su->getTwistAngle(childVec, lq);
 
 }
-
+/* Copying the expert trajectory into 2d array
+*/
 void loadexpTraj()
 {
 	for (int index = 0; index < expertSU.noOfFrames; index++)
@@ -1277,12 +1334,14 @@ void loadexpTraj()
 		exptraj_b9[index][2] = expertSU.vectors[index][9]._y; exptraj_b9[index][3] = expertSU.vectors[index][9]._z;
 	}
 }
-
-void startFresh()
+/* reads data files, resets memory, counters and flags for fresh display. called on press of key '1' or enabled
+*/
+void startFresh(char* fileName)
 {
-	//ms.su->readAvatarData("RotationData/FormFile.txt");
-	//ms.su->fullBodytoXYZ();
-	ms.su->readAvatarData(ms.fileName);
+	ms.su->readAvatarData(fileName);
+	VitruvianAvatar::isLoaded = true;
+	/*ms.su->fullBodytoXYZ();
+	ms.su->vectors[i][2]._x*/
 
 	bReadFile = true;
 	trajCount = 0;
@@ -1309,20 +1368,144 @@ void startFresh()
 	memset(exptraj_b7, 0, 80056 * (sizeof(float)));
 	memset(exptraj_b8, 0, 80056 * (sizeof(float)));
 	memset(exptraj_b9, 0, 80056 * (sizeof(float)));
-	expertSU.readAvatarData("..\\src\\data\\RotationData\\ExpertFormFile.txt");
-	expertSU.fullBodytoXYZ();
-	expTrajCount = 0;
-	loadexpTraj();
+	/*expertSU.readAvatarData("..\\src\\data\\RotationData\\ExpertFormFile.txt");
+	expertSU.fullBodytoXYZ();*/
+	/*expTrajCount = 0;
+	loadexpTraj();*/
 
 	glutPostRedisplay();
 	MotionSphere::keyPressed = false;
 }
 
+
+void updateTrajectoryArray(int ind)
+{
+	Avatar firstInverse = getFirstInverse(ind);
+
+	avatar.b0 = firstInverse.b0;
+	avatar.b1 = firstInverse.b0.Inverse().mutiplication(firstInverse.b1);
+	avatar.b2 = firstInverse.b1.Inverse().mutiplication(firstInverse.b2);
+	avatar.b3 = firstInverse.b2.Inverse().mutiplication(firstInverse.b3);
+	avatar.b4 = firstInverse.b1.Inverse().mutiplication(firstInverse.b4);
+	avatar.b5 = firstInverse.b4.Inverse().mutiplication(firstInverse.b5);
+	avatar.b6 = firstInverse.b0.Inverse().mutiplication(firstInverse.b6);
+	avatar.b7 = firstInverse.b6.Inverse().mutiplication(firstInverse.b7);
+	avatar.b8 = firstInverse.b0.Inverse().mutiplication(firstInverse.b8);
+	avatar.b9 = firstInverse.b8.Inverse().mutiplication(firstInverse.b9);
+
+	TVec3 b0Vec, b1Vec;
+	float tAngle0, tAngle1;
+	quaternion vQuat(ms.su->startingVector._x, ms.su->startingVector._y, -ms.su->startingVector._z, 0);
+
+	quaternion uTransfBodyQuat = avatar.b0.mutiplication(vQuat.mutiplication(avatar.b0.Inverse()));
+
+	traj_b0[ind][0] = 1;
+	traj_b0[ind][1] = uTransfBodyQuat.mData[0];
+	traj_b0[ind][2] = uTransfBodyQuat.mData[1];
+	traj_b0[ind][3] = uTransfBodyQuat.mData[2];
+	ms.su->twistAngles[ind][0] = ms.su->getTwistAngle({ uTransfBodyQuat.mData[0] ,uTransfBodyQuat.mData[1] ,uTransfBodyQuat.mData[2] }, uTransfBodyQuat);
+
+	calculateTrajectory(avatar.b0, avatar.b1, b0Vec, b1Vec, tAngle0, tAngle1);
+
+	ms.su->twistAngles[ind][1] = tAngle1;
+	traj_b1[ind][0] = 1;
+	traj_b1[ind][1] = b1Vec._x;
+	traj_b1[ind][2] = b1Vec._y;
+	traj_b1[ind][3] = b1Vec._z;
+
+
+	TVec3 b2Vec, b3Vec;
+	float tAngle2, tAngle3;
+	calculateTrajectory(avatar.b2, avatar.b3, b2Vec, b3Vec, tAngle2, tAngle3);
+	
+	ms.su->twistAngles[ind][2] = tAngle2;
+	traj_b2[ind][0] = 1;
+	traj_b2[ind][1] = b2Vec._x;
+	traj_b2[ind][2] = b2Vec._y;
+	traj_b2[ind][3] = b2Vec._z;
+
+
+	ms.su->twistAngles[ind][3] = tAngle3;
+	traj_b3[ind][0] = 1;
+	traj_b3[ind][1] = b3Vec._x;
+	traj_b3[ind][2] = b3Vec._y;
+	traj_b3[ind][3] = b3Vec._z;
+	{
+		float swingAngle = ms.su->vecDotProduct({ traj_b3[0][1],traj_b3[0][2] ,traj_b3[0][3] },
+			{ traj_b3[ind][1],traj_b3[ind][2] ,traj_b3[ind][3] });
+		//cout << acos(swingAngle)*180/PI << "," << tAngle3*180/PI << endl;
+	}
+
+	
+	TVec3 b4Vec, b5Vec;
+	float tAngle4, tAngle5;
+	calculateTrajectory(avatar.b4, avatar.b5, b4Vec, b5Vec, tAngle4, tAngle5);
+
+	ms.su->twistAngles[ind][4] = tAngle4;
+	traj_b4[ind][0] = 1;
+	traj_b4[ind][1] = b4Vec._x;
+	traj_b4[ind][2] = b4Vec._y;
+	traj_b4[ind][3] = b4Vec._z;
+
+	//cout << traj_b4[ind][1] << "," << traj_b4[ind][2] << "," << traj_b4[ind][3] << "," << tAngle4 << endl;
+
+	ms.su->twistAngles[ind][5] = tAngle5;
+	traj_b5[ind][0] = 1;
+	traj_b5[ind][1] = b5Vec._x;
+	traj_b5[ind][2] = b5Vec._y;
+	traj_b5[ind][3] = b5Vec._z;
+
+	//cout << traj_b5[ind][1] << "," << traj_b5[ind][2] << "," << traj_b5[ind][3] << "," << tAngle5 << endl;
+
+	TVec3 b6Vec, b7Vec;
+	float tAngle6, tAngle7;
+	calculateTrajectory(avatar.b6, avatar.b7, b6Vec, b7Vec, tAngle6, tAngle7);
+
+	ms.su->twistAngles[ind][6] = tAngle6;
+	traj_b6[ind][0] = 1;
+	traj_b6[ind][1] = b6Vec._x;
+	traj_b6[ind][2] = b6Vec._y;
+	traj_b6[ind][3] = b6Vec._z;
+
+	//cout << traj_b6[ind][1] << "," << traj_b6[ind][2] << "," << traj_b6[ind][3] << "," << tAngle6 << endl;
+
+	ms.su->twistAngles[ind][7] = tAngle7;
+	traj_b7[ind][0] = 1;
+	traj_b7[ind][1] = b7Vec._x;
+	traj_b7[ind][2] = b7Vec._y;
+	traj_b7[ind][3] = b7Vec._z;
+
+	//cout << traj_b7[ind][1] << "," << traj_b7[ind][2] << "," << traj_b7[ind][3] << "," << tAngle7 << endl;
+
+	TVec3 b8Vec, b9Vec;
+	float tAngle8, tAngle9;
+	calculateTrajectory(avatar.b8, avatar.b9, b8Vec, b9Vec, tAngle8, tAngle9);
+
+	ms.su->twistAngles[ind][8] = tAngle8;
+	traj_b8[ind][0] = 1;
+	traj_b8[ind][1] = b8Vec._x;
+	traj_b8[ind][2] = b8Vec._y;
+	traj_b8[ind][3] = b8Vec._z;
+
+	//cout << traj_b8[ind][1] << "," << traj_b8[ind][2] << "," << traj_b8[ind][3] << "," << tAngle8 << endl;
+
+	ms.su->twistAngles[ind][9] = tAngle9;
+	traj_b9[ind][0] = 1;
+	traj_b9[ind][1] = b9Vec._x;
+	traj_b9[ind][2] = b9Vec._y;
+	traj_b9[ind][3] = b9Vec._z;
+}
+
+/*
+Defines what needs to be done when the main loop is idel
+Its a call back function which is executed at regular intervels.
+*/
+
 void sphereIdle()
 {
 	if (MotionSphere::keyPressed)
 	{
-		startFresh();
+		startFresh("..\\src\\data\\RotationData\\FormFile.txt");
 	}
 
 	if (bReadFile)
@@ -1338,138 +1521,7 @@ void sphereIdle()
 
 				break;
 			}
-
-			avatar.b0 = ms.su->avatarData[trajCount].b0;
-			avatar.b1 = ms.su->avatarData[trajCount].b1;
-			avatar.b2 = ms.su->avatarData[trajCount].b2;
-			avatar.b3 = ms.su->avatarData[trajCount].b3;
-			avatar.b4 = ms.su->avatarData[trajCount].b4;
-			avatar.b5 = ms.su->avatarData[trajCount].b5;
-			avatar.b6 = ms.su->avatarData[trajCount].b6;
-			avatar.b7 = ms.su->avatarData[trajCount].b7;
-			avatar.b8 = ms.su->avatarData[trajCount].b8;
-			avatar.b9 = ms.su->avatarData[trajCount].b9;
-
-
-
-			TVec3 b0Vec, b1Vec;
-			float tAngle0, tAngle1;
-			quaternion vQuat(ms.su->startingVector._x, ms.su->startingVector._y, ms.su->startingVector._z, 0);
-
-			quaternion uTransfBodyQuat = avatar.b0.mutiplication(vQuat.mutiplication(avatar.b0.Inverse()));
-
-			traj_b0[trajCount][0] = 1;
-			traj_b0[trajCount][1] = uTransfBodyQuat.mData[0];
-			traj_b0[trajCount][2] = uTransfBodyQuat.mData[1];
-			traj_b0[trajCount][3] = uTransfBodyQuat.mData[2];
-			ms.su->twistAngles[trajCount][0] = ms.su->getTwistAngle({ uTransfBodyQuat.mData[0] ,uTransfBodyQuat.mData[1] ,uTransfBodyQuat.mData[2] }, uTransfBodyQuat);
-
-			calculateTrajectory(avatar.b0, avatar.b1, b0Vec, b1Vec, tAngle0, tAngle1);
-
-			ms.su->twistAngles[trajCount][1] = tAngle1;
-			traj_b1[trajCount][0] = 1;
-			traj_b1[trajCount][1] = b1Vec._x;
-			traj_b1[trajCount][2] = b1Vec._y;
-			traj_b1[trajCount][3] = b1Vec._z;
-
-
-			TVec3 b2Vec, b3Vec;
-			float tAngle2, tAngle3;
-			calculateTrajectory(avatar.b2, avatar.b3, b2Vec, b3Vec, tAngle2, tAngle3);
-			//cout << avatar.b2.mData[3] << "," << avatar.b2.mData[0] << "," << avatar.b2.mData[1] << "," << avatar.b2.mData[2] << endl;
-			//cout << tAngle2*180/PI << endl;
-			/*if (trajCount == 0)
-			{
-				ms.su->startingVector = { b2Vec._x,b2Vec._y,b2Vec._z };
-			}*/
-			ms.su->twistAngles[trajCount][2] = tAngle2;
-			traj_b2[trajCount][0] = 1;
-			traj_b2[trajCount][1] = b2Vec._x;
-			traj_b2[trajCount][2] = b2Vec._y;
-			traj_b2[trajCount][3] = b2Vec._z;
-
-			//cout << traj_b2[trajCount][1] << "," << traj_b2[trajCount][2] << "," << traj_b2[trajCount][3] << "," << tAngle2 << endl;
-
-			ms.su->twistAngles[trajCount][3] = tAngle3;
-			traj_b3[trajCount][0] = 1;
-			traj_b3[trajCount][1] = b3Vec._x;
-			traj_b3[trajCount][2] = b3Vec._y;
-			traj_b3[trajCount][3] = b3Vec._z;
-			//if (trajCount > 0)
-			{
-				float swingAngle = ms.su->vecDotProduct({ traj_b3[0][1],traj_b3[0][2] ,traj_b3[0][3] },
-					{ traj_b3[trajCount][1],traj_b3[trajCount][2] ,traj_b3[trajCount][3] });
-				//cout << acos(swingAngle)*180/PI << "," << tAngle3*180/PI << endl;
-			}
-
-			//cout << -traj_b3[trajCount][1] << "," << -traj_b3[trajCount][3] << "," << -traj_b3[trajCount][2] << "," << tAngle3*180/PI << endl;
-
-
-			TVec3 b4Vec, b5Vec;
-			float tAngle4, tAngle5;
-			calculateTrajectory(avatar.b4, avatar.b5, b4Vec, b5Vec, tAngle4, tAngle5);
-
-			ms.su->twistAngles[trajCount][4] = tAngle4;
-			traj_b4[trajCount][0] = 1;
-			traj_b4[trajCount][1] = b4Vec._x;
-			traj_b4[trajCount][2] = b4Vec._y;
-			traj_b4[trajCount][3] = b4Vec._z;
-
-			//cout << traj_b4[trajCount][1] << "," << traj_b4[trajCount][2] << "," << traj_b4[trajCount][3] << "," << tAngle4 << endl;
-
-			ms.su->twistAngles[trajCount][5] = tAngle5;
-			traj_b5[trajCount][0] = 1;
-			traj_b5[trajCount][1] = b5Vec._x;
-			traj_b5[trajCount][2] = b5Vec._y;
-			traj_b5[trajCount][3] = b5Vec._z;
-
-			//cout << traj_b5[trajCount][1] << "," << traj_b5[trajCount][2] << "," << traj_b5[trajCount][3] << "," << tAngle5 << endl;
-
-			TVec3 b6Vec, b7Vec;
-			float tAngle6, tAngle7;
-			calculateTrajectory(avatar.b6, avatar.b7, b6Vec, b7Vec, tAngle6, tAngle7);
-
-			ms.su->twistAngles[trajCount][6] = tAngle6;
-			traj_b6[trajCount][0] = 1;
-			traj_b6[trajCount][1] = b6Vec._x;
-			traj_b6[trajCount][2] = b6Vec._y;
-			traj_b6[trajCount][3] = b6Vec._z;
-
-			//cout << traj_b6[trajCount][1] << "," << traj_b6[trajCount][2] << "," << traj_b6[trajCount][3] << "," << tAngle6 << endl;
-
-			ms.su->twistAngles[trajCount][7] = tAngle7;
-			traj_b7[trajCount][0] = 1;
-			traj_b7[trajCount][1] = b7Vec._x;
-			traj_b7[trajCount][2] = b7Vec._y;
-			traj_b7[trajCount][3] = b7Vec._z;
-
-			//cout << traj_b7[trajCount][1] << "," << traj_b7[trajCount][2] << "," << traj_b7[trajCount][3] << "," << tAngle7 << endl;
-
-			TVec3 b8Vec, b9Vec;
-			float tAngle8, tAngle9;
-			calculateTrajectory(avatar.b8, avatar.b9, b8Vec, b9Vec, tAngle8, tAngle9);
-
-			ms.su->twistAngles[trajCount][8] = tAngle8;
-			traj_b8[trajCount][0] = 1;
-			traj_b8[trajCount][1] = b8Vec._x;
-			traj_b8[trajCount][2] = b8Vec._y;
-			traj_b8[trajCount][3] = b8Vec._z;
-
-			//cout << traj_b8[trajCount][1] << "," << traj_b8[trajCount][2] << "," << traj_b8[trajCount][3] << "," << tAngle8 << endl;
-
-			ms.su->twistAngles[trajCount][9] = tAngle9;
-			traj_b9[trajCount][0] = 1;
-			traj_b9[trajCount][1] = b9Vec._x;
-			traj_b9[trajCount][2] = b9Vec._y;
-			traj_b9[trajCount][3] = b9Vec._z;
-
-			//cout << traj_b9[trajCount][1] << "," << traj_b9[trajCount][2] << "," << traj_b9[trajCount][3] << "," << tAngle9 << endl;
-
-			/*drawJointSpheres(trajCount, traj_b2, 1.0, 0.5, 0.0, 2);
-			drawJointSpheres(trajCount, traj_b3, 1.0, 1.0, 0.0, 3);
-			drawJointSpheres(trajCount, traj_b4, 0.0, 1.0, 0.0, 4);
-			drawJointSpheres(trajCount, traj_b5, 0.0, 1.0, 1.0, 5);*/
-
+			updateTrajectoryArray(trajCount);
 			trajCount++;
 		}
 		break;
@@ -1613,72 +1665,107 @@ void sphereIdle()
 	glutPostRedisplay();
 }
 
-void sphereInitialize()
+
+
+void SpecialkeyBoardEvent(int key, int x, int y)
 {
-	///////////////////////Texture mapping///////////////////////////
-	image_t   temp_image;
-
-	//glClearColor(1.0, 1.0, 1.0, 0.0);
-	glEnable(GL_TEXTURE_2D);
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	glGenTextures(2, texture_id);
-
-	glBindTexture(GL_TEXTURE_2D, texture_id[0]);
-	glEnable(GL_BLEND);							// Enable Blending       (disable alpha testing)
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	tgaLoad("..\\src\\data\\ModifiedMGRS.tga", &temp_image, TGA_FREE | TGA_LOW_QUALITY);
-
-
-	//glEnable(GL_CULL_FACE);
-
-	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
-
-	sphere = gluNewQuadric();
-	gluQuadricDrawStyle(sphere, GLU_FILL);
-	gluQuadricNormals(sphere, GLU_SMOOTH);
-	gluQuadricOrientation(sphere, GLU_INSIDE);
-	gluQuadricTexture(sphere, GL_TRUE);
+	quaternion q;
+	if (stencilIndex > 0)
+	{
+		switch (key)
+		{
+		case GLUT_KEY_DOWN:	q = quaternion(0.0087155743, 0, 5.33894E-18, 0.999962); break;
+		case GLUT_KEY_UP:	q = quaternion(-0.0087155743, 0, 5.33894E-18, 0.999962); break;
+		case GLUT_KEY_RIGHT:	q = quaternion(0, 5.33894E-18, 0.0087155743, 0.999962); break;
+		case GLUT_KEY_LEFT:	q = quaternion(0, 5.33894E-18, -0.0087155743, 0.999962); break;
+		}
+		switch (sphereID)
+		{
+		case 0: ms.su->avatarData[stencilIndex - 1].b0 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b0);	break;
+		case 1: ms.su->avatarData[stencilIndex - 1].b1 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b1);	break;
+		case 2: ms.su->avatarData[stencilIndex - 1].b2 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b2);	break;
+		case 3: ms.su->avatarData[stencilIndex - 1].b3 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b3);	break;
+		case 4: ms.su->avatarData[stencilIndex - 1].b4 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b4);	break;
+		case 5: ms.su->avatarData[stencilIndex - 1].b5 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b5);	break;
+		case 6: ms.su->avatarData[stencilIndex - 1].b6 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b6);	break;
+		case 7: ms.su->avatarData[stencilIndex - 1].b7 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b7);	break;
+		case 8: ms.su->avatarData[stencilIndex - 1].b8 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b8);	break;
+		case 9: ms.su->avatarData[stencilIndex - 1].b9 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b9);	break;
+		default:
+			break;
+		}
+		updateTrajectoryArray(stencilIndex - 1);
+	}
 }
 
+/* Two key board functions are defined
+	 key '1' : loads the files from two users in a predefined location with in  startFresh() function
+	 key 'c' : enables/disables (toggles) comparision between two users.
+*/
 void keyBoardEvent(unsigned char key, int x, int y)
 {
 	if (key == '1') //Key-1
 	{
-		////readAvatarData();
-		//ms.su->readAvatarData("RotationData/FormFile.txt");
-		//bReadFile = true;
-		//trajCount = 0;
-
-		//memset(traj_b0, 0, 80056 * (sizeof(float)));
-		//memset(traj_b1, 0, 80056 * (sizeof(float)));
-		//memset(traj_b2, 0, 80056 * (sizeof(float)));
-		//memset(traj_b3, 0, 80056 * (sizeof(float)));
-		//memset(traj_b4, 0, 80056 * (sizeof(float)));
-		//memset(traj_b5, 0, 80056 * (sizeof(float)));
-		//memset(traj_b6, 0, 80056 * (sizeof(float)));
-		//memset(traj_b7, 0, 80056 * (sizeof(float)));
-		//memset(traj_b8, 0, 80056 * (sizeof(float)));
-		//memset(traj_b9, 0, 80056 * (sizeof(float)));
-		//glutPostRedisplay();
-		startFresh();
+		startFresh("..\\src\\data\\RotationData\\FormFile.txt");
 	}
+
+	if (key == '2') //Key-1
+	{
+		startFresh("NewFormFile.txt");
+	}
+
 	if (key == 'c')
 	{
-		if (sphereID > 0 && sphereID <= 9)
 		{
 			expTrajCount = 0;
 			enableComparision = !enableComparision;
 		}
 		glutPostRedisplay();
 	}
+	if (key == 's')
+	{
+		ms.su->writeAvatarData("NewFormFile.txt");
+	}
+
 }
 
 
-
+/*
+Mouse wheel function is used for zooming in and zooming out the sphere.
+*/
 void mouseWheel(int button, int dir, int x, int y)
 {
-	if (rotEnable1)
+	if (stencilIndex < 1)
+		toggleEdit = false;
+	else
+		toggleEdit = true;
+	if (toggleEdit)
+	{
+		quaternion q;
+
+		if (dir > 0)
+			q = quaternion(0, 0.0087155743, 5.33894E-18, 0.999962);
+		else
+			q = quaternion(0, -0.0087155743, 5.33894E-18, 0.999962);
+
+		switch (sphereID)
+		{
+		case 0: ms.su->avatarData[stencilIndex - 1].b0 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b0);	break;
+		case 1: ms.su->avatarData[stencilIndex - 1].b1 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b1);	break;
+		case 2: ms.su->avatarData[stencilIndex - 1].b2 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b2);	break;
+		case 3: ms.su->avatarData[stencilIndex - 1].b3 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b3);	break;
+		case 4: ms.su->avatarData[stencilIndex - 1].b4 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b4);	break;
+		case 5: ms.su->avatarData[stencilIndex - 1].b5 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b5);	break;
+		case 6: ms.su->avatarData[stencilIndex - 1].b6 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b6);	break;
+		case 7: ms.su->avatarData[stencilIndex - 1].b7 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b7);	break;
+		case 8: ms.su->avatarData[stencilIndex - 1].b8 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b8);	break;
+		case 9: ms.su->avatarData[stencilIndex - 1].b9 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b9);	break;
+		default:
+			break;
+		}
+		updateTrajectoryArray(stencilIndex - 1);
+	}
+	if (rotEnable1 && !toggleEdit)
 	{
 		if (dir > 0)
 		{
@@ -1692,7 +1779,7 @@ void mouseWheel(int button, int dir, int x, int y)
 		pointTranslateY1 = zval1 * (sin(xrot*PI / 180));
 		pointTranslateZ1 = zval1 * (cos(xrot*PI / 180) * cos(yrot*PI / 180));
 	}
-	else if (rotEnable2)
+	else if (rotEnable2 && !toggleEdit)
 	{
 		if (dir > 0)
 		{
@@ -1706,7 +1793,7 @@ void mouseWheel(int button, int dir, int x, int y)
 		pointTranslateY2 = zval2 * (sin(xrot*PI / 180));
 		pointTranslateZ2 = zval2 * (cos(xrot*PI / 180) * cos(yrot*PI / 180));
 	}
-	else if (rotEnable3)
+	else if (rotEnable3 && !toggleEdit)
 	{
 		if (dir > 0)
 		{
@@ -1720,7 +1807,7 @@ void mouseWheel(int button, int dir, int x, int y)
 		pointTranslateY3 = zval3 * (sin(xrot*PI / 180));
 		pointTranslateZ3 = zval3 * (cos(xrot*PI / 180) * cos(yrot*PI / 180));
 	}
-	else if (rotEnable4)
+	else if (rotEnable4 && !toggleEdit)
 	{
 		if (dir > 0)
 		{
@@ -1736,30 +1823,39 @@ void mouseWheel(int button, int dir, int x, int y)
 	}
 	else
 	{
-		if (dir > 0)
-		{
-			zval = zval - 0.1;
+		if (!toggleEdit) {
+			if (dir > 0)
+			{
+				zval = zval - 0.1;
+			}
+			else
+			{
+				zval = zval + 0.1;
+			}
+			pointTranslateX = zval * (cos(xrot*PI / 180)*  sin(yrot*PI / 180));
+			pointTranslateY = zval * (sin(xrot*PI / 180));
+			pointTranslateZ = zval * (cos(xrot*PI / 180) * cos(yrot*PI / 180));
 		}
-		else
-		{
-			zval = zval + 0.1;
-		}
-		pointTranslateX = zval * (cos(xrot*PI / 180)*  sin(yrot*PI / 180));
-		pointTranslateY = zval * (sin(xrot*PI / 180));
-		pointTranslateZ = zval * (cos(xrot*PI / 180) * cos(yrot*PI / 180));
 	}
 
 	glutPostRedisplay();
 }
 
+/*
+Menu items functionality defined.
+*/
 void menu(int id)
 {
 
-	if (id == 17)
+	if (id == 17) // if toogle visualization
 	{
 		toggleOption = !toggleOption;
 	}
-	else
+	else if (id == 18) // if toogle visualization
+	{
+		toggleEdit = !toggleEdit;
+	}
+	else // set sphereID as the menu item
 	{
 		sphereID = id;
 	}
@@ -1767,38 +1863,68 @@ void menu(int id)
 	glutPostRedisplay();
 }
 
+/* initialize and read MGRS texture
+*/
+void sphereInitialize()
+{
+	///////////////////////Texture mapping///////////////////////////
+	image_t   temp_image;
+
+	//glClearColor(1.0, 1.0, 1.0, 0.0);
+	glEnable(GL_TEXTURE_2D);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	glGenTextures(2, texture_id);
+
+	glBindTexture(GL_TEXTURE_2D, texture_id[0]);
+	glEnable(GL_BLEND);							// Enable Blending       (disable alpha testing)
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	tgaLoad("..\\src\\data\\mmgrs.tga", &temp_image, TGA_FREE | TGA_LOW_QUALITY);
+
+
+	//glEnable(GL_CULL_FACE);
+
+	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+
+	sphere = gluNewQuadric();
+	gluQuadricDrawStyle(sphere, GLU_FILL);
+	gluQuadricNormals(sphere, GLU_SMOOTH);
+	gluQuadricOrientation(sphere, GLU_INSIDE);
+	gluQuadricTexture(sphere, GL_TRUE);
+}
+
 int MotionSphere::sphereMainLoop(MotionSphere newms, char* windowName)
 {
+	// Get MotionSphere object from the caller
 	ms = newms;
+	// Load PLY models 
 	rightHandPLY.Load("..\\src\\data\\ms\\Right_Hand.ply");
 	leftHandPLY.Load("..\\src\\data\\ms\\RiggedLeftHand.ply");
 	leftFootPLY.Load("..\\src\\data\\ms\\Left_foot.ply");
 	rightFootPLY.Load("..\\src\\data\\ms\\Right_foot.ply");
 	kneePLY.Load("..\\src\\data\\ms\\knee.ply");
 	elbowPLY.Load("..\\src\\data\\ms\\elbow2.ply");
-	/*loadobj("test_hand.obj", vertex);*/
-	/*tinyobj::attrib_t attrib;
-	std::vector<tinyobj::shape_t> shapes;
-	std::vector<tinyobj::material_t> materials;
-	std::string warn;
-	std::string err;
-	bool ret = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, "test_hand.obj");
-	cout << shapes.size();*/
+	// Establish glut communication with OS
 	glutInit(&targc, targv);
+	//Initialize Window settings
+	glClearStencil(0);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH | GLUT_MULTISAMPLE | GLUT_STENCIL);
+	glEnable(GL_STENCIL_TEST);
+	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+	glStencilFunc(GL_ALWAYS, -1, -1);
 	glutInitWindowSize(ms.maxWidth - ms.minWidth, ms.maxHeight - ms.minHeight);
 	glutCreateWindow(windowName);
-
+	//Set interaction callbacks.
 	sphereInitialize();
-	//glutFullScreen();
 	glutReshapeFunc(sphereReshape);
 	glutIdleFunc(sphereIdle);
 	glutDisplayFunc(sphereDisplay);
 	glutKeyboardFunc(keyBoardEvent);
+	glutSpecialFunc(SpecialkeyBoardEvent);
 	glutMouseFunc(sphereMouseEvent);
-	glutMotionFunc(sphereMotionMotion);
+	glutMotionFunc(sphereMouseMotion);
 	glutMouseWheelFunc(mouseWheel);
-
+	// create a manu option
 	int boneSelect = glutCreateMenu(menu);
 	glutAddMenuEntry("Bone-0", 0);
 	glutAddMenuEntry("Bone-1", 1);
@@ -1810,7 +1936,7 @@ int MotionSphere::sphereMainLoop(MotionSphere newms, char* windowName)
 	glutAddMenuEntry("Bone-7", 7);
 	glutAddMenuEntry("Bone-8", 8);
 	glutAddMenuEntry("Bone-9", 9);
-
+	// create sub menu options
 	glutCreateMenu(menu);
 	glutAddSubMenu("Select Bone", boneSelect);
 	glutAddMenuEntry("Right Arm", 10);
@@ -1821,9 +1947,10 @@ int MotionSphere::sphereMainLoop(MotionSphere newms, char* windowName)
 	glutAddMenuEntry("Lower Body", 15);
 	glutAddMenuEntry("Fully Body", 16);
 	glutAddMenuEntry("Toggle Vis", 17);
-
+	glutAddMenuEntry("Toggle Edit", 18);
+	//attach menu items to the right button of the mouse
 	glutAttachMenu(GLUT_RIGHT_BUTTON);
-
+	//call glut infinite loop
 	glutMainLoop();
 	return 0;
 }

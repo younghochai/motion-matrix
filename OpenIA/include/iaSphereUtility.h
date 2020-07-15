@@ -21,14 +21,15 @@ struct Avatar {
 class SphereUtility {
 public:
 	TVec3 startingVector = { 0,0,-1 };
-	Avatar avatarData[5000];
-	TVec3 vectors[5000][10];
-	float twistAngles[5000][10];
+	Avatar avatarData[2000];
+	TVec3 vectors[2000][10];
+	float twistAngles[2000][10];
 	int noOfFrames;
 	int subOption;
 	TVec3 tempVec = {0,0,-1};
 public:
 	void readAvatarData(std::string fileName);
+	void writeAvatarData(std::string fileName);
 	void fullBodytoXYZ();
 	void upperBodytoXYZ();
 	void lowerBodytoXYZ();
