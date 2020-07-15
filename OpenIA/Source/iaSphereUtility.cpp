@@ -287,6 +287,20 @@ void SphereUtility::readAvatarData(std::string fileName)
 	}
 }
 
+void SphereUtility::writeAvatarData(std::string fileName)
+{
+	std::ofstream editFile;
+	editFile.open(fileName);
+	editFile << "FULLBODY\t1\n";
+	editFile << "Frames:\t"<<this->noOfFrames<<"\n";
+	for (int i = 0; i < this->noOfFrames; i++)
+	{
+		editFile << this->avatarData[i].b0 << "\t" << this->avatarData[i].b1 << "\t" << this->avatarData[i].b2 << "\t" << this->avatarData[i].b3 << "\t" << this->avatarData[i].b4 << "\t"
+					<< this->avatarData[i].b5 << "\t" << this->avatarData[i].b6 << "\t" << this->avatarData[i].b7 << "\t" << this->avatarData[i].b8 << "\t" << this->avatarData[i].b9 << "\n";
+	}
+	editFile.close();
+}
+
 void SphereUtility::calTraj(quaternion parent, quaternion child, TVec3 &parentVec, TVec3 &childVec, float &tAngleParent, float &tAngleChild)
 {
 	quaternion BodyQuat(1.29947E-16, 0.707106781, -0.707106781, 1.41232E-32);
