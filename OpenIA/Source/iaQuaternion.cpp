@@ -86,6 +86,24 @@ double quaternion::norm() {
 //	return q;
 //}
 
+//slerping between two quaternions
+quaternion quaternion::SLERP(quaternion& a, quaternion& b, const float t)
+{
+	quaternion r;
+	float t_ = 1 - t;
+	float Wa, Wb;
+	float theta = acos(a.mData[0]*b.mData[0] + a.mData[1] *b.mData[1] + a.mData[2] *b.mData[2] + a.mData[3] *b.mData[3]);
+	float sn = sin(theta);
+	Wa = sin(t_*theta) / sn;
+	Wb = sin(t*theta) / sn;
+	r.mData[0] = Wa * a.mData[0] + Wb * b.mData[0];
+	r.mData[1] = Wa * a.mData[1] + Wb * b.mData[1];
+	r.mData[2] = Wa * a.mData[2] + Wb * b.mData[2];
+	r.mData[3] = Wa * a.mData[3] + Wb * b.mData[3];
+	r.normalize();
+	return r;
+}
+
 void quaternion::normalize() {
 		
 	this->mData[0] = this->mData[0] / norm();
