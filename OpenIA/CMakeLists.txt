@@ -25,8 +25,8 @@ include_directories("${INCLUDEDIR}/fgl")
 include_directories("${SCRDIR}/externLib")
 
 
-SET  (project_SOURCES "${SCRDIR}/iaMain.cpp" "${SCRDIR}/iaQuaternion.cpp" "${SCRDIR}/iaAcquireGesture.cpp" "${SCRDIR}/iaPositionTracking.cpp" "${SCRDIR}/iaSphereUtility.cpp" "${SCRDIR}/iaVitruvianAvatar.cpp" "${SCRDIR}/iaMotionSphere.cpp" "${SCRDIR}/externLib/XsensConnection.cpp" "${SCRDIR}/externLib/tgaload.cpp" "${SCRDIR}/externLib/Model_PLY.cpp")
-SET  (project_HEADERS "${INCLUDEDIR}/iaQuaternion.h" "${INCLUDEDIR}/iaAcquireGesture.h" "${INCLUDEDIR}/iaPositionTracking.h" "${INCLUDEDIR}/iaSphereUtility.h" "${INCLUDEDIR}/iaVitruvianAvatar.h" "${INCLUDEDIR}/iaMotionSphere.h" "${SCRDIR}/externLib/tgaload.h" "${SCRDIR}/externLib/Model_PLY.h" "${SCRDIR}/externLib/VelodyneCapture.h")
+SET  (project_SOURCES "${SCRDIR}/iaMain.cpp" "${SCRDIR}/iaQuaternion.cpp" "${SCRDIR}/iaAcquireGesture.cpp" "${SCRDIR}/iaPositionTracking.cpp" "${SCRDIR}/iaSphereUtility.cpp" "${SCRDIR}/iaVitruvianAvatar.cpp" "${SCRDIR}/iaMotionSphere.cpp" "${SCRDIR}/iaMotionAuthoring.cpp" "${SCRDIR}/externLib/XsensConnection.cpp" "${SCRDIR}/externLib/tgaload.cpp" "${SCRDIR}/externLib/Model_PLY.cpp")
+SET  (project_HEADERS "${INCLUDEDIR}/iaQuaternion.h" "${INCLUDEDIR}/iaAcquireGesture.h" "${INCLUDEDIR}/iaPositionTracking.h" "${INCLUDEDIR}/iaSphereUtility.h" "${INCLUDEDIR}/iaVitruvianAvatar.h" "${INCLUDEDIR}/iaMotionAuthoring.h" "${INCLUDEDIR}/iaMotionSphere.h" "${SCRDIR}/externLib/tgaload.h" "${SCRDIR}/externLib/Model_PLY.h" "${SCRDIR}/externLib/VelodyneCapture.h")
 
 add_executable(OpenIA ${project_SOURCES} ${project_HEADERS} )
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT OpenIA)
