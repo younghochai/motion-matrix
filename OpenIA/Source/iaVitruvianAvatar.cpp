@@ -1089,7 +1089,7 @@ void VitruvianAvatar::startVetruvianAvatar()
 		vtkSmartPointer<vtkTimerCallback>::New();
 	renderWindowInteractor->AddObserver(vtkCommand::TimerEvent, cb);
 
-	int timerId = renderWindowInteractor->CreateRepeatingTimer(10);
+	int timerId = renderWindowInteractor->CreateRepeatingTimer(0);
 
 	vtkSmartPointer<KeyPressInteractorStyle> style =
 		vtkSmartPointer<KeyPressInteractorStyle>::New();

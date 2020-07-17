@@ -78,22 +78,19 @@ public:
 	quaternion Conjugate(void) const;
 	quaternion Conjugate(quaternion Q) ;
 	quaternion Conjugate();
-
 	quaternion Inverse(quaternion Q) ;
 	quaternion Inverse();
-
 	friend ostream & operator << (ostream &out, const quaternion &q);
-
 	quaternion mutiplication(quaternion Q);
 	TVec3 quternionMatrices(quaternion Q,  TVec3 vecPoint);
 	void quaternionToEulerAngles(quaternion Q, TVec3& vecPoint);
 	void setPrecisionOfValues();
 	quaternion EulerAngleToQuaternion(double yaw, double pitch, double roll);
+	quaternion SLERP(quaternion& a, quaternion& b, const float t);
 	void quattoaxisangle()
 	{
 		double pi = 3.141592653589793238462643383279502884e+0;
 		
-	 
 				double angle, x_axis, y_axis, z_axis;
 				double q0, q1, q2, q3;
 				q0 = mData[3];
