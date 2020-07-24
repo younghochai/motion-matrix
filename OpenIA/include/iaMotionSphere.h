@@ -12,14 +12,16 @@
 #include "iaSphereUtility.h"
 
 class MotionSphere {
+	public:
+		static int sphereID;
 
-	public: static bool keyPressed;
-			static char* fileName;
-			int MotionSphere::maxWidth; //1800;
-			int MotionSphere::maxHeight; //900;
-			int MotionSphere::minWidth;
-			int MotionSphere::minHeight;
-			SphereUtility* su;
+		static bool keyPressed;
+		static char* fileName;
+		int MotionSphere::maxWidth; //1800;
+		int MotionSphere::maxHeight; //900;
+		int MotionSphere::minWidth;
+		int MotionSphere::minHeight;
+		SphereUtility* su;
 			
 	public:
 		MotionSphere(int minWidth, int minHeight, int maxWidth, int maxHeight)
