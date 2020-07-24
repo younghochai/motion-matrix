@@ -1,7 +1,7 @@
 #include "iaMotionAuthoring.h"
 
 
-void addFrame(int selectedFrame, SphereUtility *&su)
+void addMidFrame(int selectedFrame, SphereUtility *&su)
 {
 	Avatar newFrame;
 	
@@ -80,9 +80,27 @@ void generateIntermediateFrames(int totalIntermediateFrames, SphereUtility *&su)
 			dataCount++;
 		}
 	}
-	su->noOfFrames = dataCount+1;
+	su->noOfFrames = dataCount;
 	for (int i = 0; i < su->noOfFrames; i++)
 	{
 		su->avatarData[i] = GeneratedData[i];
+	}
+}
+
+void duplicateCurrentFrame(int stencilIndex, SphereUtility *& su, int copyFlag)
+{
+	switch (copyFlag)
+	{
+		case COPY_AT:	for (int i = su->noOfFrames; i > stencilIndex; i--)
+							{
+								su->avatarData[i] = su->avatarData[i - 1];
+							}
+
+							su->noOfFrames = su->noOfFrames + 1;
+						break;
+		
+		case COPY_END: 	su->avatarData[su->noOfFrames] = su->avatarData[stencilIndex];
+						su->noOfFrames = su->noOfFrames + 1;
+						break;
 	}
 }
