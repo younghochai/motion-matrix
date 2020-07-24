@@ -20,10 +20,14 @@
 #include <iaSphereUtility.h>
 #include <iaQuaternion.h>
 #include <vtkInteractorStyleTrackballCamera.h>
+#include <vtkInteractorStyleTrackballActor.h>
 #include <vtkJPEGReader.h>
 #include <vtkTexture.h>
 #include <vtkOBJReader.h>
 #include <vtkPlaneSource.h>
+#include <vtkPropPicker.h>
+#include <iaMotionSphere.h>
+#include <vtkCallbackCommand.h>
 #define USER_MATRIX
 
 class VitruvianAvatar

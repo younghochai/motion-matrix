@@ -71,7 +71,7 @@ int LindexP = 0;
 int indexDB = 0;
 bool bReadFile = false;
 bool bReadDBFile = false;
-bool toggleOption = true;
+bool toggleOption = false;
 bool toggleEdit = false;
 int isize = 0;
 int dsize = 0;
@@ -644,7 +644,7 @@ void sphereDraw(int index, float(&traj_b)[20014][4], float r, float g, float b, 
 	SphereUtility *currentSU;
 	double mr, mg, mb;
 	
-
+	//Sleep(100);
 	if (stencilIndex > 0)
 		VitruvianAvatar::vitruvianAvatarUpdate = getFirstInverse(stencilIndex - 1);
 	else
@@ -1507,6 +1507,7 @@ Its a call back function which is executed at regular intervels.
 
 void sphereIdle()
 {
+	sphereID = MotionSphere::sphereID;
 	if (MotionSphere::keyPressed)
 	{
 		startFresh("..\\src\\data\\RotationData\\FormFile.txt");
@@ -1692,9 +1693,9 @@ void SpecialkeyBoardEvent(int key, int x, int y)
 		case 3: ms.su->avatarData[stencilIndex - 1].b3 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b3);	break;
 		case 4: ms.su->avatarData[stencilIndex - 1].b4 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b4);	
 		case 5: ms.su->avatarData[stencilIndex - 1].b5 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b5);	break;
-		case 6: ms.su->avatarData[stencilIndex - 1].b6 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b6);	break;
+		case 6: ms.su->avatarData[stencilIndex - 1].b6 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b6);	
 		case 7: ms.su->avatarData[stencilIndex - 1].b7 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b7);	break;
-		case 8: ms.su->avatarData[stencilIndex - 1].b8 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b8);	break;
+		case 8: ms.su->avatarData[stencilIndex - 1].b8 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b8);	
 		case 9: ms.su->avatarData[stencilIndex - 1].b9 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b9);	break;
 		default:
 			break;
@@ -1705,7 +1706,7 @@ void SpecialkeyBoardEvent(int key, int x, int y)
 	{
 		if (stencilIndex > 0 && ms.su->noOfFrames < 255)
 		{
-			addFrame(stencilIndex, ms.su);
+			addMidFrame(stencilIndex, ms.su);
 			trajCount++;
 			for (int i = 0; i < ms.su->noOfFrames; i++)
 			{
@@ -1713,7 +1714,7 @@ void SpecialkeyBoardEvent(int key, int x, int y)
 			}
 		}
 	}
-	
+
 }
 
 /* Two key board functions are defined
@@ -1758,11 +1759,11 @@ void keyBoardEvent(unsigned char key, int x, int y)
 	}
 	if (key == 'G')
 	{
-		int mod = glutGetModifiers();
-		if (GLUT_ACTIVE_SHIFT)
+		//int mod = glutGetModifiers();
+		if (glutGetModifiers() && GLUT_ACTIVE_SHIFT)
 		{
 			try {
-				generateIntermediateFrames(100, ms.su);
+				generateIntermediateFrames(150, ms.su);
 			}
 			catch(exception& e){
 				cout << e.what() <<endl;
@@ -1774,6 +1775,37 @@ void keyBoardEvent(unsigned char key, int x, int y)
 			}
 		}
 	}
+	if (key == 3)
+	{
+		if (glutGetModifiers() & GLUT_ACTIVE_CTRL)
+		{
+			if (stencilIndex > 0 )
+			{
+				duplicateCurrentFrame(stencilIndex-1, ms.su, COPY_END);
+				trajCount = ms.su->noOfFrames;
+				for (int i = 0; i < ms.su->noOfFrames; i++)
+				{
+					updateTrajectoryArray(i);
+				}
+			}
+		}
+	}
+	if (key == 4)
+	{
+		if (glutGetModifiers() & GLUT_ACTIVE_CTRL)
+		{
+			if (stencilIndex > 0)
+			{
+				duplicateCurrentFrame(stencilIndex - 1, ms.su, COPY_AT);
+				trajCount = ms.su->noOfFrames;
+				for (int i = 0; i < ms.su->noOfFrames; i++)
+				{
+					updateTrajectoryArray(i);
+				}
+			}
+		}
+	}
+
 	
 
 }
@@ -1805,9 +1837,9 @@ void mouseWheel(int button, int dir, int x, int y)
 		case 3: ms.su->avatarData[stencilIndex - 1].b3 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b3);	break;
 		case 4: ms.su->avatarData[stencilIndex - 1].b4 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b4);	
 		case 5: ms.su->avatarData[stencilIndex - 1].b5 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b5);	break;
-		case 6: ms.su->avatarData[stencilIndex - 1].b6 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b6);	break;
+		case 6: ms.su->avatarData[stencilIndex - 1].b6 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b6);	
 		case 7: ms.su->avatarData[stencilIndex - 1].b7 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b7);	break;
-		case 8: ms.su->avatarData[stencilIndex - 1].b8 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b8);	break;
+		case 8: ms.su->avatarData[stencilIndex - 1].b8 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b8);	
 		case 9: ms.su->avatarData[stencilIndex - 1].b9 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b9);	break;
 		default:
 			break;
@@ -1909,7 +1941,7 @@ void menu(int id)
 	}
 	else // set sphereID as the menu item
 	{
-		sphereID = id;
+		MotionSphere::sphereID = id;
 	}
 
 	glutPostRedisplay();
