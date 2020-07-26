@@ -144,7 +144,10 @@ float SphereUtility::getTwistAngle(TVec3 w, quaternion q)
 		//***** Debugging ******//
 
 		//return twist angle
-	return (2 * acos(qt.mData[3]));
+	if (isnan(acos(qt.mData[3])))
+		return (0.000001);
+	else
+		return (2 * acos(qt.mData[3]));
 }
 
 void SphereUtility::printData()

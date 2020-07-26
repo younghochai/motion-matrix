@@ -64,18 +64,18 @@ void startAvatar()
 int main()
 {
 	thread t2(startAvatar);
-	thread t1(XSensDataReader);
-	thread t3(getLiDARdata1);
-	thread t4(getLiDARdata2);
-	thread t5(poseTracking);
-	//thread t6(motionSphere);
+	//thread t1(XSensDataReader);
+	//thread t3(getLiDARdata1);
+	//thread t4(getLiDARdata2);
+	//thread t5(poseTracking);
+	thread t6(motionSphere);
 	
 
-	t1.join();
+	//t1.join();
 	t2.join();
-	t3.join();
-	t4.join();
-	t5.join();
-	//t6.join();
+	//t3.join();
+	//t4.join();
+	//t5.join();
+	t6.join();
 	
 }

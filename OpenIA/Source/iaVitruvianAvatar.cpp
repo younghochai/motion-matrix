@@ -4,6 +4,11 @@
 
 Avatar VitruvianAvatar::vitruvianAvatarUpdate;
 bool VitruvianAvatar::isLoaded = false;
+void KeypressCallbackFunction(
+	vtkObject* caller,
+	long unsigned int eventId,
+	void* clientData,
+	void* callData);
 typedef struct vetruvianVtkAvatarSegment
 {
 	vtkSmartPointer<vtkParametricSuperEllipsoid> parametricObject = vtkSmartPointer<vtkParametricSuperEllipsoid>::New();
@@ -53,7 +58,8 @@ vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor = vtkSmartPoin
 vtkSmartPointer<vtkNamedColors> colors = vtkSmartPointer<vtkNamedColors>::New();
 
 SphereUtility vitruvianSphereUtility;
-
+int MotionSphere::sphereID;
+char* lllc, *lulc, *rllc, *rulc, *pc, *cc, *ruhc, *rlhc, *luhc, *llhc;
 bool isEqual = false;
 
 void drawSphere(JointSegment &jointSegment, float radius)
@@ -74,7 +80,7 @@ void drawSphere(JointSegment &jointSegment, float radius)
 	renderer->AddActor(jointSegment.sphereActor);
 }
 
-void drawCube(JointSegment& handJoint, Hand& hand, float size, char* fileName)
+void drawCube(JointSegment& handJoint, Hand& hand, float size)
 {
 	
 
@@ -154,14 +160,7 @@ void drawHead(JointSegment &neck)
 		axis[1] = headQuat.mData[1] / sin(angle / 2);
 		axis[2] = headQuat.mData[2] / sin(angle / 2);
 	}*/
-	//create a texture map for torso
-	vtkSmartPointer<vtkTexture> texture =
-		vtkSmartPointer<vtkTexture>::New();
-	vtkSmartPointer<vtkJPEGReader> reader =
-		vtkSmartPointer<vtkJPEGReader>::New();
-	reader->SetFileName("..\\src\\data\\avtar\\headmap.jpg");
-	// Apply the texture
-	texture->SetInputConnection(reader->GetOutputPort());
+	
 
 	vtkSmartPointer<vtkTransform> transform =
 		vtkSmartPointer<vtkTransform>::New();
@@ -174,7 +173,7 @@ void drawHead(JointSegment &neck)
 	//headActor->RotateWXYZ(angle * 180 / PI, axis[0], axis[1], axis[2]);
 	headActor->SetMapper(headMapper);
 	headActor->SetUserTransform(transform);
-	headActor->SetTexture(texture);
+	
 	headActor->GetProperty()->SetSpecular(.5);
 	headActor->GetProperty()->SetSpecularPower(10);
 	renderer->AddActor(headActor);
@@ -201,11 +200,11 @@ void drawBoneSegment(JointSegment &startSegment, JointSegment &endSegment, float
 	startSegment.parametricObject->SetYRadius(scaling[1]);
 	startSegment.parametricObject->SetZRadius(scaling[2]);
 
-	//create a texture map for torso
-	vtkSmartPointer<vtkTexture> texture =
-		vtkSmartPointer<vtkTexture>::New();
-	vtkSmartPointer<vtkJPEGReader> reader =
-		vtkSmartPointer<vtkJPEGReader>::New();
+	////create a texture map for torso
+	//vtkSmartPointer<vtkTexture> texture =
+	//	vtkSmartPointer<vtkTexture>::New();
+	//vtkSmartPointer<vtkJPEGReader> reader =
+	//	vtkSmartPointer<vtkJPEGReader>::New();
 
 	vtkSmartPointer<vtkTransform> transform =
 		vtkSmartPointer<vtkTransform>::New();
@@ -217,10 +216,10 @@ void drawBoneSegment(JointSegment &startSegment, JointSegment &endSegment, float
 		startSegment.parametricObject->SetZRadius(scaling[2]);
 		
 		// Read the image which will be the texture
-		reader->SetFileName("velab.jpg");
-		// Apply the texture
-		texture->SetInputConnection(reader->GetOutputPort());
-		VitruvianAvatar::vitruvianAvatarUpdate.b1.quattoaxisangle();
+		//reader->SetFileName("velab.jpg");
+		//// Apply the texture
+		//texture->SetInputConnection(reader->GetOutputPort());
+		//VitruvianAvatar::vitruvianAvatarUpdate.b1.quattoaxisangle();
 		/*transform->RotateWXYZ(VitruvianAvatar::vitruvianAvatarUpdate.b1.axisangle[0],
 			VitruvianAvatar::vitruvianAvatarUpdate.b1.axisangle[1],
 			VitruvianAvatar::vitruvianAvatarUpdate.b1.axisangle[2],
@@ -298,7 +297,7 @@ void drawBoneSegment(JointSegment &startSegment, JointSegment &endSegment, float
 		//
 	}
 	else
-		startSegment.cylinderActor->GetProperty()->SetColor(colors->GetColor3d(color).GetData());
+	startSegment.cylinderActor->GetProperty()->SetColor(colors->GetColor3d(color).GetData());
 	startSegment.cylinderActor->GetProperty()->SetSpecular(.5);
 	startSegment.cylinderActor->GetProperty()->SetSpecularPower(20);
 	//draw start and end points as a sphere
@@ -426,23 +425,23 @@ void drawAvatar()
 	float scaling[3];
 
 	scaling[0] = 2.5; scaling[1] = 0.5; scaling[2] = 2.5;
-	drawBoneSegment(rightFootLowerLeg, rightKneeUpperLeg,scaling, false,"DimGray"); // right lower leg
+	drawBoneSegment(rightFootLowerLeg, rightKneeUpperLeg,scaling, false,rllc); // right lower leg
 	scaling[0] = 3.5; scaling[1] = 0.5; scaling[2] = 3.5;
-	drawBoneSegment(rightKneeUpperLeg, rightHipSegment,scaling, false, "DimGray"); // right upper leg
+	drawBoneSegment(rightKneeUpperLeg, rightHipSegment, scaling, false, rulc); // right upper leg
 
 	scaling[0] = 2.5; scaling[1] = 0.5; scaling[2] = 2.5;
-	drawBoneSegment(leftFootLowerLeg, leftKneeUpperLeg,scaling, false, "DimGray"); // left lower leg
+	drawBoneSegment(leftFootLowerLeg, leftKneeUpperLeg,scaling, false, lllc); // left lower leg
 	scaling[0] = 3.5; scaling[1] = 0.5; scaling[2] = 3.5;
-	drawBoneSegment(leftKneeUpperLeg, leftHipSegment,scaling, false, "DimGray"); // left upper leg
+	drawBoneSegment(leftKneeUpperLeg, leftHipSegment,scaling, false, lulc); // left upper leg
 
 	scaling[0] = 4.5; scaling[1] = 0.5; scaling[2] = 4.5;
 	drawBoneSegment(rightHipSegment, pelvisStomach, scaling, false, "DarkGray"); // right hips
 	drawBoneSegment(leftHipSegment, pelvisStomach, scaling, false, "DarkGray"); // left hips
 
 	scaling[0] = 5.0; scaling[1] = 0.5; scaling[2] = 5.0;
-	drawBoneSegment(pelvisStomach, sternumChest,scaling, false, "DarkGray"); // stomach
+	drawBoneSegment(pelvisStomach, sternumChest,scaling, false, pc); // stomach
 	scaling[0] = 10.0; scaling[1] = 0.5; scaling[2] = 7.5;
-	drawBoneSegment(sternumChest, neckToChin,scaling, false, "DarkGray"); // chest
+	drawBoneSegment(sternumChest, neckToChin,scaling, false, cc); // chest
 	//scaling[0] = 1.75; scaling[1] = 0.5; scaling[2] = 1.75;
 	//drawBoneSegment(neckToChin, chinToHead,scaling,true, "DarkGray"); // neck
 	//scaling[0] = 5.0; scaling[1] = 0.8; scaling[2] = 3.5;
@@ -452,17 +451,17 @@ void drawAvatar()
 
 	scaling[0] = 3.5; scaling[1] = 0.5; scaling[2] = 3.5;
 	drawBoneSegment(rightShoulderSegment, neckToChin,scaling, false, "DimGray"); // right shoulder
-	drawBoneSegment(rightElbowUpperArm, rightShoulderSegment,scaling, false, "DimGray"); // right upper arm
+	drawBoneSegment(rightElbowUpperArm, rightShoulderSegment,scaling, false, ruhc); // right upper arm
 	scaling[0] = 2.5; scaling[1] = 0.5; scaling[2] = 2.5;
-	drawBoneSegment(rightHandLowerArm, rightElbowUpperArm,scaling, false, "DimGray"); // right lower arm
-	drawCube(rightHandLowerArm, rightHand, 15,"..\\src\\data\\avtar\\RightHand.obj");
+	drawBoneSegment(rightHandLowerArm, rightElbowUpperArm,scaling, false, rlhc); // right lower arm
+	drawCube(rightHandLowerArm, rightHand, 15);
 
 	scaling[0] = 3.5; scaling[1] = 0.5; scaling[2] = 3.5;
 	drawBoneSegment(leftShoulderSegment, neckToChin,scaling, false, "DimGray"); // left shoulder
-	drawBoneSegment(leftElbowUpperArm, leftShoulderSegment,scaling, false, "DimGray"); // left upper arm
+	drawBoneSegment(leftElbowUpperArm, leftShoulderSegment,scaling, false, luhc); // left upper arm
 	scaling[0] = 2.5; scaling[1] = 0.5; scaling[2] = 2.5;
-	drawBoneSegment(leftHandLowerArm, leftElbowUpperArm,scaling, false, "DimGray"); // left lower arm
-	drawCube(leftHandLowerArm, leftHand, 15,"..\\src\\data\\avtar\\LeftHand.obj");
+	drawBoneSegment(leftHandLowerArm, leftElbowUpperArm,scaling, false, llhc); // left lower arm
+	drawCube(leftHandLowerArm, leftHand, 15);
 }
 
 void rotateAvatar(Avatar avatar)
@@ -961,6 +960,84 @@ void rotateAvatar(int index)
 
 float i = 1;
 
+
+class MouseInteractorStyle5 : public vtkInteractorStyleTrackballActor
+{
+public:
+	static MouseInteractorStyle5* New();
+	vtkTypeMacro(MouseInteractorStyle5, vtkInteractorStyleTrackballActor);
+
+	virtual void OnKeyPress() override
+	{
+		vtkRenderWindowInteractor *rwi = this->Interactor;
+		std::string key = rwi->GetKeySym();
+		if (key == "n")
+		{
+			
+		}
+	}
+	
+	virtual void OnLeftButtonDown() override
+	{
+		// Forward events
+		vtkInteractorStyleTrackballActor::OnLeftButtonDown();
+
+		lllc = "DimGray"; lulc = "DimGray"; rllc = { "DimGray" }; rulc = { "DimGray" }; pc = "DimGray";
+		cc = "DimGray"; ruhc = "DimGray"; rlhc = "DimGray"; luhc = "DimGray"; llhc = "DimGray";
+
+		if (this->InteractionProp == this->lll) {
+			MotionSphere::sphereID = 9;
+			lllc = "Red";
+		}//std::cout << "Picked left lower leg." << std::endl;
+		else if (this->InteractionProp == this->lul) {
+			MotionSphere::sphereID = 8; //std::cout << "Picked left upper leg." << std::endl;
+			lulc = "Red";
+		}
+		else if (this->InteractionProp == this->rll) {
+			MotionSphere::sphereID = 7; //std::cout << "Picked right lower leg." << std::endl;
+			rllc = "Red";
+		}
+		else if (this->InteractionProp == this->rul) {
+			MotionSphere::sphereID = 6; //std::cout << "Picked right upper leg." << std::endl;
+			rulc = "Red";
+		}
+		else if (this->InteractionProp == this->pel) {
+			MotionSphere::sphereID = 0; //std::cout << "Picked pelvis." << std::endl;
+			pc = "Red";
+		}
+		else if (this->InteractionProp == this->chest)
+		{
+			MotionSphere::sphereID = 1; //std::cout << "Picked chest." << std::endl;
+			cc = "Red";
+		}
+		else if (this->InteractionProp == this->rlh) {
+			MotionSphere::sphereID = 3; //std::cout << "Picked right lower hand." << std::endl;
+			rlhc = "Red";
+		}
+		else if (this->InteractionProp == this->ruh) {
+			MotionSphere::sphereID = 2; //std::cout << "Picked right upper hand." << std::endl;
+			ruhc = "Red";
+		}
+		else if (this->InteractionProp == this->llh) {
+			MotionSphere::sphereID = 5; //std::cout << "Picked left lower hand." << std::endl;
+			llhc = "Red";
+		}
+
+		else if (this->InteractionProp == this->luh) {
+			MotionSphere::sphereID = 4; //std::cout << "Picked left upper hand." << std::endl;
+			luhc = "Red";
+		}
+		else
+			MotionSphere::sphereID = 0;
+
+		drawAvatar();
+
+	}
+
+	vtkActor *lll, *lul,*rll,*rul,*pel,*chest,*ruh,*rlh,*luh,*llh;
+};
+vtkStandardNewMacro(MouseInteractorStyle5);
+
 // Define interaction style
 class KeyPressInteractorStyle : public vtkInteractorStyleTrackballCamera
 {
@@ -973,7 +1050,7 @@ public:
 		// Get the keypress
 		vtkRenderWindowInteractor *rwi = this->Interactor;
 		std::string key = rwi->GetKeySym();
-
+		
 		// Output the key that was pressed
 		std::cout << "Pressed " << key << std::endl;
 
@@ -989,8 +1066,10 @@ public:
 			i = 1;
 			VitruvianAvatar::isLoaded = true;
 		}
-		
-
+		if (key == "m")
+		{
+			
+		}
 		// Forward events
 		vtkInteractorStyleTrackballCamera::OnKeyPress();
 	}
@@ -998,6 +1077,7 @@ public:
 };
 vtkStandardNewMacro(KeyPressInteractorStyle);
 
+bool switchInteractor = true;
 class vtkTimerCallback : public vtkCommand
 {
 public:
@@ -1011,6 +1091,35 @@ public:
 	virtual void Execute(vtkObject *vtkNotUsed(caller), unsigned long eventId,
 		void *vtkNotUsed(callData))
 	{
+		if (switchInteractor)
+		{
+			vtkSmartPointer<MouseInteractorStyle5> style1 =
+				vtkSmartPointer<MouseInteractorStyle5>::New();
+			style1->SetDefaultRenderer(renderer);
+
+			renderWindowInteractor->SetInteractorStyle(style1);
+			style1->rll = rightFootLowerLeg.cylinderActor;
+			style1->lll = leftFootLowerLeg.cylinderActor;
+			style1->rul = rightKneeUpperLeg.cylinderActor;
+			style1->lul = leftKneeUpperLeg.cylinderActor;
+			style1->rlh = rightHandLowerArm.cylinderActor;
+			style1->llh = leftHandLowerArm.cylinderActor;
+			style1->ruh = rightElbowUpperArm.cylinderActor;
+			style1->luh = leftElbowUpperArm.cylinderActor;
+			style1->pel = pelvisStomach.cylinderActor;
+			style1->chest = sternumChest.cylinderActor;
+			switchInteractor = !switchInteractor;
+		}
+		else
+		{
+			vtkSmartPointer<vtkInteractorStyleTrackballCamera> style =
+				vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
+			style->SetDefaultRenderer(renderer);
+
+			renderWindowInteractor->SetInteractorStyle(style);
+			switchInteractor = !switchInteractor;
+		}
+		
 		if (vtkCommand::TimerEvent == eventId)
 		{
 			++this->TimerCount;
@@ -1020,6 +1129,7 @@ public:
 			//rotateAvatar(i);
 			//i++;
 			rotateAvatar(VitruvianAvatar::vitruvianAvatarUpdate);
+			//cout << i++ <<"->"<< VitruvianAvatar::vitruvianAvatarUpdate.b2<<endl;
 		}		
 		renderWindow->Render();
 	}
@@ -1028,6 +1138,8 @@ private:
 	int TimerCount;
 
 };
+
+
 
 void VitruvianAvatar::initializeVetruvianVtkAvatar()
 {
@@ -1066,6 +1178,18 @@ void VitruvianAvatar::initializeVetruvianVtkAvatar()
 	headSource->SetFileName("..\\src\\data\\avtar\\humanHead.obj");
 	headSource->Update();
 
+	//create a texture map for torso
+	vtkSmartPointer<vtkTexture> texture =
+		vtkSmartPointer<vtkTexture>::New();
+	vtkSmartPointer<vtkJPEGReader> reader =
+		vtkSmartPointer<vtkJPEGReader>::New();
+	reader->SetFileName("..\\src\\data\\avtar\\headmap.jpg");
+	// Apply the texture
+	texture->SetInputConnection(reader->GetOutputPort());
+	headActor->SetTexture(texture);
+
+	lllc = "DimGray"; lulc="DimGray"; rllc = "DimGray"; rulc = "DimGray"; pc = "DimGray"; 
+	cc = "DimGray"; ruhc = "DimGray"; rlhc = "DimGray"; luhc = "DimGray"; llhc = "DimGray";
 	updatejoints();
 }
 
@@ -1084,21 +1208,60 @@ void VitruvianAvatar::startVetruvianAvatar()
 	// Initialize must be called prior to creating timer events.
 	renderWindowInteractor->Initialize();
 
+	vtkSmartPointer<vtkCallbackCommand> keypressCallback =
+		vtkSmartPointer<vtkCallbackCommand>::New();
+	keypressCallback->SetCallback(KeypressCallbackFunction);
+	renderWindowInteractor->AddObserver(vtkCommand::KeyPressEvent, keypressCallback);
+
 	// Sign up to receive TimerEvent
 	vtkSmartPointer<vtkTimerCallback> cb =
 		vtkSmartPointer<vtkTimerCallback>::New();
 	renderWindowInteractor->AddObserver(vtkCommand::TimerEvent, cb);
 
-	int timerId = renderWindowInteractor->CreateRepeatingTimer(10);
+	int timerId = renderWindowInteractor->CreateRepeatingTimer(0.00000000001);
 
 	vtkSmartPointer<KeyPressInteractorStyle> style =
 		vtkSmartPointer<KeyPressInteractorStyle>::New();
+	style->SetDefaultRenderer(renderer);
+	
 	renderWindowInteractor->SetInteractorStyle(style);
-	style->SetCurrentRenderer(renderer);
 
 	//Render and interact
 	renderWindow->Render();
 	renderWindowInteractor->Start();
+}
 
+void KeypressCallbackFunction(vtkObject* caller, long unsigned int vtkNotUsed(eventId), void* vtkNotUsed(clientData), void* vtkNotUsed(callData))
+{
+	vtkRenderWindowInteractor *iren =
+		static_cast<vtkRenderWindowInteractor*>(caller);
 
+	string key = iren->GetKeySym();
+	//std::cout << "Pressed: " << iren->GetKeySym() << std::endl;
+	if (key == "m")
+	{
+		vtkSmartPointer<MouseInteractorStyle5> style1 =
+			vtkSmartPointer<MouseInteractorStyle5>::New();
+		style1->SetDefaultRenderer(renderer);
+
+		renderWindowInteractor->SetInteractorStyle(style1);
+		style1->rll = rightFootLowerLeg.cylinderActor;
+		style1->lll = leftFootLowerLeg.cylinderActor;
+		style1->rul = rightKneeUpperLeg.cylinderActor;
+		style1->lul = leftKneeUpperLeg.cylinderActor;
+		style1->rlh = rightHandLowerArm.cylinderActor;
+		style1->llh = leftHandLowerArm.cylinderActor;
+		style1->ruh = rightElbowUpperArm.cylinderActor;
+		style1->luh = leftElbowUpperArm.cylinderActor;
+		style1->pel = pelvisStomach.cylinderActor;
+		style1->chest = sternumChest.cylinderActor;
+	}
+	if (key == "n")
+	{
+		vtkSmartPointer<vtkInteractorStyleTrackballCamera> style =
+			vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
+		style->SetDefaultRenderer(renderer);
+
+		renderWindowInteractor->SetInteractorStyle(style);
+	}
 }
