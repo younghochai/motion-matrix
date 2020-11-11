@@ -3,7 +3,7 @@
 #include <iostream>
 
 
-
+//get AngleAxis  Quaternions
 void SphereUtility::getAngleAxisBWQuaternions(quaternion q_1, quaternion q_2, char * boneID)
 {
 	quaternion result = q_2.mutiplication(q_1.Inverse());
@@ -20,18 +20,19 @@ void SphereUtility::getAngleAxisBWQuaternions(quaternion q_1, quaternion q_2, ch
 
 	std::cout << boneID << " rotates by " << angle_deg << " degree around (" << x << "," << y << "," << z << ")\n";
 }
-
+// finding distance between two vector
 double SphereUtility::vecDistance(TVec3 v1, TVec3 v2)
 {
 	double result = sqrt(pow(v1._x - v2._x, 2) + pow(v1._y - v2._y, 2) + pow(v1._z - v2._z, 2));
 	return result;
 }
+// finding the dot product values between two vectors
 double SphereUtility::vecDotProduct(TVec3 v1, TVec3 v2)
 {
 	return ((v1._x*v2._x) + (v1._y*v2._y) + (v1._z*v2._z));
 }
 
-
+// finding the cross product values between two vectors
 TVec3 SphereUtility::vecCrossProduct(TVec3 v1, TVec3 v2)
 {
 	TVec3 result;
@@ -41,16 +42,17 @@ TVec3 SphereUtility::vecCrossProduct(TVec3 v1, TVec3 v2)
 	return result;
 }
 
+
 double vecDotProduct(TVec3 v1, TVec3 v2)
 {
 	return ((v1._x*v2._x) + (v1._y*v2._y) + (v1._z*v2._z));
 }
-
+// get the length of the vector
 double vecLength(TVec3 v)
 {
 	return sqrt(pow(v._x, 2) + pow(v._y, 2) + pow(v._z, 2));
 }
-
+//get the Normalized vector
 void SphereUtility::vecNormalize(TVec3 &vec)
 {
 	float length = vecLength(vec);
@@ -58,7 +60,7 @@ void SphereUtility::vecNormalize(TVec3 &vec)
 	vec._y = vec._y / length;
 	vec._z = vec._z / length;
 }
-
+// converting a direction vector into Quaternions rotation
 void SphereUtility::vectorsToQuat()
 {
 	TVec3 v1 = { 0.0, 0.707106781, -0.707106781 };
@@ -111,7 +113,7 @@ void SphereUtility::vectorsToQuat()
 
 	}
 }
-
+//finding the Angale of twist
 float SphereUtility::getTwistAngle(TVec3 w, quaternion q)
 {
 	TVec3 v = { startingVector._x,startingVector._y,startingVector._z };
@@ -198,7 +200,9 @@ void SphereUtility::printData()
 
 }
 
-TVec3 SphereUtility::vecSLERP(TVec3& a, TVec3& b, const float t)
+//Spherically interpolates between two vectors.
+
+Vec3 SphereUtility::vecSLERP(TVec3& a, TVec3& b, const float t)
 {
 	TVec3 r;
 	float t_ = 1 - t;
@@ -216,6 +220,7 @@ TVec3 SphereUtility::vecSLERP(TVec3& a, TVec3& b, const float t)
 	return r;
 }
 
+//reading Avatar Data
 void SphereUtility::readAvatarData(std::string fileName)
 {
 	int count = 0;
@@ -290,6 +295,7 @@ void SphereUtility::readAvatarData(std::string fileName)
 	}
 }
 
+// writing the Avatar Data
 void SphereUtility::writeAvatarData(std::string fileName)
 {
 	std::ofstream editFile;
@@ -304,6 +310,7 @@ void SphereUtility::writeAvatarData(std::string fileName)
 	editFile.close();
 }
 
+// call to trajectory function 
 void SphereUtility::calTraj(quaternion parent, quaternion child, TVec3 &parentVec, TVec3 &childVec, float &tAngleParent, float &tAngleChild)
 {
 	quaternion BodyQuat(1.29947E-16, 0.707106781, -0.707106781, 1.41232E-32);
@@ -335,6 +342,7 @@ void SphereUtility::calTraj(quaternion parent, quaternion child, TVec3 &parentVe
 	tAngleChild = su.getTwistAngle(childVec, lq);
 }
 
+//Normalizing the Avatar 
 void SphereUtility::normalizeAvatar(struct Avatar& avatar)
 {
 	avatar.b0.normalize();
@@ -349,6 +357,7 @@ void SphereUtility::normalizeAvatar(struct Avatar& avatar)
 	avatar.b9.normalize();	
 }
 
+//texturizing the full body points
 void SphereUtility::fullBodytoXYZ()
 {
 	TVec3 b0Vec = { 0,0,0 }, b1Vec = { 0,0,0 };
