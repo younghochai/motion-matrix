@@ -178,7 +178,7 @@ void drawString3D(const char *str, float pos[3], float color[4], void *font)
 	glEnable(GL_LIGHTING);
 	glPopAttrib();
 }
-
+// spreading the colors in cube
 void sphereColoredCube(float sphere_radius/*, float twist*/)
 {
 	float r, g, b;
@@ -228,7 +228,7 @@ void sphereColoredCube(float sphere_radius/*, float twist*/)
 	glVertex3f(-sphere_radius, -sphere_radius, sphere_radius);
 	glEnd();
 }
-
+// spreading the colors for rendered image
 void renderColoredCube(float x1, float y1, float z1, float x2, float y2, float z2, float radiusBase, float radiusTop, int subdivisions, GLUquadricObj *quadric, bool isCone)
 {
 	float vx = x2 - x1;
@@ -270,7 +270,7 @@ void renderColoredCube(float x1, float y1, float z1, float x2, float y2, float z
 		gluCylinder(quadric, radiusBase, radiusTop, v, subdivisions, 1);
 	glPopMatrix();
 }
-
+// 
 void renderColoredCube_convenient(float x1, float y1, float z1, float x2, float y2, float z2, float radiusBase, float radiusTop, int subdivisions, bool isCone)
 {
 	//the same quadric can be re-used for drawing many cylinders
@@ -280,6 +280,7 @@ void renderColoredCube_convenient(float x1, float y1, float z1, float x2, float 
 	gluDeleteQuadric(quadric);
 }
 
+// rotation angle of renderCylinder
 void renderCylinder(float x1, float y1, float z1, float x2, float y2, float z2, float radiusBase, float radiusTop, int subdivisions, GLUquadricObj *quadric, bool isCone)
 {
 	float vx = x2 - x1;
@@ -322,6 +323,7 @@ void renderCylinder(float x1, float y1, float z1, float x2, float y2, float z2, 
 	glPopMatrix();
 }
 
+// 
 void renderCylinder_convenient(float x1, float y1, float z1, float x2, float y2, float z2, float radiusBase, float radiusTop, int subdivisions, bool isCone)
 {
 	//the same quadric can be re-used for drawing many cylinders
@@ -331,6 +333,7 @@ void renderCylinder_convenient(float x1, float y1, float z1, float x2, float y2,
 	gluDeleteQuadric(quadric);
 }
 
+//Initialize the values for lighting
 void InitializeLight()
 {
 	GLfloat mat_ambient_0[] = { 0.3f, 0.3f, 0.3f, 1.0f };
@@ -401,7 +404,7 @@ void InitializeLight()
 	//glFrontFace(GL_CCW);
 
 }
-
+//finding the values of sphereAxis
 void sphereAxis(float length, bool coneFlag)
 {
 	GLUquadricObj *quadric = gluNewQuadric();
@@ -436,13 +439,13 @@ void sphereAxis(float length, bool coneFlag)
 		glutSolidCone(0.05, 0.08, 10, 10);
 	glPopMatrix();
 }
-
+// Finding the distance between the points
 float getDistance(float x1, float y1, float z1, float x2, float y2, float z2)
 {
 	float dist = sqrt(pow(x1 - x2, 2) + pow(y1 - y2, 2) + pow(z1 - z2, 2));
 	return dist;
 }
-
+// finding the color by Angle
 void getColorByAngle(double twist, double& r, double& g, double& b)
 {
 	double incr = 0.25;
@@ -499,7 +502,7 @@ void getColorByAngle(double twist, double& r, double& g, double& b)
 }
 
 
-
+// creating the trainagles 
 void drawTriangles(float centerX, float centerY, float centerZ, float angle)
 {
 	// the radius of the bead
@@ -582,6 +585,7 @@ void drawTriangles(float centerX, float centerY, float centerZ, float angle)
 	}
 	glutPostRedisplay();
 }
+//Inverse values of Avatar
 Avatar getFirstInverse(int index)
 {
 	Avatar result;
@@ -599,6 +603,7 @@ Avatar getFirstInverse(int index)
 	return result;
 }
 
+// get the quaternion values by Indexing
 quaternion getQuatByIndex(int boneID, int index, SphereUtility *su)
 {
 	Avatar firstInverse = getFirstInverse(index);
@@ -617,6 +622,7 @@ quaternion getQuatByIndex(int boneID, int index, SphereUtility *su)
 	}
 }
 
+//
 void drawPLYByBoneID(int boneID)
 {
 	switch (boneID)
@@ -638,7 +644,7 @@ void drawPLYByBoneID(int boneID)
 }
 
 
-
+// Creating the sphere
 void sphereDraw(int index, float(&traj_b)[20014][4], float r, float g, float b, int sIndex, int boneID, bool expert)
 {
 	SphereUtility *currentSU;
@@ -1381,7 +1387,7 @@ void startFresh(char* fileName)
 	MotionSphere::keyPressed = false;
 }
 
-
+// updating the array of trajectory
 void updateTrajectoryArray(int ind)
 {
 	Avatar firstInverse = getFirstInverse(ind);
@@ -1505,6 +1511,7 @@ Defines what needs to be done when the main loop is idel
 Its a call back function which is executed at regular intervels.
 */
 
+// Idle the sphere
 void sphereIdle()
 {
 	sphereID = MotionSphere::sphereID;
@@ -1670,7 +1677,7 @@ void sphereIdle()
 	glutPostRedisplay();
 }
 
-
+// Event options for special keys
 
 void SpecialkeyBoardEvent(int key, int x, int y)
 {
@@ -1977,6 +1984,7 @@ void sphereInitialize()
 	gluQuadricTexture(sphere, GL_TRUE);
 }
 
+// main code or loop for the sphere
 int MotionSphere::sphereMainLoop(MotionSphere newms, char* windowName)
 {
 	// Get MotionSphere object from the caller
