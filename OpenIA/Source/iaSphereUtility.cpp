@@ -152,6 +152,7 @@ float SphereUtility::getTwistAngle(TVec3 w, quaternion q)
 		return (2 * acos(qt.mData[3]));
 }
 
+// Printing the Data of vectors
 void SphereUtility::printData()
 {
 	for (int i = 0; i < this->noOfFrames; i++)
@@ -439,6 +440,8 @@ void SphereUtility::fullBodytoXYZ()
 		this->twistAngles[i][9] = b1Angle;
 	}
 }
+
+// finding the angles of upper body 
 void SphereUtility::upperBodytoXYZ()
 {
 	TVec3 b0Vec, b1Vec;
@@ -486,6 +489,7 @@ void SphereUtility::upperBodytoXYZ()
 	}
 }
 
+// finding the lower body of the angels between two vectors
 void SphereUtility::lowerBodytoXYZ()
 {
 	TVec3 b0Vec, b1Vec;
