@@ -18,7 +18,7 @@ XsensConnection connectXS;
 bool iaAcquireGesture::calibIMU;
 
 ofstream rawIMUDataFile;
-
+// finding the values of quaternion height
 double quatHeight(quaternion data)
 {
 
@@ -57,6 +57,7 @@ double quatHeight(quaternion data)
 	return Rotaxis_Z;
 }
 
+//get the raw values
 Avatar iaAcquireGesture::getRawQ()
 {
 	bool DataAvailable = connectXS.newDataAvailable;
@@ -168,6 +169,7 @@ void iaAcquireGesture::caliberateQSF()
 	}	
 }
 
+// get the gesture value
 Avatar iaAcquireGesture::getSFQ()
 {
 	Avatar myAvatar;
