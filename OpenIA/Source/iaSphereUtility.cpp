@@ -3,7 +3,7 @@
 #include <iostream>
 
 
-//get AngleAxis  Quaternions
+
 void SphereUtility::getAngleAxisBWQuaternions(quaternion q_1, quaternion q_2, char * boneID)
 {
 	quaternion result = q_2.mutiplication(q_1.Inverse());
@@ -20,19 +20,18 @@ void SphereUtility::getAngleAxisBWQuaternions(quaternion q_1, quaternion q_2, ch
 
 	std::cout << boneID << " rotates by " << angle_deg << " degree around (" << x << "," << y << "," << z << ")\n";
 }
-// finding distance between two vector
+
 double SphereUtility::vecDistance(TVec3 v1, TVec3 v2)
 {
 	double result = sqrt(pow(v1._x - v2._x, 2) + pow(v1._y - v2._y, 2) + pow(v1._z - v2._z, 2));
 	return result;
 }
-// finding the dot product values between two vectors
 double SphereUtility::vecDotProduct(TVec3 v1, TVec3 v2)
 {
 	return ((v1._x*v2._x) + (v1._y*v2._y) + (v1._z*v2._z));
 }
 
-// finding the cross product values between two vectors
+
 TVec3 SphereUtility::vecCrossProduct(TVec3 v1, TVec3 v2)
 {
 	TVec3 result;
@@ -42,17 +41,16 @@ TVec3 SphereUtility::vecCrossProduct(TVec3 v1, TVec3 v2)
 	return result;
 }
 
-
 double vecDotProduct(TVec3 v1, TVec3 v2)
 {
 	return ((v1._x*v2._x) + (v1._y*v2._y) + (v1._z*v2._z));
 }
-// get the length of the vector
+
 double vecLength(TVec3 v)
 {
 	return sqrt(pow(v._x, 2) + pow(v._y, 2) + pow(v._z, 2));
 }
-//get the Normalized vector
+
 void SphereUtility::vecNormalize(TVec3 &vec)
 {
 	float length = vecLength(vec);
@@ -60,7 +58,7 @@ void SphereUtility::vecNormalize(TVec3 &vec)
 	vec._y = vec._y / length;
 	vec._z = vec._z / length;
 }
-// converting a direction vector into Quaternions rotation
+
 void SphereUtility::vectorsToQuat()
 {
 	TVec3 v1 = { 0.0, 0.707106781, -0.707106781 };
@@ -113,7 +111,7 @@ void SphereUtility::vectorsToQuat()
 
 	}
 }
-//finding the Angale of twist
+
 float SphereUtility::getTwistAngle(TVec3 w, quaternion q)
 {
 	TVec3 v = { startingVector._x,startingVector._y,startingVector._z };
@@ -149,10 +147,9 @@ float SphereUtility::getTwistAngle(TVec3 w, quaternion q)
 	if (isnan(acos(qt.mData[3])))
 		return (0.000001);
 	else
-		return (2 * acos(qt.mData[3]));
+		return (2*acos(qt.mData[3]));
 }
 
-// Printing the Data of vectors
 void SphereUtility::printData()
 {
 	for (int i = 0; i < this->noOfFrames; i++)
@@ -201,9 +198,7 @@ void SphereUtility::printData()
 
 }
 
-//Spherically interpolates between two vectors.
-
-Vec3 SphereUtility::vecSLERP(TVec3& a, TVec3& b, const float t)
+TVec3 SphereUtility::vecSLERP(TVec3& a, TVec3& b, const float t)
 {
 	TVec3 r;
 	float t_ = 1 - t;
@@ -221,12 +216,11 @@ Vec3 SphereUtility::vecSLERP(TVec3& a, TVec3& b, const float t)
 	return r;
 }
 
-//reading Avatar Data
 void SphereUtility::readAvatarData(std::string fileName)
 {
 	int count = 0;
 	int tCount = 0;
-
+	//bool skip = true;
 	std::ifstream _filestream(fileName);
 	std::string _line;
 	int _option;
@@ -235,6 +229,7 @@ void SphereUtility::readAvatarData(std::string fileName)
 
 	while (std::getline(_filestream, _line))
 	{
+		//skip = !skip;
 		std::stringstream _linestream;
 		_linestream << _line;
 		if (count == 0)
@@ -250,20 +245,21 @@ void SphereUtility::readAvatarData(std::string fileName)
 		switch (this->subOption)
 		{
 		case 1:
+			//if (!skip) {
+				_linestream
+					>> this->avatarData[lineCount].b0.mData[3] >> this->avatarData[lineCount].b0.mData[0] >> this->avatarData[lineCount].b0.mData[1] >> this->avatarData[lineCount].b0.mData[2]
+					>> this->avatarData[lineCount].b1.mData[3] >> this->avatarData[lineCount].b1.mData[0] >> this->avatarData[lineCount].b1.mData[1] >> this->avatarData[lineCount].b1.mData[2]
+					>> this->avatarData[lineCount].b2.mData[3] >> this->avatarData[lineCount].b2.mData[0] >> this->avatarData[lineCount].b2.mData[1] >> this->avatarData[lineCount].b2.mData[2]
+					>> this->avatarData[lineCount].b3.mData[3] >> this->avatarData[lineCount].b3.mData[0] >> this->avatarData[lineCount].b3.mData[1] >> this->avatarData[lineCount].b3.mData[2]
+					>> this->avatarData[lineCount].b4.mData[3] >> this->avatarData[lineCount].b4.mData[0] >> this->avatarData[lineCount].b4.mData[1] >> this->avatarData[lineCount].b4.mData[2]
+					>> this->avatarData[lineCount].b5.mData[3] >> this->avatarData[lineCount].b5.mData[0] >> this->avatarData[lineCount].b5.mData[1] >> this->avatarData[lineCount].b5.mData[2]
+					>> this->avatarData[lineCount].b6.mData[3] >> this->avatarData[lineCount].b6.mData[0] >> this->avatarData[lineCount].b6.mData[1] >> this->avatarData[lineCount].b6.mData[2]
+					>> this->avatarData[lineCount].b7.mData[3] >> this->avatarData[lineCount].b7.mData[0] >> this->avatarData[lineCount].b7.mData[1] >> this->avatarData[lineCount].b7.mData[2]
+					>> this->avatarData[lineCount].b8.mData[3] >> this->avatarData[lineCount].b8.mData[0] >> this->avatarData[lineCount].b8.mData[1] >> this->avatarData[lineCount].b8.mData[2]
+					>> this->avatarData[lineCount].b9.mData[3] >> this->avatarData[lineCount].b9.mData[0] >> this->avatarData[lineCount].b9.mData[1] >> this->avatarData[lineCount].b9.mData[2];
 
-			_linestream
-				>> this->avatarData[lineCount].b0.mData[3] >> this->avatarData[lineCount].b0.mData[0] >> this->avatarData[lineCount].b0.mData[1] >> this->avatarData[lineCount].b0.mData[2]
-				>> this->avatarData[lineCount].b1.mData[3] >> this->avatarData[lineCount].b1.mData[0] >> this->avatarData[lineCount].b1.mData[1] >> this->avatarData[lineCount].b1.mData[2]
-				>> this->avatarData[lineCount].b2.mData[3] >> this->avatarData[lineCount].b2.mData[0] >> this->avatarData[lineCount].b2.mData[1] >> this->avatarData[lineCount].b2.mData[2]
-				>> this->avatarData[lineCount].b3.mData[3] >> this->avatarData[lineCount].b3.mData[0] >> this->avatarData[lineCount].b3.mData[1] >> this->avatarData[lineCount].b3.mData[2]
-				>> this->avatarData[lineCount].b4.mData[3] >> this->avatarData[lineCount].b4.mData[0] >> this->avatarData[lineCount].b4.mData[1] >> this->avatarData[lineCount].b4.mData[2]
-				>> this->avatarData[lineCount].b5.mData[3] >> this->avatarData[lineCount].b5.mData[0] >> this->avatarData[lineCount].b5.mData[1] >> this->avatarData[lineCount].b5.mData[2]
-				>> this->avatarData[lineCount].b6.mData[3] >> this->avatarData[lineCount].b6.mData[0] >> this->avatarData[lineCount].b6.mData[1] >> this->avatarData[lineCount].b6.mData[2]
-				>> this->avatarData[lineCount].b7.mData[3] >> this->avatarData[lineCount].b7.mData[0] >> this->avatarData[lineCount].b7.mData[1] >> this->avatarData[lineCount].b7.mData[2]
-				>> this->avatarData[lineCount].b8.mData[3] >> this->avatarData[lineCount].b8.mData[0] >> this->avatarData[lineCount].b8.mData[1] >> this->avatarData[lineCount].b8.mData[2]
-				>> this->avatarData[lineCount].b9.mData[3] >> this->avatarData[lineCount].b9.mData[0] >> this->avatarData[lineCount].b9.mData[1] >> this->avatarData[lineCount].b9.mData[2];
-
-			lineCount++;
+				lineCount++;
+			//}
 			break;
 
 		case 2:
@@ -296,7 +292,6 @@ void SphereUtility::readAvatarData(std::string fileName)
 	}
 }
 
-// writing the Avatar Data
 void SphereUtility::writeAvatarData(std::string fileName)
 {
 	std::ofstream editFile;
@@ -311,7 +306,6 @@ void SphereUtility::writeAvatarData(std::string fileName)
 	editFile.close();
 }
 
-// call to trajectory function 
 void SphereUtility::calTraj(quaternion parent, quaternion child, TVec3 &parentVec, TVec3 &childVec, float &tAngleParent, float &tAngleChild)
 {
 	quaternion BodyQuat(1.29947E-16, 0.707106781, -0.707106781, 1.41232E-32);
@@ -343,7 +337,50 @@ void SphereUtility::calTraj(quaternion parent, quaternion child, TVec3 &parentVe
 	tAngleChild = su.getTwistAngle(childVec, lq);
 }
 
-//Normalizing the Avatar 
+//
+//computing quad points in anticlock wise direction
+//
+void SphereUtility::getQuadPoints(float lattitude, float longitude, TVec3 *points)
+{
+	quaternion longituteQuat, lattitudeQuat, combinedQuat;
+	for (int i = 0; i < 4; i++)
+	{
+		//i == 0 is bottom right
+		if (i == 1) // top right
+		{
+			longitude = longitude + 1;
+		}
+		if (i == 2) // top left
+		{
+			lattitude = lattitude + 1;
+		}
+		if (i == 3) // bottom left
+		{
+			longitude = longitude - 1;
+		}
+		//longitude = longitude / 2;
+		// computing quaternion for vertical swing
+		longituteQuat.mData[3] = cos(longitude * PI / 180);
+		longituteQuat.mData[0] = 1 * (sin(longitude * PI / 180));
+		longituteQuat.mData[1] = 0  * (sin(longitude * PI / 180));
+		longituteQuat.mData[2] = 0  * (sin(longitude * PI / 180));
+
+		//computing quternion for lateral swing
+		lattitudeQuat.mData[3] = cos(lattitude * PI / 180);
+		lattitudeQuat.mData[0] = 0 * (sin(lattitude * PI / 180));
+		lattitudeQuat.mData[1] = 0 * (sin(lattitude * PI / 180));
+		lattitudeQuat.mData[2] = 1 * (sin(lattitude * PI / 180));
+
+		//combining vertical and lateral swings
+		combinedQuat = lattitudeQuat.mutiplication(longituteQuat);
+
+		combinedQuat = combinedQuat.mutiplication(quaternion(0, 0, -1, 0).mutiplication(combinedQuat.Inverse()));
+		points[i]._x = combinedQuat.mData[0];
+		points[i]._y = combinedQuat.mData[1];
+		points[i]._z = combinedQuat.mData[2];
+	}
+}
+
 void SphereUtility::normalizeAvatar(struct Avatar& avatar)
 {
 	avatar.b0.normalize();
@@ -358,7 +395,6 @@ void SphereUtility::normalizeAvatar(struct Avatar& avatar)
 	avatar.b9.normalize();	
 }
 
-//texturizing the full body points
 void SphereUtility::fullBodytoXYZ()
 {
 	TVec3 b0Vec = { 0,0,0 }, b1Vec = { 0,0,0 };
@@ -440,8 +476,6 @@ void SphereUtility::fullBodytoXYZ()
 		this->twistAngles[i][9] = b1Angle;
 	}
 }
-
-// finding the angles of upper body 
 void SphereUtility::upperBodytoXYZ()
 {
 	TVec3 b0Vec, b1Vec;
@@ -489,7 +523,6 @@ void SphereUtility::upperBodytoXYZ()
 	}
 }
 
-// finding the lower body of the angels between two vectors
 void SphereUtility::lowerBodytoXYZ()
 {
 	TVec3 b0Vec, b1Vec;
