@@ -281,6 +281,7 @@ void keyboardEventOccurred(const pcl::visualization::KeyboardEvent &event,	void*
 		if (PositionTracking::recordData)
 		{
 			PositionTracking::resetParameters();
+			cout << "data record" << endl;
 		}
 		else
 		{
@@ -903,7 +904,7 @@ void PositionTracking::LiDARDataReader1()
 
 			if (lasers.empty())
 			{
-				//std::cerr << "Empty" << std::endl;
+				std::cerr << "Empty" << std::endl;
 
 				continue;
 			}
@@ -1566,10 +1567,9 @@ void PositionTracking::positionDetection(VitruvianAvatar &vAvatar)
 
 			if (foundPos)
 			{
+				//User height estimation
 				acctHeight = ((groundPoint[1] - centroid[1]) + (centroid[0] * deltaXY));
-
 				iHeadHeight = centroid[1];
-
 				iShldHeight = iHeadHeight + acctHeight * 0.16;
 				iPelvHeight = iHeadHeight + acctHeight * 0.45;
 				iKneeHeight = iHeadHeight + acctHeight * 0.71;
