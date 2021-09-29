@@ -17,8 +17,8 @@ class MotionSphere {
 
 		static bool keyPressed;
 		static char* fileName;
-		int MotionSphere::maxWidth; //1800;
-		int MotionSphere::maxHeight; //900;
+		int MotionSphere::maxWidth; 
+		int MotionSphere::maxHeight; 
 		int MotionSphere::minWidth;
 		int MotionSphere::minHeight;
 		SphereUtility* su;
@@ -38,7 +38,7 @@ class MotionSphere {
 			this->minHeight = 0;
 			this->maxHeight = 900;
 		}
-		int sphereMainLoop(MotionSphere newms, char* windowName);		// Similar to glut main loop (AvatarMotion function)
+		int sphereMainLoop(MotionSphere newms, char* windowName);
 		//int sphereMainLoop2(MotionSphere newms, char* windowName);
 		void setSphereUtility(SphereUtility su)
 		{
