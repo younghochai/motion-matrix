@@ -1,7 +1,6 @@
 #include "iaGesture.h"
 #include <fstream>
 #include <string>
-
 #include <ctime>
 
 JointPosition referdata;
