@@ -7,7 +7,6 @@
 
 double CalculatePointDistance(const Eigen::Vector3f start, const Eigen::Vector3f current) {
 	//return abs(x - y);
-
 	double check;
 	check = std::sqrt(std::pow((start[0] - current[0]), 2) + std::pow((start[1] - current[1]), 2) + std::pow((start[2] - current[2]), 2));
 	//cout<<"dist value : " <<check <<endl;
@@ -3106,7 +3105,7 @@ namespace  gst {
 		TVec3 result_aixs = gst::vector_minus(end_vec, init_vec);
 
 
-		///////////////////////////////////////////// À§Ä¡ Á¶Á¤
+		///////////////////////////////////////////// ìœ„ì¹˜ ì¡°ì •
 
 
 		/*quaternion first_q2[2];
@@ -3164,7 +3163,7 @@ namespace  gst {
 		cout << " vector angle : " << edti_bf[0] <<"  , "<< edti_bf[1] << endl;
 
 		cout << " vector angle : " << edit_angle_ck[0] << "  , " << edit_angle_ck[1] << endl;
-		///////////////////////////////////////////// À§Ä¡ Á¶Á¤
+		///////////////////////////////////////////// ìœ„ì¹˜ ì¡°ì •
 		
 
 		quaternion cal_quat;
@@ -4203,7 +4202,7 @@ void JointPosition::GeNQuatdata()
 
 	//	//cout << p_frame << endl;
 	//}
-	// Ä¶¸®ºê·¹ÀÌ¼Ç ÀúÀå
+	// ìº˜ë¦¬ë¸Œë ˆì´ì…˜ ì €ì¥
 	Databuf[0].JointsQuat[0] = this->GenDatacontrol[0]->QuatData[0].JointsQuat[0];
 	Databuf[0].JointsQuat[1] = this->GenDatacontrol[0]->QuatData[0].JointsQuat[1];
 	Databuf[0].JointsQuat[2] = this->GenDatacontrol[0]->QuatData[0].JointsQuat[2];
@@ -4798,14 +4797,14 @@ void GenData::FindthrePoint()
 	//int Prev_frame = 1;
 	int Last_frame = this->maxframe - 1;
 
-	//// 0 ÇÁ·¹ÀÓ ÆÈ
+	//// 0 í”„ë ˆì„ íŒ”
 	//for (int i = 0; i < 3; i++)
 	//	firstquat[i] = this->QuatData[0].JointsQuat[i].Inverse();
 
 	///*cout << "Ges QUAt before" << this->QuatData[Prev_frame].JointsQuat[2].mData[0] << ", " << this->QuatData[Prev_frame].JointsQuat[2].mData[1] <<
 	//	", " << this->QuatData[Prev_frame].JointsQuat[2].mData[2] << ", " << this->QuatData[Prev_frame].JointsQuat[2].mData[3] << endl;*/
 
-	//	// 0+1 ÇÁ·¹ÀÓ
+	//	// 0+1 í”„ë ˆì„
 	//for (int i = 0; i < 3; i++)
 	//	buf[i] = this->QuatData[Prev_frame].JointsQuat[i].mutiplication(firstquat[i]);
 
@@ -4817,7 +4816,7 @@ void GenData::FindthrePoint()
 	//Init_q = buf[1].Inverse().mutiplication(buf[2]);
 
 	////cout << "Ges QUAt" << Init_q.mData[0] << ", " << Init_q.mData[1] << ", " << Init_q.mData[2] << ", " << Init_q.mData[3] << endl;
-	//// last ÇÁ·¹ÀÓ
+	//// last í”„ë ˆì„
 	//for (int i = 0; i < 3; i++)
 	//	buf[i] = this->QuatData[Last_frame].JointsQuat[i].mutiplication(firstquat[i]);
 
@@ -4891,14 +4890,14 @@ void GenData::FindInitEpt()
 	int Prev_frame = 1;
 	int Last_frame = this->maxframe - 1;
 
-	// 0 ÇÁ·¹ÀÓ ÆÈ
+	// 0 í”„ë ˆì„ íŒ”
 	for(int i =0;i<3;i++)
 	firstquat[i] = this->QuatData[0].JointsQuat[i].Inverse();
 	
 	/*cout << "Ges QUAt before" << this->QuatData[Prev_frame].JointsQuat[2].mData[0] << ", " << this->QuatData[Prev_frame].JointsQuat[2].mData[1] <<
 		", " << this->QuatData[Prev_frame].JointsQuat[2].mData[2] << ", " << this->QuatData[Prev_frame].JointsQuat[2].mData[3] << endl;*/
 
-	// 0+1 ÇÁ·¹ÀÓ
+	// 0+1 í”„ë ˆì„
 	for (int i = 0; i < 3; i++)
 		buf[i] = this->QuatData[Prev_frame].JointsQuat[i].mutiplication(firstquat[i]);
 	
@@ -4910,7 +4909,7 @@ void GenData::FindInitEpt()
 	Init_q = buf[1].Inverse().mutiplication(buf[2]);
 
 	//cout << "Ges QUAt" << Init_q.mData[0] << ", " << Init_q.mData[1] << ", " << Init_q.mData[2] << ", " << Init_q.mData[3] << endl;
-	// last ÇÁ·¹ÀÓ
+	// last í”„ë ˆì„
 	for (int i = 0; i < 3; i++)
 		buf[i] = this->QuatData[Last_frame].JointsQuat[i].mutiplication(firstquat[i]);
 
@@ -4978,7 +4977,7 @@ void GenData::FindInitEpt()
 	Rot_Q=End_q.mutiplication(combinedQuat);
 	GenData Databuf;
 	
-	// ÂüÁ¶ ±ËÀû »ı¼º
+	// ì°¸ì¡° ê¶¤ì  ìƒì„±
 	/*GenData* GenDatacontrol;
 	GenDatacontrol=(new GenData());
 
@@ -4991,7 +4990,7 @@ void GenData::FindInitEpt()
 	Databuf = gst::generateIntermediateFrames(Genframe, GenDatacontrol);*/
 	
 
-	//»ı¼ºµÈ ±ËÀû ÀüÃ¼ °ö
+	//ìƒì„±ëœ ê¶¤ì  ì „ì²´ ê³±
 	for(int i=0;i<this->maxframe;i++)
 	Databuf.QuatData[i] = this->QuatData[i];
 
@@ -5147,7 +5146,7 @@ void GenData::GenEditSlerp()
 
 		//cout << p_frame << endl;
 	}
-	// Ä¶¸®ºê·¹ÀÌ¼Ç ÀúÀå
+	// ìº˜ë¦¬ë¸Œë ˆì´ì…˜ ì €ì¥
 	Databuf[0].JointsQuat[0] = this->QuatData[0].JointsQuat[0];
 	Databuf[0].JointsQuat[1] = this->QuatData[0].JointsQuat[1];
 	Databuf[0].JointsQuat[2] = this->QuatData[0].JointsQuat[2];
