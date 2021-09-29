@@ -16,12 +16,13 @@ using namespace std;
 iaAcquireGesture iaAcquire;//StartIMU
 PositionTracking poseTrack;//LiDAR-Position
 VitruvianAvatar vAvatar;
-////////////////////-----------------MotionSphere-----------------//////////////
+
+//MotionSphere
 SphereUtility su;
 char* MotionSphere::fileName;
 char* PositionTracking::fileName;
 
-// motionsphere    method
+// motionsphere method
 void motionSphere()
 {
 	MotionSphere ms(0, 0, 900, 900);
@@ -29,6 +30,7 @@ void motionSphere()
 
 	ms.sphereMainLoop(ms, "Sphere 1");
 }
+
 void getLiDARdata1()
 {
 	poseTrack.LiDARDataReader1();
