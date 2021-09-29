@@ -1,5 +1,6 @@
 #include "iaMotionAuthoring.h"
 
+// adding the mid frames 
 
 void addMidFrame(int selectedFrame, SphereUtility *&su)
 {
@@ -23,7 +24,7 @@ void addMidFrame(int selectedFrame, SphereUtility *&su)
 	}
 	su->avatarData[selectedFrame] = newFrame;
 }
-
+// deleting the frames
 void deleteFrame(int selectedFrame, SphereUtility *&su)
 {
 	for (int i = selectedFrame-1; i < su->noOfFrames; i++)
@@ -33,6 +34,7 @@ void deleteFrame(int selectedFrame, SphereUtility *&su)
 	su->noOfFrames = su->noOfFrames - 1;
 }
 
+//creating the new motion
 void newMotion(SphereUtility *& su)
 {
 	Avatar newFrame;
@@ -53,6 +55,8 @@ void newMotion(SphereUtility *& su)
 	su->noOfFrames = su->noOfFrames + 1;
 }
 
+
+// generating the intermediate frames
 void generateIntermediateFrames(int totalIntermediateFrames, SphereUtility *&su)
 {
 	int noOfKeyFrames = su->noOfFrames-1;
@@ -87,6 +91,7 @@ void generateIntermediateFrames(int totalIntermediateFrames, SphereUtility *&su)
 	}
 }
 
+//finding the duplicate frames
 void duplicateCurrentFrame(int stencilIndex, SphereUtility *& su, int copyFlag)
 {
 	switch (copyFlag)

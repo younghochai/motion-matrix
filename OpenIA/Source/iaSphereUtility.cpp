@@ -147,7 +147,7 @@ float SphereUtility::getTwistAngle(TVec3 w, quaternion q)
 	if (isnan(acos(qt.mData[3])))
 		return (0.000001);
 	else
-		return (2 * acos(qt.mData[3]));
+		return (2*acos(qt.mData[3]));
 }
 
 void SphereUtility::printData()
@@ -220,7 +220,7 @@ void SphereUtility::readAvatarData(std::string fileName)
 {
 	int count = 0;
 	int tCount = 0;
-
+	//bool skip = true;
 	std::ifstream _filestream(fileName);
 	std::string _line;
 	int _option;
@@ -229,6 +229,7 @@ void SphereUtility::readAvatarData(std::string fileName)
 
 	while (std::getline(_filestream, _line))
 	{
+		//skip = !skip;
 		std::stringstream _linestream;
 		_linestream << _line;
 		if (count == 0)
@@ -244,20 +245,21 @@ void SphereUtility::readAvatarData(std::string fileName)
 		switch (this->subOption)
 		{
 		case 1:
+			//if (!skip) {
+				_linestream
+					>> this->avatarData[lineCount].b0.mData[3] >> this->avatarData[lineCount].b0.mData[0] >> this->avatarData[lineCount].b0.mData[1] >> this->avatarData[lineCount].b0.mData[2]
+					>> this->avatarData[lineCount].b1.mData[3] >> this->avatarData[lineCount].b1.mData[0] >> this->avatarData[lineCount].b1.mData[1] >> this->avatarData[lineCount].b1.mData[2]
+					>> this->avatarData[lineCount].b2.mData[3] >> this->avatarData[lineCount].b2.mData[0] >> this->avatarData[lineCount].b2.mData[1] >> this->avatarData[lineCount].b2.mData[2]
+					>> this->avatarData[lineCount].b3.mData[3] >> this->avatarData[lineCount].b3.mData[0] >> this->avatarData[lineCount].b3.mData[1] >> this->avatarData[lineCount].b3.mData[2]
+					>> this->avatarData[lineCount].b4.mData[3] >> this->avatarData[lineCount].b4.mData[0] >> this->avatarData[lineCount].b4.mData[1] >> this->avatarData[lineCount].b4.mData[2]
+					>> this->avatarData[lineCount].b5.mData[3] >> this->avatarData[lineCount].b5.mData[0] >> this->avatarData[lineCount].b5.mData[1] >> this->avatarData[lineCount].b5.mData[2]
+					>> this->avatarData[lineCount].b6.mData[3] >> this->avatarData[lineCount].b6.mData[0] >> this->avatarData[lineCount].b6.mData[1] >> this->avatarData[lineCount].b6.mData[2]
+					>> this->avatarData[lineCount].b7.mData[3] >> this->avatarData[lineCount].b7.mData[0] >> this->avatarData[lineCount].b7.mData[1] >> this->avatarData[lineCount].b7.mData[2]
+					>> this->avatarData[lineCount].b8.mData[3] >> this->avatarData[lineCount].b8.mData[0] >> this->avatarData[lineCount].b8.mData[1] >> this->avatarData[lineCount].b8.mData[2]
+					>> this->avatarData[lineCount].b9.mData[3] >> this->avatarData[lineCount].b9.mData[0] >> this->avatarData[lineCount].b9.mData[1] >> this->avatarData[lineCount].b9.mData[2];
 
-			_linestream
-				>> this->avatarData[lineCount].b0.mData[3] >> this->avatarData[lineCount].b0.mData[0] >> this->avatarData[lineCount].b0.mData[1] >> this->avatarData[lineCount].b0.mData[2]
-				>> this->avatarData[lineCount].b1.mData[3] >> this->avatarData[lineCount].b1.mData[0] >> this->avatarData[lineCount].b1.mData[1] >> this->avatarData[lineCount].b1.mData[2]
-				>> this->avatarData[lineCount].b2.mData[3] >> this->avatarData[lineCount].b2.mData[0] >> this->avatarData[lineCount].b2.mData[1] >> this->avatarData[lineCount].b2.mData[2]
-				>> this->avatarData[lineCount].b3.mData[3] >> this->avatarData[lineCount].b3.mData[0] >> this->avatarData[lineCount].b3.mData[1] >> this->avatarData[lineCount].b3.mData[2]
-				>> this->avatarData[lineCount].b4.mData[3] >> this->avatarData[lineCount].b4.mData[0] >> this->avatarData[lineCount].b4.mData[1] >> this->avatarData[lineCount].b4.mData[2]
-				>> this->avatarData[lineCount].b5.mData[3] >> this->avatarData[lineCount].b5.mData[0] >> this->avatarData[lineCount].b5.mData[1] >> this->avatarData[lineCount].b5.mData[2]
-				>> this->avatarData[lineCount].b6.mData[3] >> this->avatarData[lineCount].b6.mData[0] >> this->avatarData[lineCount].b6.mData[1] >> this->avatarData[lineCount].b6.mData[2]
-				>> this->avatarData[lineCount].b7.mData[3] >> this->avatarData[lineCount].b7.mData[0] >> this->avatarData[lineCount].b7.mData[1] >> this->avatarData[lineCount].b7.mData[2]
-				>> this->avatarData[lineCount].b8.mData[3] >> this->avatarData[lineCount].b8.mData[0] >> this->avatarData[lineCount].b8.mData[1] >> this->avatarData[lineCount].b8.mData[2]
-				>> this->avatarData[lineCount].b9.mData[3] >> this->avatarData[lineCount].b9.mData[0] >> this->avatarData[lineCount].b9.mData[1] >> this->avatarData[lineCount].b9.mData[2];
-
-			lineCount++;
+				lineCount++;
+			//}
 			break;
 
 		case 2:
@@ -333,6 +335,50 @@ void SphereUtility::calTraj(quaternion parent, quaternion child, TVec3 &parentVe
 	SphereUtility su;
 	tAngleParent = su.getTwistAngle(parentVec, uq);
 	tAngleChild = su.getTwistAngle(childVec, lq);
+}
+
+//
+//computing quad points in anticlock wise direction
+//
+void SphereUtility::getQuadPoints(float lattitude, float longitude, TVec3 *points)
+{
+	quaternion longituteQuat, lattitudeQuat, combinedQuat;
+	for (int i = 0; i < 4; i++)
+	{
+		//i == 0 is bottom right
+		if (i == 1) // top right
+		{
+			longitude = longitude + 1;
+		}
+		if (i == 2) // top left
+		{
+			lattitude = lattitude + 1;
+		}
+		if (i == 3) // bottom left
+		{
+			longitude = longitude - 1;
+		}
+		//longitude = longitude / 2;
+		// computing quaternion for vertical swing
+		longituteQuat.mData[3] = cos(longitude * PI / 180);
+		longituteQuat.mData[0] = 1 * (sin(longitude * PI / 180));
+		longituteQuat.mData[1] = 0  * (sin(longitude * PI / 180));
+		longituteQuat.mData[2] = 0  * (sin(longitude * PI / 180));
+
+		//computing quternion for lateral swing
+		lattitudeQuat.mData[3] = cos(lattitude * PI / 180);
+		lattitudeQuat.mData[0] = 0 * (sin(lattitude * PI / 180));
+		lattitudeQuat.mData[1] = 0 * (sin(lattitude * PI / 180));
+		lattitudeQuat.mData[2] = 1 * (sin(lattitude * PI / 180));
+
+		//combining vertical and lateral swings
+		combinedQuat = lattitudeQuat.mutiplication(longituteQuat);
+
+		combinedQuat = combinedQuat.mutiplication(quaternion(0, 0, -1, 0).mutiplication(combinedQuat.Inverse()));
+		points[i]._x = combinedQuat.mData[0];
+		points[i]._y = combinedQuat.mData[1];
+		points[i]._z = combinedQuat.mData[2];
+	}
 }
 
 void SphereUtility::normalizeAvatar(struct Avatar& avatar)

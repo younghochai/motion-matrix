@@ -16,12 +16,13 @@ using namespace std;
 iaAcquireGesture iaAcquire;//StartIMU
 PositionTracking poseTrack;//LiDAR-Position
 VitruvianAvatar vAvatar;
-////////////////////-----------------MotionSphere-----------------//////////////
+
+//MotionSphere
 SphereUtility su;
 char* MotionSphere::fileName;
 char* PositionTracking::fileName;
 
-
+// motionsphere method
 void motionSphere()
 {
 	MotionSphere ms(0, 0, 900, 900);
@@ -29,6 +30,7 @@ void motionSphere()
 
 	ms.sphereMainLoop(ms, "Sphere 1");
 }
+
 void getLiDARdata1()
 {
 	poseTrack.LiDARDataReader1();
@@ -39,11 +41,13 @@ void getLiDARdata2()
 	poseTrack.LiDARDataReader2();
 }
 
+//pose detection by using the pose tracking
 void poseTracking()
 {
 	poseTrack.positionDetection(vAvatar);
 }
 
+// reading the data from Xsens sensor
 void XSensDataReader()
 {
 	iaAcquire.startXsensData();
@@ -51,6 +55,7 @@ void XSensDataReader()
 	poseTrack.saveQautData();
 }
 
+//Initiating the creating the avatar
 void startAvatar()
 {
 	VitruvianAvatar::humanHeight = 172.0;
@@ -60,6 +65,7 @@ void startAvatar()
 
 
 
+// main method
 
 int main()
 {

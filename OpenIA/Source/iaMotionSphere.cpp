@@ -20,7 +20,6 @@ struct StencilHash
 {
 	int stencilIndex;
 	int hashIndex;
-
 };
 
 float xrot = 0.0f;
@@ -122,6 +121,7 @@ bool rotEnable3 = false;
 bool rotEnable4 = false;
 
 bool enableComparision = false;
+bool kinamaticsEnabled = false;
 
 void *font = GLUT_BITMAP_TIMES_ROMAN_24;
 float textColor[4] = { 1, 0, 0, 1 };
@@ -142,7 +142,7 @@ void drawString(const char *str, float x, float y, float color[4], void *font)
 	glColor4fv(color);          // set text color
 	glRasterPos2i(x, y);        // place text position
 
-								// loop all characters in the string
+								
 	while (*str)
 	{
 		glutBitmapCharacter(font, *str);
@@ -167,7 +167,7 @@ void drawString3D(const char *str, float pos[3], float color[4], void *font)
 	glColor4fv(color);          // set text color
 	glRasterPos3fv(pos);        // place text position
 
-								// loop all characters in the string
+								
 	while (*str)
 	{
 		glutBitmapCharacter(font, *str);
@@ -445,57 +445,19 @@ float getDistance(float x1, float y1, float z1, float x2, float y2, float z2)
 
 void getColorByAngle(double twist, double& r, double& g, double& b)
 {
-	double incr = 0.25;
+	double incr = 0.7;
 	if (twist < 0)
 	{
 		r = (130 - abs(twist)*incr) / 255;
 		g = 1.0;
 		b = 0.0;
 	}
-	if (twist > 0)
+	if (twist >= 0)
 	{
 		r = 1.0;
-		g = (130 - abs(twist)*incr) / 255;
+		g = (132 - (abs(twist)-90)*incr) / 255;
 		b = 0.0;
 	}
-
-	/*double incr = 0.0166666666666666666667;
-	if (twist <= 60)
-	{
-		r = 1;
-		g = abs(twist)*incr;
-		b = 0;
-	}
-	else if (twist > 60 && twist <= 120)
-	{
-		r = 1 - abs(twist - 60)*incr;
-		g = 1;
-		b = 0;
-	}
-	else if (twist > 120 && twist <= 180)
-	{
-		r = 0;
-		g = 1;
-		b = abs(twist-120)*incr;
-	}
-	else if (twist > 180 && twist <= 240)
-	{
-		r = 0;
-		g = 1- abs(twist - 180)*incr;
-		b = 1;
-	}
-	else if (twist > 240 && twist <= 280)
-	{
-		r = abs(twist - 240)*incr;
-		g = 0 ;
-		b = 1;
-	}
-	else if (twist > 280 && twist <= 360)
-	{
-		r = 1;
-		g = 0;
-		b = 1- abs(twist - 280)*incr;
-	}*/
 }
 
 
@@ -582,26 +544,26 @@ void drawTriangles(float centerX, float centerY, float centerZ, float angle)
 	}
 	glutPostRedisplay();
 }
-Avatar getFirstInverse(int index)
+Avatar getFirstInverse(int index, SphereUtility *mySu)
 {
 	Avatar result;
-	result.b0 = ms.su->avatarData[index].b0.mutiplication(ms.su->avatarData[0].b0.Inverse());
-	result.b1 = ms.su->avatarData[index].b1.mutiplication(ms.su->avatarData[0].b1.Inverse());
-	result.b2 = ms.su->avatarData[index].b2.mutiplication(ms.su->avatarData[0].b2.Inverse());
-	result.b3 = ms.su->avatarData[index].b3.mutiplication(ms.su->avatarData[0].b3.Inverse());
-	result.b4 = ms.su->avatarData[index].b4.mutiplication(ms.su->avatarData[0].b4.Inverse());
-	result.b5 = ms.su->avatarData[index].b5.mutiplication(ms.su->avatarData[0].b5.Inverse());
-	result.b6 = ms.su->avatarData[index].b6.mutiplication(ms.su->avatarData[0].b6.Inverse());
-	result.b7 = ms.su->avatarData[index].b7.mutiplication(ms.su->avatarData[0].b7.Inverse());
-	result.b8 = ms.su->avatarData[index].b8.mutiplication(ms.su->avatarData[0].b8.Inverse());
-	result.b9 = ms.su->avatarData[index].b9.mutiplication(ms.su->avatarData[0].b9.Inverse());
+	result.b0 = mySu->avatarData[index].b0.mutiplication(mySu->avatarData[0].b0.Inverse());
+	result.b1 = mySu->avatarData[index].b1.mutiplication(mySu->avatarData[0].b1.Inverse());
+	result.b2 = mySu->avatarData[index].b2.mutiplication(mySu->avatarData[0].b2.Inverse());
+	result.b3 = mySu->avatarData[index].b3.mutiplication(mySu->avatarData[0].b3.Inverse());
+	result.b4 = mySu->avatarData[index].b4.mutiplication(mySu->avatarData[0].b4.Inverse());
+	result.b5 = mySu->avatarData[index].b5.mutiplication(mySu->avatarData[0].b5.Inverse());
+	result.b6 = mySu->avatarData[index].b6.mutiplication(mySu->avatarData[0].b6.Inverse());
+	result.b7 = mySu->avatarData[index].b7.mutiplication(mySu->avatarData[0].b7.Inverse());
+	result.b8 = mySu->avatarData[index].b8.mutiplication(mySu->avatarData[0].b8.Inverse());
+	result.b9 = mySu->avatarData[index].b9.mutiplication(mySu->avatarData[0].b9.Inverse());
 
 	return result;
 }
 
 quaternion getQuatByIndex(int boneID, int index, SphereUtility *su)
 {
-	Avatar firstInverse = getFirstInverse(index);
+	Avatar firstInverse = getFirstInverse(index,su);
 	switch (boneID)
 	{
 		case 0: return firstInverse.b0; /*su->avatarData[index].b0;*/ break;
@@ -643,12 +605,12 @@ void sphereDraw(int index, float(&traj_b)[20014][4], float r, float g, float b, 
 {
 	SphereUtility *currentSU;
 	double mr, mg, mb;
-	
+
 	//Sleep(100);
 	if (stencilIndex > 0)
-		VitruvianAvatar::vitruvianAvatarUpdate = getFirstInverse(stencilIndex - 1);
+		VitruvianAvatar::vitruvianAvatarUpdate = getFirstInverse(stencilIndex - 1, ms.su);
 	else
-		VitruvianAvatar::vitruvianAvatarUpdate = getFirstInverse(trajCount-1);
+		VitruvianAvatar::vitruvianAvatarUpdate = getFirstInverse(trajCount - 1, ms.su);
 
 	if (expert)
 	{
@@ -687,7 +649,7 @@ void sphereDraw(int index, float(&traj_b)[20014][4], float r, float g, float b, 
 		twist = currentSU->twistAngles[index][boneID];
 	}
 
-	if (index > 0 && toggleOption)
+	if (index > 0 /*&& toggleOption*/)
 	{
 		glLineWidth(3.0f);
 		glPushMatrix();
@@ -695,7 +657,7 @@ void sphereDraw(int index, float(&traj_b)[20014][4], float r, float g, float b, 
 			-1.01*traj_b[index][1] / fnorm, -1.01*traj_b[index][2] / fnorm, 1.01*traj_b[index][3] / fnorm, 0.01, 0.01, 30, false);
 		glPopMatrix();
 
-		
+
 	}
 
 	glPushMatrix();
@@ -705,12 +667,12 @@ void sphereDraw(int index, float(&traj_b)[20014][4], float r, float g, float b, 
 	if (stencilIndex == sIndex && stencilIndex != 0)
 	{
 		ss.str("");
-		ss << setprecision(2) << (twist) * 180 / PI << "("<<stencilIndex-1<<")";
+		ss << setprecision(3) << (twist) * 180 / PI << "(" << stencilIndex - 1 << ")";
 		pos[0] = 1.3*cos(theta*PI / 180)*sin(-phi * PI / 180); pos[1] = 1.3*cos(theta*PI / 180)*cos(-phi * PI / 180); pos[2] = 1.3*sin(theta*PI / 180);
 		drawString3D(ss.str().c_str(), pos, textColor, font);
 		ri = 0.05;
 	}
-	if (index == 0 || index % 10 == 0 /*|| dist > 0.3*/ || index == currentSU->noOfFrames - 1 || index == trajCount - 1)
+	if (/*index > 0 ||*/ /*index % 10 == 0 ||*/ dist > 0.3 || index == currentSU->noOfFrames - 1 || index == trajCount - 1)
 	{
 		if (index == 0)
 		{
@@ -743,7 +705,9 @@ void sphereDraw(int index, float(&traj_b)[20014][4], float r, float g, float b, 
 			getColorByAngle(twist * 180 / PI, mr, mg, mb);
 			glColor3f(mr, mg, mb);
 			glStencilFunc(GL_ALWAYS, sIndex, -1);
+			//glDisable(GL_LIGHTING);
 			drawPLYByBoneID(boneID);
+			//glEnable(GL_LIGHTING);
 			glPopMatrix();
 		}
 		if (expert)
@@ -760,27 +724,109 @@ void sphereDraw(int index, float(&traj_b)[20014][4], float r, float g, float b, 
 			glColor3f(0.000, 0.000, 0.000);
 		}
 
-		if (arrowIndex > 0 && toggleOption)
-			renderCylinder_convenient(-1.01*traj_b[arrowIndex - 1][1] / fnorm, -1.01*traj_b[arrowIndex - 1][2] / fnorm, 1.01*traj_b[arrowIndex - 1][3] / fnorm,
+		if (arrowIndex > 0 /*&& toggleOption*/)
+			renderCylinder_convenient(-1.02*traj_b[arrowIndex - 1][1] / fnorm, -1.01*traj_b[arrowIndex - 1][2] / fnorm, 1.01*traj_b[arrowIndex - 1][3] / fnorm,
 				-1.01*traj_b[arrowIndex][1] / fnorm, -1.01*traj_b[arrowIndex][2] / fnorm, 1.01*traj_b[arrowIndex][3] / fnorm, 0.03, 0.05, 30, true);
-	}
-	//Draw A line between Points
-	if (index >= 0 && !toggleOption || boneID == 0 || boneID == 1)
-	{
-		glDisable(GL_CULL_FACE);
-		glEnable(GL_LIGHTING);
-		glPushMatrix();
-		glTranslatef(-1.02*traj_b[index][1] / fnorm, -1.02*traj_b[index][2] / fnorm, 1.02*traj_b[index][3] / fnorm);
-		glStencilFunc(GL_ALWAYS, sIndex, -1);
-		getColorByAngle(twist * 180 / PI, mr, mg, mb);
-		glColor3f(mr, mg, mb);
-		glutSolidSphere(ri, 30, 30);
-		glPopMatrix();
-	}
+		}
+		//Draw A line between Points
+		if (index > 0 && !toggleOption || boneID == 0 || boneID == 1)
+		{
+			glDisable(GL_CULL_FACE);
+			glEnable(GL_LIGHTING);
+			glPushMatrix();
+			glTranslatef(-1.02*traj_b[index][1] / fnorm, -1.02*traj_b[index][2] / fnorm, 1.02*traj_b[index][3] / fnorm);
+			glStencilFunc(GL_ALWAYS, sIndex, -1);
+			if (boneID > 1)
+			{
+				getColorByAngle(twist * 180 / PI, mr, mg, mb);
+			}
+			else
+			{
+				getColorByAngle(0, mr, mg, mb);
+			}
+			glColor3f(mr, mg, mb);
+			//glDisable(GL_LIGHTING);
+			glutSolidSphere(ri, 30, 30);
+			//glEnable(GL_LIGHTING);
+			glPopMatrix();
+		}
+	//}
 	glStencilFunc(GL_ALWAYS, -1, -1);
 	glPopMatrix();
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_LIGHTING);
+}
+
+void enableLowerArmConstraints()
+{
+	TVec3 points[4]; // bottom right -> top right -> top left -> bottom left, in that order
+	float limit1, limit2;
+	for (float longitude = 0; longitude <= 90; longitude = longitude ++)
+	{
+		if (longitude <= 65)
+		{
+			limit1 = 2;
+			limit2 = 177;
+		}
+		else
+		{
+			limit1 = 0;
+			limit2 = 179;
+		}
+		for (float lattitude = limit1; lattitude <= limit2; lattitude = lattitude++)
+		{
+			//computing points in anticlock wise direction
+			ms.su->getQuadPoints(lattitude, longitude, points);
+			glPushMatrix();
+			glColor4f(0.5, 0.5, 0.5, 0.5);
+			//glRotatef(5, 0, 0, 1);
+			//glRotatef(80, 1, 0, 0);
+			glBegin(GL_POLYGON);
+			glVertex3f(1.002*points[0]._x, 1.002*points[0]._y, 1.002*points[0]._z);
+			glVertex3f(1.002*points[1]._x, 1.002*points[1]._y, 1.002*points[1]._z);
+			glVertex3f(1.002*points[2]._x, 1.002*points[2]._y, 1.002*points[2]._z);
+			glVertex3f(1.002*points[3]._x, 1.002*points[3]._y, 1.002*points[3]._z);
+			glEnd();
+			glPopMatrix();
+		}
+		
+	}
+}
+
+void enableLowerLegConstraints()
+{
+	TVec3 points[4]; // bottom right -> top right -> top left -> bottom left, in that order
+	float limit1, limit2;
+	for (float longitude = 0; longitude <= 90; longitude = longitude++)
+	{
+		if (longitude <= 65)
+		{
+			limit1 = 2;  //0
+			limit2 = 177; // 87
+		}
+		else
+		{
+			limit1 = 0;
+			limit2 = 179;
+		}
+		for (float lattitude = limit2; lattitude >= limit1; lattitude = lattitude--)
+		{
+			//computing points in anticlock wise direction
+			ms.su->getQuadPoints(lattitude, longitude, points);
+			glPushMatrix();
+			glColor4f(0.1, 0.5, 0.5, 0.5);
+			//glRotatef(5, 0, 0, 1);
+			glRotatef(180, 0, 1, 0);
+			glRotatef(180, 1, 0, 0);
+			glBegin(GL_POLYGON);
+			glVertex3f(1.002*points[0]._x, 1.002*points[0]._y, 1.002*points[0]._z);
+			glVertex3f(1.002*points[1]._x, 1.002*points[1]._y, 1.002*points[1]._z);
+			glVertex3f(1.002*points[2]._x, 1.002*points[2]._y, 1.002*points[2]._z);
+			glVertex3f(1.002*points[3]._x, 1.002*points[3]._y, 1.002*points[3]._z);
+			glEnd();
+			glPopMatrix();
+		}
+	}
 }
 
 /* Draws the trajectory on the sphere
@@ -831,7 +877,19 @@ void drawTrajectory(GLint minWidth, GLint minHeight, GLsizei maxWidth, GLsizei m
 	//glTranslatef(0, -5, 0);
 	glCullFace(GL_FRONT);
 	gluSphere(sphere, 1.0, 50, 50);
-
+	if (kinamaticsEnabled)
+	{
+		if (sphereID == 3 || sphereID == 5 || sphereID == 10 || sphereID == 11)
+		{
+			enableLowerArmConstraints();
+		}
+		if (sphereID == 7 || sphereID == 9 || sphereID == 12 || sphereID == 13)
+		{
+			enableLowerLegConstraints();
+		}
+		
+	}
+	
 	glDisable(GL_TEXTURE_2D);
 	//glRotatef(-90, 1, 0, 0);
 	//glEnable(GL_LIGHT1);
@@ -839,7 +897,7 @@ void drawTrajectory(GLint minWidth, GLint minHeight, GLsizei maxWidth, GLsizei m
 	glDisable(GL_BLEND);
 
 	int j = 0, i = 0;
-	while (i < trajCount || j < expTrajCount - 1)
+	while (i < trajCount || j < expTrajCount )
 	{
 		if (i >= ms.su->noOfFrames - 1)
 		{
@@ -862,7 +920,7 @@ void drawTrajectory(GLint minWidth, GLint minHeight, GLsizei maxWidth, GLsizei m
 			}
 			break;
 
-		case 1:		sphereDraw(i, traj_b1, 1.0, 0.0, 0.0, i + 1, 1, false); //red
+		case 1:	sphereDraw(i, traj_b1, 1.0, 0.0, 0.0, i + 1, 1, false); //red
 			if (enableComparision)
 				sphereDraw(j, exptraj_b1, 0.0, 0.0, 0.0, j + 1, 1, true);
 			break;
@@ -1340,13 +1398,152 @@ void loadexpTraj()
 }
 /* reads data files, resets memory, counters and flags for fresh display. called on press of key '1' or enabled
 */
-void startFresh(char* fileName)
+
+void updateExpertTrajectoryArray(int ind)
+{
+	Avatar firstInverse = getFirstInverse(ind, &expertSU);
+
+	avatar.b0 = firstInverse.b0;
+	avatar.b1 = firstInverse.b0.Inverse().mutiplication(firstInverse.b1);
+	avatar.b2 = firstInverse.b1.Inverse().mutiplication(firstInverse.b2);
+	avatar.b3 = firstInverse.b2.Inverse().mutiplication(firstInverse.b3);
+	avatar.b4 = firstInverse.b1.Inverse().mutiplication(firstInverse.b4);
+	avatar.b5 = firstInverse.b4.Inverse().mutiplication(firstInverse.b5);
+	avatar.b6 = firstInverse.b0.Inverse().mutiplication(firstInverse.b6);
+	avatar.b7 = firstInverse.b6.Inverse().mutiplication(firstInverse.b7);
+	avatar.b8 = firstInverse.b0.Inverse().mutiplication(firstInverse.b8);
+	avatar.b9 = firstInverse.b8.Inverse().mutiplication(firstInverse.b9);
+
+	TVec3 b0Vec, b1Vec;
+	float tAngle0, tAngle1;
+	quaternion vQuat(expertSU.startingVector._x, expertSU.startingVector._y, -expertSU.startingVector._z, 0);
+
+	quaternion uTransfBodyQuat = avatar.b0.mutiplication(vQuat.mutiplication(avatar.b0.Inverse()));
+
+	exptraj_b0[ind][0] = 1;
+	exptraj_b0[ind][1] = uTransfBodyQuat.mData[0];
+	exptraj_b0[ind][2] = uTransfBodyQuat.mData[1];
+	exptraj_b0[ind][3] = uTransfBodyQuat.mData[2];
+	expertSU.twistAngles[ind][0] = 180-expertSU.getTwistAngle({ uTransfBodyQuat.mData[0] ,uTransfBodyQuat.mData[1] ,uTransfBodyQuat.mData[2] }, uTransfBodyQuat);
+
+	calculateTrajectory(avatar.b0, avatar.b1, b0Vec, b1Vec, tAngle0, tAngle1, true);
+
+	expertSU.twistAngles[ind][1] = tAngle1;
+	exptraj_b1[ind][0] = 1;
+	exptraj_b1[ind][1] = b1Vec._x;
+	exptraj_b1[ind][2] = b1Vec._y;
+	exptraj_b1[ind][3] = b1Vec._z;
+
+
+	TVec3 b2Vec, b3Vec;
+	float tAngle2, tAngle3;
+	calculateTrajectory(avatar.b2, avatar.b3, b2Vec, b3Vec, tAngle2, tAngle3, false);
+
+	expertSU.twistAngles[ind][2] = tAngle2;
+	exptraj_b2[ind][0] = 1;
+	exptraj_b2[ind][1] = b2Vec._x;
+	exptraj_b2[ind][2] = b2Vec._y;
+	exptraj_b2[ind][3] = b2Vec._z;
+
+
+	expertSU.twistAngles[ind][3] = tAngle3;
+	exptraj_b3[ind][0] = 1;
+	exptraj_b3[ind][1] = b3Vec._x;
+	exptraj_b3[ind][2] = b3Vec._y;
+	exptraj_b3[ind][3] = b3Vec._z;
+	{
+		float swingAngle = expertSU.vecDotProduct({ exptraj_b3[0][1],exptraj_b3[0][2] ,exptraj_b3[0][3] },
+			{ exptraj_b3[ind][1],exptraj_b3[ind][2] ,exptraj_b3[ind][3] });
+		//cout << acos(swingAngle)*180/PI << "," << tAngle3*180/PI << endl;
+	}
+
+
+	TVec3 b4Vec, b5Vec;
+	float tAngle4, tAngle5;
+	calculateTrajectory(avatar.b4, avatar.b5, b4Vec, b5Vec, tAngle4, tAngle5, false);
+
+	expertSU.twistAngles[ind][4] = tAngle4;
+	exptraj_b4[ind][0] = 1;
+	exptraj_b4[ind][1] = b4Vec._x;
+	exptraj_b4[ind][2] = b4Vec._y;
+	exptraj_b4[ind][3] = b4Vec._z;
+
+	//cout << exptraj_b4[ind][1] << "," << exptraj_b4[ind][2] << "," << exptraj_b4[ind][3] << "," << tAngle4 << endl;
+
+	expertSU.twistAngles[ind][5] = tAngle5;
+	exptraj_b5[ind][0] = 1;
+	exptraj_b5[ind][1] = b5Vec._x;
+	exptraj_b5[ind][2] = b5Vec._y;
+	exptraj_b5[ind][3] = b5Vec._z;
+
+	//cout << exptraj_b5[ind][1] << "," << exptraj_b5[ind][2] << "," << exptraj_b5[ind][3] << "," << tAngle5 << endl;
+
+	TVec3 b6Vec, b7Vec;
+	float tAngle6, tAngle7;
+	calculateTrajectory(avatar.b6, avatar.b7, b6Vec, b7Vec, tAngle6, tAngle7, false);
+
+	expertSU.twistAngles[ind][6] = tAngle6;
+	exptraj_b6[ind][0] = 1;
+	exptraj_b6[ind][1] = b6Vec._x;
+	exptraj_b6[ind][2] = b6Vec._y;
+	exptraj_b6[ind][3] = b6Vec._z;
+
+	//cout << exptraj_b6[ind][1] << "," << exptraj_b6[ind][2] << "," << exptraj_b6[ind][3] << "," << tAngle6 << endl;
+
+	expertSU.twistAngles[ind][7] = tAngle7;
+	exptraj_b7[ind][0] = 1;
+	exptraj_b7[ind][1] = b7Vec._x;
+	exptraj_b7[ind][2] = b7Vec._y;
+	exptraj_b7[ind][3] = b7Vec._z;
+
+	//cout << exptraj_b7[ind][1] << "," << exptraj_b7[ind][2] << "," << exptraj_b7[ind][3] << "," << tAngle7 << endl;
+
+	TVec3 b8Vec, b9Vec;
+	float tAngle8, tAngle9;
+	calculateTrajectory(avatar.b8, avatar.b9, b8Vec, b9Vec, tAngle8, tAngle9, false);
+
+	expertSU.twistAngles[ind][8] = tAngle8;
+	exptraj_b8[ind][0] = 1;
+	exptraj_b8[ind][1] = b8Vec._x;
+	exptraj_b8[ind][2] = b8Vec._y;
+	exptraj_b8[ind][3] = b8Vec._z;
+
+	//cout << exptraj_b8[ind][1] << "," << exptraj_b8[ind][2] << "," << exptraj_b8[ind][3] << "," << tAngle8 << endl;
+
+	expertSU.twistAngles[ind][9] = tAngle9;
+	exptraj_b9[ind][0] = 1;
+	exptraj_b9[ind][1] = b9Vec._x;
+	exptraj_b9[ind][2] = b9Vec._y;
+	exptraj_b9[ind][3] = b9Vec._z;
+}
+
+void startFresh(char* fileName, bool sf)
 {
 	ms.su->readAvatarData(fileName);
 	VitruvianAvatar::isLoaded = true;
 	/*ms.su->fullBodytoXYZ();
 	ms.su->vectors[i][2]._x*/
+	//bool sf = true;
+	if (sf)
+	{
+		for (int i = 0; i < ms.su->noOfFrames; i++)
+		{
+			ms.su->avatarData[i].b1 = ms.su->avatarData[i].b1.mutiplication(ms.su->avatarData[i].b0);
 
+			ms.su->avatarData[i].b2 = ms.su->avatarData[i].b2.mutiplication(ms.su->avatarData[i].b1);
+			ms.su->avatarData[i].b3 = ms.su->avatarData[i].b3.mutiplication(ms.su->avatarData[i].b2);
+
+			ms.su->avatarData[i].b4 = ms.su->avatarData[i].b4.mutiplication(ms.su->avatarData[i].b1);
+			ms.su->avatarData[i].b5 = ms.su->avatarData[i].b5.mutiplication(ms.su->avatarData[i].b4);
+
+			ms.su->avatarData[i].b6 = ms.su->avatarData[i].b6.mutiplication(ms.su->avatarData[i].b0);
+			ms.su->avatarData[i].b7 = ms.su->avatarData[i].b7.mutiplication(ms.su->avatarData[i].b6);
+
+			ms.su->avatarData[i].b8 = ms.su->avatarData[i].b8.mutiplication(ms.su->avatarData[i].b0);
+			ms.su->avatarData[i].b9 = ms.su->avatarData[i].b9.mutiplication(ms.su->avatarData[i].b8);
+		}
+		
+	}
 	bReadFile = true;
 	trajCount = 0;
 	expTrajCount = 0;
@@ -1372,10 +1569,15 @@ void startFresh(char* fileName)
 	memset(exptraj_b7, 0, 80056 * (sizeof(float)));
 	memset(exptraj_b8, 0, 80056 * (sizeof(float)));
 	memset(exptraj_b9, 0, 80056 * (sizeof(float)));
-	/*expertSU.readAvatarData("..\\src\\data\\RotationData\\ExpertFormFile.txt");
-	expertSU.fullBodytoXYZ();*/
-	/*expTrajCount = 0;
-	loadexpTraj();*/
+	expertSU.readAvatarData("..\\src\\data\\RotationData\\ExpertFormFile.txt");
+	//expertSU.fullBodytoXYZ();
+	expTrajCount = 0;
+	for (int i = 0; i < expertSU.noOfFrames; i++)
+	{
+		updateExpertTrajectoryArray(i);
+	}
+	
+	//loadexpTraj();
 
 	glutPostRedisplay();
 	MotionSphere::keyPressed = false;
@@ -1384,7 +1586,7 @@ void startFresh(char* fileName)
 
 void updateTrajectoryArray(int ind)
 {
-	Avatar firstInverse = getFirstInverse(ind);
+	Avatar firstInverse = getFirstInverse(ind,ms.su);
 
 	avatar.b0 = firstInverse.b0;
 	avatar.b1 = firstInverse.b0.Inverse().mutiplication(firstInverse.b1);
@@ -1407,7 +1609,7 @@ void updateTrajectoryArray(int ind)
 	traj_b0[ind][1] = uTransfBodyQuat.mData[0];
 	traj_b0[ind][2] = uTransfBodyQuat.mData[1];
 	traj_b0[ind][3] = uTransfBodyQuat.mData[2];
-	ms.su->twistAngles[ind][0] = ms.su->getTwistAngle({ uTransfBodyQuat.mData[0] ,uTransfBodyQuat.mData[1] ,uTransfBodyQuat.mData[2] }, uTransfBodyQuat);
+	ms.su->twistAngles[ind][0] = 180-ms.su->getTwistAngle({ uTransfBodyQuat.mData[0] ,uTransfBodyQuat.mData[1] ,uTransfBodyQuat.mData[2] }, uTransfBodyQuat);
 
 	calculateTrajectory(avatar.b0, avatar.b1, b0Vec, b1Vec, tAngle0, tAngle1,true);
 
@@ -1434,6 +1636,7 @@ void updateTrajectoryArray(int ind)
 	traj_b3[ind][1] = b3Vec._x;
 	traj_b3[ind][2] = b3Vec._y;
 	traj_b3[ind][3] = b3Vec._z;
+	//cout << traj_b3[ind][1] << "," << traj_b3[ind][2] << "," << traj_b3[ind][3] << endl;
 	{
 		float swingAngle = ms.su->vecDotProduct({ traj_b3[0][1],traj_b3[0][2] ,traj_b3[0][3] },
 			{ traj_b3[ind][1],traj_b3[ind][2] ,traj_b3[ind][3] });
@@ -1510,7 +1713,7 @@ void sphereIdle()
 	sphereID = MotionSphere::sphereID;
 	if (MotionSphere::keyPressed)
 	{
-		startFresh("..\\src\\data\\RotationData\\FormFile.txt");
+		startFresh("..\\src\\data\\RotationData\\FormFile.txt",false);
 	}
 
 	if (bReadFile)
@@ -1687,7 +1890,7 @@ void SpecialkeyBoardEvent(int key, int x, int y)
 		}
 		switch (sphereID)
 		{
-		case 0: ms.su->avatarData[stencilIndex - 1].b0 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b0);	break;
+		case 0: ms.su->avatarData[stencilIndex - 1].b0 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b0);	
 		case 1: ms.su->avatarData[stencilIndex - 1].b1 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b1);	break;
 		case 2: ms.su->avatarData[stencilIndex - 1].b2 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b2);	
 		case 3: ms.su->avatarData[stencilIndex - 1].b3 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b3);	break;
@@ -1714,6 +1917,10 @@ void SpecialkeyBoardEvent(int key, int x, int y)
 			}
 		}
 	}
+	if (key == 114)
+	{
+		cout << "CTRL+1 pressed\n";
+	}
 
 }
 
@@ -1723,14 +1930,18 @@ void SpecialkeyBoardEvent(int key, int x, int y)
 */
 void keyBoardEvent(unsigned char key, int x, int y)
 {
+	if (key == 'r')
+	{
+		VitruvianAvatar::initializeVetruvianVtkAvatar();
+	}
 	if (key == '1') //Key-1
 	{
-		startFresh("..\\src\\data\\RotationData\\FormFile.txt");
+		startFresh("..\\src\\data\\RotationData\\FormFile.txt",false);
 	}
 
 	if (key == '2') //Key-1
 	{
-		startFresh("NewFormFile.txt");
+		startFresh("NewFormFile.txt",false);
 	}
 
 	if (key == 'c')
@@ -1740,6 +1951,10 @@ void keyBoardEvent(unsigned char key, int x, int y)
 			enableComparision = !enableComparision;
 		}
 		glutPostRedisplay();
+	}
+	if (key == 'k')
+	{
+		kinamaticsEnabled = !kinamaticsEnabled;
 	}
 	if (key == 's')
 	{
@@ -1763,7 +1978,7 @@ void keyBoardEvent(unsigned char key, int x, int y)
 		if (glutGetModifiers() && GLUT_ACTIVE_SHIFT)
 		{
 			try {
-				generateIntermediateFrames(150, ms.su);
+				generateIntermediateFrames(254, ms.su);
 			}
 			catch(exception& e){
 				cout << e.what() <<endl;
@@ -1805,7 +2020,79 @@ void keyBoardEvent(unsigned char key, int x, int y)
 			}
 		}
 	}
+	if (key == 'F') // fast 60
+	{
+		if (glutGetModifiers() && GLUT_ACTIVE_SHIFT)
+		{
+			try {
+				generateIntermediateFrames(120, ms.su);
+			}
+			catch (exception& e) {
+				cout << e.what() << endl;
+			}
+			trajCount = ms.su->noOfFrames;
+			for (int i = 0; i < ms.su->noOfFrames; i++)
+			{
+				updateTrajectoryArray(i);
+			}
+		}
+	}
 
+	if (key == 'S') // fast 254
+	{
+		if (glutGetModifiers() && GLUT_ACTIVE_SHIFT)
+		{
+			try {
+				generateIntermediateFrames(580, ms.su);
+			}
+			catch (exception& e) {
+				cout << e.what() << endl;
+			}
+			trajCount = ms.su->noOfFrames;
+			for (int i = 0; i < ms.su->noOfFrames; i++)
+			{
+				updateTrajectoryArray(i);
+			}
+		}
+	}
+
+	if (key == 'n')
+	{
+		if (stencilIndex == 255)
+			stencilIndex = 1;
+		else if (stencilIndex > 0)
+		{
+			stencilIndex++;
+		}
+	}
+
+	if (key == 'p')
+	{
+		if (stencilIndex == 0)
+			stencilIndex = 255;
+		else if (stencilIndex > 0)
+		{
+			stencilIndex--;
+		}
+	}
+
+	if (key == 'M') // fast 120
+	{
+		if (glutGetModifiers() && GLUT_ACTIVE_SHIFT)
+		{
+			try {
+				generateIntermediateFrames(240, ms.su);
+			}
+			catch (exception& e) {
+				cout << e.what() << endl;
+			}
+			trajCount = ms.su->noOfFrames;
+			for (int i = 0; i < ms.su->noOfFrames; i++)
+			{
+				updateTrajectoryArray(i);
+			}
+		}
+	}
 	
 
 }
@@ -1831,7 +2118,7 @@ void mouseWheel(int button, int dir, int x, int y)
 
 		switch (sphereID)
 		{
-		case 0: ms.su->avatarData[stencilIndex - 1].b0 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b0);	break;
+		case 0: ms.su->avatarData[stencilIndex - 1].b0 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b0);	
 		case 1: ms.su->avatarData[stencilIndex - 1].b1 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b1);	break;
 		case 2: ms.su->avatarData[stencilIndex - 1].b2 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b2);	
 		case 3: ms.su->avatarData[stencilIndex - 1].b3 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b3);	break;
@@ -1937,7 +2224,7 @@ void menu(int id)
 		trajCount++;
 		for(int i =0 ; i < trajCount ; i++)
 			updateTrajectoryArray(i);*/
-		startFresh("..\\src\\data\\RotationData\\NewMotionData.txt");
+		startFresh("..\\src\\data\\RotationData\\NewMotionData.txt",false);
 	}
 	else // set sphereID as the menu item
 	{
@@ -1949,7 +2236,7 @@ void menu(int id)
 
 /* initialize and read MGRS texture
 */
-void sphereInitialize()
+void applySphereTexture()
 {
 	///////////////////////Texture mapping///////////////////////////
 	image_t   temp_image;
@@ -1998,8 +2285,9 @@ int MotionSphere::sphereMainLoop(MotionSphere newms, char* windowName)
 	glStencilFunc(GL_ALWAYS, -1, -1);
 	glutInitWindowSize(ms.maxWidth - ms.minWidth, ms.maxHeight - ms.minHeight);
 	glutCreateWindow(windowName);
+	// Set texture 
+	applySphereTexture();
 	//Set interaction callbacks.
-	sphereInitialize();
 	glutReshapeFunc(sphereReshape);
 	glutIdleFunc(sphereIdle);
 	glutDisplayFunc(sphereDisplay);
@@ -2010,16 +2298,16 @@ int MotionSphere::sphereMainLoop(MotionSphere newms, char* windowName)
 	glutMouseWheelFunc(mouseWheel);
 	// create a manu option
 	int boneSelect = glutCreateMenu(menu);
-	glutAddMenuEntry("Bone-0", 0);
-	glutAddMenuEntry("Bone-1", 1);
-	glutAddMenuEntry("Bone-2", 2);
-	glutAddMenuEntry("Bone-3", 3);
-	glutAddMenuEntry("Bone-4", 4);
-	glutAddMenuEntry("Bone-5", 5);
-	glutAddMenuEntry("Bone-6", 6);
-	glutAddMenuEntry("Bone-7", 7);
-	glutAddMenuEntry("Bone-8", 8);
-	glutAddMenuEntry("Bone-9", 9);
+	glutAddMenuEntry("b0", 0);
+	glutAddMenuEntry("b1", 1);
+	glutAddMenuEntry("b2", 2);
+	glutAddMenuEntry("b3", 3);
+	glutAddMenuEntry("b4", 4);
+	glutAddMenuEntry("b5", 5);
+	glutAddMenuEntry("b6", 6);
+	glutAddMenuEntry("b7", 7);
+	glutAddMenuEntry("b8", 8);
+	glutAddMenuEntry("b9", 9);
 	// create sub menu options
 	glutCreateMenu(menu);
 	glutAddSubMenu("Select Bone", boneSelect);
