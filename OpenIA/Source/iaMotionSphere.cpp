@@ -20,7 +20,6 @@ struct StencilHash
 {
 	int stencilIndex;
 	int hashIndex;
-
 };
 
 float xrot = 0.0f;
