@@ -1329,7 +1329,8 @@ void sphereReshape(int w, int h)
 	glLoadIdentity();
 }
 
-/* Calculate the 3D normalized points (swing) and the twist angle
+/* 
+Calculate the 3D normalized points (swing) and the twist angle
 */
 void calculateTrajectory(quaternion parent, quaternion child, TVec3 &parentVec, TVec3 &childVec, float &tAngleParent, float &tAngleChild, bool isUpperBody)
 {
