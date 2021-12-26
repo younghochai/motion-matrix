@@ -5,11 +5,6 @@
 
 JointPosition referdata;
 
-//
-//
-//
-//PositionTracking myGesture;
-//
 
 double CalculateDynamicTimeWarpedAngle(vector<double> userdata, vector<double> referencedata, int userdata_size, int referdata_size);
 

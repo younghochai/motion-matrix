@@ -15,26 +15,18 @@ iaAcquireGesture AcquireSFQ;
 pcl::PointCloud<pcl::PointXYZRGB>::Ptr basic_cloud_ptr(new pcl::PointCloud<pcl::PointXYZRGB>);
 pcl::PointCloud<pcl::PointXYZRGB>::Ptr point_cloud_ptr(new pcl::PointCloud<pcl::PointXYZRGB>);
 
-pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_ptr;
-
 Eigen::Affine3f transformation = Eigen::Affine3f::Identity();
 pcl::PointCloud<pcl::PointXYZRGB>::Ptr CloudViewer1(new pcl::PointCloud<pcl::PointXYZRGB>);
 pcl::PointCloud<pcl::PointXYZRGB>::Ptr CloudViewer2(new pcl::PointCloud<pcl::PointXYZRGB>);
 
-bool vertical_Up = false;
-bool vertical_Down = false;
-float i_vary = 0;
 //bool _StartScan = false;
 //bool recordData = false;
 //bool initCalib = false;
 
-vector < pcl::PointCloud<pcl::PointXYZRGB>::Ptr, Eigen::aligned_allocator <pcl::PointCloud <pcl::PointXYZRGB>::Ptr>> allClouds;
-vector < pcl::PointCloud<pcl::PointXYZRGB>::Ptr, Eigen::aligned_allocator <pcl::PointCloud <pcl::PointXYZRGB>::Ptr>> motionClouds;
-pcl::PointCloud<pcl::PointXYZ> bodyCenter, bodyCenter_temp, bodyCenter_temp1, bodyCenter_temp2;
+pcl::PointCloud<pcl::PointXYZ> bodyCenter;
 pcl::PointXYZ  pelvPosition;
 ofstream posDataFile;
 char file_Name[1024];
-//char fileMS[1024];
 char dirName[1024] = "LiDARData";
 char dirName2[1024] = "PositionData";
 int fileIndex = 0;
@@ -76,23 +68,6 @@ bool bSaveKeyFrame = false;
 
 skeleton allBoneJoints[2500];
 
-//Eigen::Vector3f rFoot;
-//Eigen::Vector3f lFoot;
-//Eigen::Vector3f rKnee;
-//Eigen::Vector3f lKnee;
-//Eigen::Vector3f cPlv(756.05,	808.213,	34.3041);
-//Eigen::Vector3f lPlv;
-//Eigen::Vector3f rPlv;
-//Eigen::Vector3f cTorso;
-//Eigen::Vector3f cSternum;
-//Eigen::Vector3f cHead;
-//Eigen::Vector3f rShldr;
-//Eigen::Vector3f lShldr;
-//Eigen::Vector3f rUarm;
-//Eigen::Vector3f lUarm;
-//Eigen::Vector3f rLarm;
-//Eigen::Vector3f lLarm;
-
 Eigen::Vector3f cPlv(822.586, 807.877, 41.1087);
 Eigen::Vector3f cSternum(821.249, 652.163, 41.3504);
 Eigen::Vector3f cTorso(820.336, 548.355, 40.7681);
@@ -123,13 +98,10 @@ void writeJointData(int tIndex)
 	ofstream skelitonDataFile;
 	char fileName[1024];
 
-
 	sprintf_s(fileName, ".\\SkeletonData\\jointsData-00%d-%d%d%d.txt", fileIndex, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
 	skelitonDataFile.open(fileName);
 
-
 	skelitonDataFile << "Frames:" << "\t" << tIndex << "\n";
-
 
 	for (int tCount = 0; tCount < tIndex; tCount++)
 	{
@@ -153,7 +125,6 @@ void writeJointData(int tIndex)
 	}
 
 	skelitonDataFile.close();
-
 	fileIndex++;
 }
 
@@ -166,10 +137,8 @@ void writekeyframeJointData(int tIndex)
 	ofstream skelitonDataFile;
 	char fileName[1024];
 
-
 	sprintf_s(fileName, ".\\SkeletonData\\jointsKeyData-00%d-%d%d%d.txt", fileIndex, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
 	skelitonDataFile.open(fileName);
-
 
 	skelitonDataFile << "Frames:" << "\t" << tIndex << "\n";
 
@@ -230,7 +199,6 @@ void keyboardEventOccurred(const pcl::visualization::KeyboardEvent &event,	void*
 	if (event.getKeySym() == "v"&& event.keyDown())//Calibrate IMU sesnor
 	{
 		//anistart = !anistart;
-
 		iaAcquireGesture::calibIMU = true;
 
 	}
@@ -292,118 +260,7 @@ void keyboardEventOccurred(const pcl::visualization::KeyboardEvent &event,	void*
 			//myAcquire.saveRawQuatData(gtFrameIndex);
 			//poseTrack.saveSFQData();
 		}
-
-	}
-
-
-	//// Writes data to file.
-	//if (event.getKeySym() == "d" && event.keyDown())
-	//{
-	//	//sprintf_s(file_Name, "CData\\VeloScanData-00%d-%d%d%d.txt", fileCount, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
-
-	//	pcl::io::savePCDFileASCII("VeloScanData.pcd", *CloudViewer);
-	//	std::cout << "Saving Completed" << std::endl;
-	//}
-
-	//if (event.getKeySym() == "a" && event.keyDown())
-	//{
-	//	std::cout << "Total frames:" << allClouds.size() << std::endl;
-
-	//	for (int i = 0; i < allClouds.size(); i++)
-	//	{
-	//		//		cout << "Point Cloud " << i << "has got " << allClouds[i]->size() << " Points" << endl;
-
-	//		std::stringstream s;
-	//		s << ".\\MotionData\\motionFrame" << i << ".pcd";
-
-	//		std::string savefile = s.str();
-
-	//		if (allClouds[i]->size() > 0) {
-	//			pcl::io::savePCDFileASCII(savefile, *allClouds[i]);
-	//		}
-
-	//	}
-
-	//	for (int i = 0; i < motionClouds.size(); i++)
-	//	{
-	//		//			cout << "Point Cloud " << i << "has got " << motionClouds[i]->size() << " Points" << endl;
-	//		std::stringstream s;
-	//		s << ".\\framePos\\motionPose" << i << ".pcd";
-
-	//		std::string savefile = s.str();
-
-	//		if (motionClouds[i]->size() > 0) {
-	//			pcl::io::savePCDFileASCII(savefile, *motionClouds[i]);
-	//		}
-	//	}
-
-
-	//	sprintf_s(file_Name, "posdata\\posDataFile.txt");
-	//	posDataFile.open(file_Name);
-
-	//	for (int i = 0; i < bodyCenter.size(); i++)
-	//	{
-	//		posDataFile << bodyCenter.points[i].x << "\t" << bodyCenter.points[i].y << "\t" << bodyCenter.points[i].z << "\n";
-	//	}
-	//	posDataFile.close();
-
-	//	frameIndex = 0;
-	//	motionIndex = 0;
-	//	allFrame = 0;
-	//	interpolate = 0;
-	//	bodyCenter.clear();
-	//	allClouds.clear();
-	//	motionClouds.clear();
-	//}
-
-	//if (event.getKeySym() == "g" && event.keyDown())
-	//{
-	//	recordData = !recordData;
-
-	//	if (recordData)
-	//	{
-	//		frameIndex = 0;
-	//		motionIndex = 0;
-	//		allFrame = 0;
-	//		interpolate = 0;
-	//		bodyCenter.clear();
-	//		allClouds.clear();
-	//		motionClouds.clear();
-	//	}
-	//	/*else
-	//	{
-	//		posDataFile.close();
-	//	}*/
-	//}
-
-
-	//if (event.getKeySym() == "Up" && event.keyDown())
-	//{
-	//	vertical_Up = true;
-	//	vertical_Down = false;
-	//	i_vary = 0;
-	//}
-
-	//if (event.getKeySym() == "Down" && event.keyDown())
-	//{
-	//	vertical_Up = false;
-	//	vertical_Down = true;
-	//	i_vary = 0;
-	//}
-
-	////Starts Scan 
-	//if (event.getKeySym() == "s" && event.keyDown()) {
-	//	_StartScan = !_StartScan;
-	//	std::cout << " Scan Started " << std::endl;
-	//}
-
-	//if (event.getKeySym() == "v" && event.keyDown())
-	//{
-	//	i_vary = 0;
-	//	CloudViewer->clear();
-	//	basic_cloud_ptr->clear();
-
-	//}
+	}	
 }
 //
 //void mouseEventOccurred(const pcl::visualization::MouseEvent &event, 	void* viewer_void)
@@ -420,7 +277,6 @@ void keyboardEventOccurred(const pcl::visualization::KeyboardEvent &event,	void*
 //	}
 //}
 
-
 pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloudA(new pcl::PointCloud<pcl::PointXYZRGB>);
 pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloudB(new pcl::PointCloud<pcl::PointXYZRGB>);
 pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloudC(new pcl::PointCloud<pcl::PointXYZRGB>);
@@ -431,10 +287,6 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_cluster(new pcl::PointCloud<pcl::Po
 
 float prevPelv = 0.0;
 int setFlag = 0;
-
-float eEST_x = 2.0;
-float eEST_y = 2.0;
-float eEST_z = 2.0;
 
 void updateLowerBody(Eigen::Vector3f diffR, Eigen::Vector3f diffL)
 {
@@ -613,57 +465,6 @@ bool poseDetection(const pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr &cloud_A, c
 	pcl::PointXYZRGB minPt, maxPt;
 	pcl::getMinMax3D(*cloudC, minPt, maxPt);
 
-	//if (motionIndex > 0)
-	//{
-	//	float direction = 0.0;// = prevPelv - centroid[0];
-
-
-
-	//	direction = bodyCenter.points[0].x - centroid[0];
-
-
-	//	if (direction < -3.0 && direction > 3.0)
-	//	{
-	//		centroid[0];
-	//	}
-	//	else if (direction < -0.001)
-	//	{
-	//		centroid[0] = maxPt.x;
-	//	}
-	//	else if (direction > 0.001)
-	//	{
-	//		centroid[0] = maxPt.x;
-	//	}
-
-
-	//	/*if (setFlag > 10)
-	//	{
-	//		eEST = 2.0;
-	//		setFlag = 0;
-	//	}
-	//	else
-	//		setFlag++;*/
-
-	//	centroid[0] = KFEstimate(centroid[0], 5, bodyCenter.points[motionIndex - 1].x, eEST_x, 15.0);
-
-	//}
-	//if (motionIndex == 0)
-	//	centroid[0] = KFEstimate(centroid[0], 5, centroid[0], eEST_x, 15.0);
-	//cout << centroid[0] << endl;
-//cout << centroid[0] <<"," << endl;
-//centroid[1] = minPt.y;
-
-//std::cout << "Max x: " << maxPt.x << "Max y: " << maxPt.y << "Max z: " << maxPt.z << std::endl;
-//std::cout << "Min x: " << maxPt.x <<  "Min y: " << minPt.y << "Min z: " << minPt.z << std::endl;
-
-/*float bodyLength_X = sqrt((maxPt.x - maxPt.x) * (maxPt.x - maxPt.x) + (maxPt.y - maxPt.y) * (maxPt.y - maxPt.y) + (maxPt.z - maxPt.z) * (maxPt.z - maxPt.z));
-float bodyLength_Y = sqrt((maxPt.x - maxPt.x) * (maxPt.x - maxPt.x) + (minPt.y - maxPt.y) * (minPt.y - maxPt.y) + (maxPt.z - maxPt.z) * (maxPt.z - maxPt.z));
-float bodyLength_Z = sqrt((maxPt.x - maxPt.x) * (maxPt.x - maxPt.x) + (maxPt.y - maxPt.y) * (maxPt.y - maxPt.y) + (minPt.z - maxPt.z) * (minPt.z - maxPt.z));
-
-centroid[0] = centroid[0] - (5.0 - (bodyLength_X / 2));*/
-/*centroid[1] = centroid[1] - (47.5 - (bodyLength_Y / 2));*/
-//centroid[2] = centroid[2] - (5 - (bodyLength_Z / 2));
-
 /*for (int i = 0; i < cloudC->size(); ++i)
 {
 	cloudC->points[i].x = cloudC->points[i].x ;
@@ -711,8 +512,6 @@ void PositionTracking::LiDARDataReader2()
 
 	// Capture One Rotation Data
 	std::vector<velodyne::Laser> lasers;
-
-
 
 	while (capture.isRun())
 	{
@@ -804,7 +603,6 @@ void PositionTracking::LiDARDataReader2()
 			tm *tm_local = localtime(&curr_time);
 			std::cout << "Time:" << tm_local->tm_hour << "\t" << tm_local->tm_min << "\t" << tm_local->tm_sec << std::endl;*/
 
-
 			if (flag1timeL2)
 			{
 				std::stringstream s;
@@ -843,7 +641,6 @@ void PositionTracking::LiDARDataReader2()
 
 void PositionTracking::LiDARDataReader1()
 {
-
 	// Open VelodyneCapture that retrieve from Sensor
 	const boost::asio::ip::address address = boost::asio::ip::address::from_string("192.168.1.201");
 	const unsigned short port = 2368;
@@ -981,7 +778,6 @@ void PositionTracking::LiDARDataReader1()
 			tm *tm_local = localtime(&curr_time);
 			std::cout << "Time:" << tm_local->tm_hour << "\t" << tm_local->tm_min << "\t" << tm_local->tm_sec << std::endl;*/
 
-
 			if (flag1timeL1)
 			{
 				std::stringstream s;
@@ -1006,8 +802,6 @@ void PositionTracking::LiDARDataReader1()
 					flag2timeL1 = false;
 				}
 			}
-
-
 		}
 		else
 		{
@@ -1017,7 +811,6 @@ void PositionTracking::LiDARDataReader1()
 
 	}
 }
-
 
 
 pcl::PointCloud<pcl::PointXYZRGB>::Ptr InitCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
@@ -1198,13 +991,10 @@ bool isJointBelowGround(float &hDiff)
 	return false;*/
 }
 
-
-
 void PositionTracking::saveSFQData()
 {
 	myAcquire.saveRawQuatData(tFrameIndex);
 }
-
 
 void DrawJointSphere(boost::shared_ptr<pcl::visualization::PCLVisualizer> &viewer, Eigen::Vector3f Point1,  char * boneID)
 {
@@ -1253,7 +1043,6 @@ void DrawlPlvJointSphere(boost::shared_ptr<pcl::visualization::PCLVisualizer> &v
 	viewer->addSphere(spherPoint, 20.0, jointName);
 	viewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_COLOR, 0.0, 0.0, 1.0, jointName);
 }
-
 
 void PositionTracking::positionDetection(VitruvianAvatar &vAvatar)
 {
@@ -1383,8 +1172,6 @@ void PositionTracking::positionDetection(VitruvianAvatar &vAvatar)
 
 	bool foundPos = false;
 	pcl::PointCloud<pcl::PointXYZRGB> tempCloud;
-
-
 
 	bool atFrameInit = true;
 
@@ -2806,8 +2593,6 @@ void PositionTracking::positionDetection(VitruvianAvatar &vAvatar)
 
 			DrawBoneCylinder(viewer, lUarm, lLarm, "leftLowerArm");//Left Upper arm to right lower arm
 			DrawJointSphere(viewer, lLarm, "leftLowerArmSphere");//right lower arm
-
-		
 		}
 		else
 		{
@@ -2847,8 +2632,6 @@ void PositionTracking::getPositionData(float *pose)
 	}
 }
 
-
-
 void PositionTracking::resetParameters()
 {
 	frameIndex = 0;
@@ -2856,9 +2639,6 @@ void PositionTracking::resetParameters()
 	allFrame = 0;
 	interpolate = 0;
 	bodyCenter.clear();
-	allClouds.clear();
-	motionClouds.clear();
-	bodyCenter_temp.clear();
 	flag2timeL1 = true;
 	framesCountL1 = 0;
 	framesCountL2 = 0; 
@@ -2875,14 +2655,10 @@ void PositionTracking::saveSFQuatData(int noOfFrames)
 
 	char fileName[1024];
 
-
 	sprintf_s(fileName, ".\\SkeletonData\\RawIMUData-00%d-%d%d%d.txt", 0, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
 	avatarDataFile.open(fileName);
 
-
-
 	avatarDataFile << "FULLBODY\t" << 1 << "\n" << "Frames:" << "\t" << noOfFrames << "\n";
-
 
 	for (int tCount = 0; tCount < noOfFrames; tCount++)
 	{
@@ -2898,7 +2674,6 @@ void PositionTracking::saveSFQuatData(int noOfFrames)
 			<< myAcquire.sUtility.avatarData[tCount].b8.mData[3] << "\t" << myAcquire.sUtility.avatarData[tCount].b8.mData[0] << "\t" << myAcquire.sUtility.avatarData[tCount].b8.mData[1] << "\t" << myAcquire.sUtility.avatarData[tCount].b8.mData[2] << "\t"
 			<< myAcquire.sUtility.avatarData[tCount].b9.mData[3] << "\t" << myAcquire.sUtility.avatarData[tCount].b9.mData[0] << "\t" << myAcquire.sUtility.avatarData[tCount].b9.mData[1] << "\t" << myAcquire.sUtility.avatarData[tCount].b9.mData[2] << "\n";
 	}
-
 	avatarDataFile.close();
 }
 

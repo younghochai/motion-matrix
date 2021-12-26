@@ -11,11 +11,9 @@
 
 using namespace std;
 
-
-
 iaAcquireGesture iaAcquire;//StartIMU
 PositionTracking poseTrack;//LiDAR-Position
-VitruvianAvatar vAvatar;
+VitruvianAvatar vAvatar;//Vitruvian Avatar
 
 //MotionSphere
 SphereUtility su;
@@ -27,15 +25,16 @@ void motionSphere()
 {
 	MotionSphere ms(0, 0, 900, 900);
 	ms.setSphereUtility(su);
-
 	ms.sphereMainLoop(ms, "Sphere 1");
 }
 
+//Connect and get lidar-1 data
 void getLiDARdata1()
 {
 	poseTrack.LiDARDataReader1();
 }
 
+//Connect and get lidar-2 data
 void getLiDARdata2()
 {
 	poseTrack.LiDARDataReader2();
@@ -51,7 +50,6 @@ void poseTracking()
 void XSensDataReader()
 {
 	iaAcquire.startXsensData();
-
 	poseTrack.saveQautData();
 }
 
@@ -63,14 +61,11 @@ void startAvatar()
 	vAvatar.startVetruvianAvatar();
 }
 
-
-
 // main method
-
 int main()
-{
-	thread t2(startAvatar);
+{	
 	thread t1(XSensDataReader);
+	thread t2(startAvatar);
 	thread t3(getLiDARdata1);
 	thread t4(getLiDARdata2);
 	thread t5(poseTracking);
@@ -82,6 +77,5 @@ int main()
 	t3.join();
 	t4.join();
 	t5.join();
-	t6.join();
-	
+	t6.join();	
 }
