@@ -26,13 +26,11 @@ double quatHeight(quaternion data)
 
 	double s;
 
-
 	//double vectorM[3];
 	double vectorM[3] = { 0,	0,	-1 };
 
 	double Rotaxis_X, Rotaxis_Y, Rotaxis_Z;
 	double q0, q1, q2, q3;
-
 
 	q0 = data.mData[3];
 	q1 = data.mData[0];
@@ -41,12 +39,9 @@ double quatHeight(quaternion data)
 
 	double height;
 
-
 	Rotaxis_X = vectorM[0] * (2 * q0*q0 - 1 + 2 * q1* q1) + vectorM[1] * (2 * q2*q1 - 2 * q0* q3) + vectorM[2] * (2 * q1*q3 + 2 * q0* q2);
 	Rotaxis_Y = vectorM[0] * (2 * q1*q2 + 2 * q0*q3) + vectorM[1] * (2 * q0*q0 - 1 + 2 * q2*q2) + vectorM[2] * (2 * q2*q3 - 2 * q0*q1);
 	Rotaxis_Z = vectorM[0] * (2 * q1*q3 - 2 * q0* q2) + vectorM[1] * (2 * q2*q3 + 2 * q0* q1) + vectorM[2] * (2 * q0*q0 - 1 + 2 * q3* q3);
-
-
 
 	s = sqrt(Rotaxis_X*Rotaxis_X + Rotaxis_Y * Rotaxis_Y + Rotaxis_Z * Rotaxis_Z);
 
@@ -129,7 +124,6 @@ void iaAcquireGesture::caliberateQSF()
 		firstInvQuat_LeftLowerLeg = QuatData_LeftLowerLeg.Inverse();
 		std::cout << "Left Lower-Leg Quat:\t" << QuatData_LeftLowerLeg.mData[3] << "\t" << QuatData_LeftLowerLeg.mData[0] << "\t" << QuatData_LeftLowerLeg.mData[1] << "\t" << firstInvQuat_LeftLowerArm.mData[2] << std::endl;
 
-
 		//---------------------------------
 
 		time_t curr_time;
@@ -140,15 +134,10 @@ void iaAcquireGesture::caliberateQSF()
 
 		char fileName[1024];
 
-
 		sprintf_s(fileName, ".\\SkeletonData\\CalibIMUData-00%d-%d%d%d.txt", 0, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
 		avatarDataFile.open(fileName);
 
-
-
 		avatarDataFile << "FULLBODY\t" << 1 << "\n" << "Frames:" << "\t" << 0 << "\n";
-
-
 		
 			avatarDataFile
 				<< firstPlvCalib.mData[3] << "\t" << firstPlvCalib.mData[0] << "\t" << firstPlvCalib.mData[1] << "\t" << firstPlvCalib.mData[2] << "\t"
@@ -162,7 +151,6 @@ void iaAcquireGesture::caliberateQSF()
 				<< firstInvQuat_LeftUpperLeg.mData[3] << "\t" << firstInvQuat_LeftUpperLeg.mData[0] << "\t" << firstInvQuat_LeftUpperLeg.mData[1] << "\t" << firstInvQuat_LeftUpperLeg.mData[2] << "\t"
 				<< firstInvQuat_LeftLowerLeg.mData[3] << "\t" << firstInvQuat_LeftLowerLeg.mData[0] << "\t" << firstInvQuat_LeftLowerLeg.mData[1] << "\t" << firstInvQuat_LeftLowerLeg.mData[2] << "\n";
 		
-
 		//avatarDataFile.close();
 		//---------------------------------
 		iaAcquireGesture::calibIMU = false;
@@ -233,8 +221,7 @@ void iaAcquireGesture::calculateHeight(double &RuLeg, double &RlLeg, double &LuL
 	RuLeg = quatHeight(QuatData_RightUpperLeg.mutiplication(firstInvQuat_RightUpperLeg));
 	RlLeg = quatHeight(QuatData_RightLowerLeg.mutiplication(firstInvQuat_RightLowerLeg));
 	LuLeg = quatHeight(QuatData_LeftUpperLeg.mutiplication(firstInvQuat_LeftUpperLeg));
-	LlLeg = quatHeight(QuatData_LeftLowerLeg.mutiplication(firstInvQuat_LeftLowerLeg));
-	
+	LlLeg = quatHeight(QuatData_LeftLowerLeg.mutiplication(firstInvQuat_LeftLowerLeg));	
 }
 
 void iaAcquireGesture::getXsensData()
@@ -255,7 +242,6 @@ void iaAcquireGesture::startXsensData()
 		MTdisconnect = !MTdisconnect;
 		if (!MTdisconnect) {
 			connectXS.xmtConnect();
-
 		}
 	}
 }
@@ -280,16 +266,12 @@ void iaAcquireGesture::saveRawQuatData(int noOfFrames)
 	ofstream avatarDataFile;
 
 	char fileName[1024];
-
 	
 		sprintf_s(fileName, ".\\SkeletonData\\RawIMUData-00%d-%d%d%d.txt", 0, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
 		avatarDataFile.open(fileName);
 	
-
-	
 		avatarDataFile << "FULLBODY\t" << 1 << "\n" << "Frames:" << "\t" << noOfFrames << "\n";
 	
-
 	for (int tCount = 0; tCount < noOfFrames; tCount++)
 	{
 		avatarDataFile 
@@ -381,16 +363,10 @@ void iaAcquireGesture::saveRawQDataInRealTime(int frameIndex, bool CloseFile)
 		curr_time = time(NULL);
 		tm *tm_local = localtime(&curr_time);
 
-		
-
 		char fileName[1024];
-
 
 		sprintf_s(fileName, ".\\SkeletonData\\RawnewIMUData-00%d-%d%d%d.txt", 0, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
 		rawIMUDataFile.open(fileName);
-
-
-
 		rawIMUDataFile << "FULLBODY\t" << 1 << "\n" << "Frames:" << "\t" << 0 << "\n";
 	}
 
