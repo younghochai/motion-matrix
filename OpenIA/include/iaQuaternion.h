@@ -1,4 +1,11 @@
+
 /*
+*This work is dual-licensed under BSD-3 and Apache License 2.0. 
+
+*You can choose between one of them if you use this work.
+
+*SPDX-License-Identifier: BSD-3-Clause OR Apache License 2.0
+
 *	BSD 3-Clause License
 *
 *	Copyright (c) 2018, OpenAI, VELab, GSAIM, Chung-Ang University.
