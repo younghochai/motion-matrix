@@ -45,5 +45,9 @@ public:
 	void calTraj(quaternion parent, quaternion child, TVec3 &parentVec, TVec3 &childVec, float &tAngleParent, float &tAngleChild);
 
 	void normalizeAvatar(struct Avatar& avatar);
+	
+	//sspark : 선언이 안됨
+	void getQuadPoints(float lattitude, float longitude, TVec3* points);
+
 };
 
