@@ -49,9 +49,9 @@ public:
 	static double humanHeight;
 public :
 	
-	void  initializeVetruvianVtkAvatar();
-public : 
-	void startVetruvianAvatar();
+	static void  initializeVetruvianVtkAvatar();
+	void  startVetruvianAvatar();
+	vtkSmartPointer<vtkRenderer>   getVitruvianAvatarRenderer();
 
 };
 
