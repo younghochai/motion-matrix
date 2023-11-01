@@ -41,11 +41,8 @@ public:
 	static bool initCalib;
 	static bool isCalib;
 	static bool readFile;
-
 	static char* fileName;
-
 	static int tFrameIndex;
-
 	
 public:
 	void LiDARDataReader1();
@@ -56,7 +53,6 @@ public:
 	void updateBoneJoints(int fCount);
 	//static void writeJointData(int tIndex);
 	static void saveSFQData();
-
 	static void saveSFQuatData(int noOfFrames);
 	void saveQautData();
 };
