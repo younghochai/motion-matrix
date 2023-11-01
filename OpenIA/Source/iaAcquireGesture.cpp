@@ -1,15 +1,12 @@
 /*
 *This work is dual-licensed under BSD-3 and Apache License 2.0. 
-
 *You can choose between one of them if you use this work.
-
 *SPDX-License-Identifier: BSD-3-Clause OR Apache License 2.0
-
 */
 
 #include "iaAcquireGesture.h"
 
-//Quaternion raw data
+// Declare Quaternion raw data
 quaternion QuatData_RightUpperArm, QuatData_head, QuatData_RightLowerArm, QuatData_Pelvis, QuatData_LeftUpperArm, QuatData_LeftLowerArm;
 quaternion QuatData_RightUpperLeg, QuatData_RightLowerLeg, QuatData_LeftUpperLeg, QuatData_LeftLowerLeg;
 
@@ -27,26 +24,21 @@ XsensConnection connectXS;
 bool iaAcquireGesture::calibIMU;
 
 ofstream rawIMUDataFile;
-// finding the values of quaternion height
+
+// Finding the values of quaternion height
 double quatHeight(quaternion data)
 {
-
 	double pi = 3.141592653589793238462643383279502884e+0;
-
 	double s;
-
-	//double vectorM[3];
 	double vectorM[3] = { 0,	0,	-1 };
-
 	double Rotaxis_X, Rotaxis_Y, Rotaxis_Z;
 	double q0, q1, q2, q3;
+	double height;
 
 	q0 = data.mData[3];
 	q1 = data.mData[0];
 	q2 = data.mData[1];
 	q3 = data.mData[2];
-
-	double height;
 
 	Rotaxis_X = vectorM[0] * (2 * q0*q0 - 1 + 2 * q1* q1) + vectorM[1] * (2 * q2*q1 - 2 * q0* q3) + vectorM[2] * (2 * q1*q3 + 2 * q0* q2);
 	Rotaxis_Y = vectorM[0] * (2 * q1*q2 + 2 * q0*q3) + vectorM[1] * (2 * q0*q0 - 1 + 2 * q2*q2) + vectorM[2] * (2 * q2*q3 - 2 * q0*q1);
@@ -61,7 +53,7 @@ double quatHeight(quaternion data)
 	return Rotaxis_Z;
 }
 
-//get the raw values
+//Get the raw values
 Avatar iaAcquireGesture::getRawQ()
 {
 	bool DataAvailable = connectXS.newDataAvailable;
@@ -160,13 +152,12 @@ void iaAcquireGesture::caliberateQSF()
 				<< firstInvQuat_LeftUpperLeg.mData[3] << "\t" << firstInvQuat_LeftUpperLeg.mData[0] << "\t" << firstInvQuat_LeftUpperLeg.mData[1] << "\t" << firstInvQuat_LeftUpperLeg.mData[2] << "\t"
 				<< firstInvQuat_LeftLowerLeg.mData[3] << "\t" << firstInvQuat_LeftLowerLeg.mData[0] << "\t" << firstInvQuat_LeftLowerLeg.mData[1] << "\t" << firstInvQuat_LeftLowerLeg.mData[2] << "\n";
 		
-		//avatarDataFile.close();
-		//---------------------------------
+		//--------------------------------------------------------------
 		iaAcquireGesture::calibIMU = false;
 	}	
 }
 
-// get the gesture value
+// Get the gesture value
 Avatar iaAcquireGesture::getSFQ()
 {
 	Avatar myAvatar;
@@ -196,6 +187,7 @@ Avatar iaAcquireGesture::getSFQ()
 	return myAvatar;
 }
 
+//Get first inverted quaternion data
 Avatar iaAcquireGesture::getFirstInvQuat()
 {
 	Avatar myAvatar;
@@ -225,6 +217,7 @@ Avatar iaAcquireGesture::getFirstInvQuat()
 	return myAvatar;
 }
 
+//Compute actual height of tracking person
 void iaAcquireGesture::calculateHeight(double &RuLeg, double &RlLeg, double &LuLeg, double &LlLeg)
 {
 	RuLeg = quatHeight(QuatData_RightUpperLeg.mutiplication(firstInvQuat_RightUpperLeg));
@@ -233,6 +226,7 @@ void iaAcquireGesture::calculateHeight(double &RuLeg, double &RlLeg, double &LuL
 	LlLeg = quatHeight(QuatData_LeftLowerLeg.mutiplication(firstInvQuat_LeftLowerLeg));	
 }
 
+//Acquire realtime IMU sensor data
 void iaAcquireGesture::getXsensData()
 {
 	connectXS.waitForConnections = false;
@@ -241,6 +235,7 @@ void iaAcquireGesture::getXsensData()
 	connectXS.xsIMU = { qInit,qInit,qInit,qInit,qInit,qInit,qInit,qInit,qInit,qInit };
 }
 
+//Connect to IMU sensor and start getting quetrnion data
 void iaAcquireGesture::startXsensData()
 {
 
@@ -255,6 +250,7 @@ void iaAcquireGesture::startXsensData()
 	}
 }
 
+//Reset IMU sensor intial state 
 void iaAcquireGesture::resetIMUSensor()
 {
 	
@@ -299,6 +295,7 @@ void iaAcquireGesture::saveRawQuatData(int noOfFrames)
 	avatarDataFile.close();
 }
 
+//Read IMU sensor data from offline stored file
 void iaAcquireGesture::readFileQuatData(char *fileName)
 {
 	sUtility.readAvatarData(fileName);
@@ -363,6 +360,7 @@ Avatar iaAcquireGesture::getFRQuatdata(int fNum)
 	return myAvatar;
 }
 
+//Continously save IMU data (Quaternion) to a file
 void iaAcquireGesture::saveRawQDataInRealTime(int frameIndex, bool CloseFile)
 {
 	
