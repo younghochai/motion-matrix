@@ -18,22 +18,24 @@
 
 using namespace std;
 
-iaAcquireGesture iaAcquire;//StartIMU
-PositionTracking poseTrack;//LiDAR-Position
-VitruvianAvatar vAvatar;//Vitruvian Avatar
+iaAcquireGesture iaAcquire;// Object for IMU sensor 
+PositionTracking poseTrack;// Object for LiDAR sensor data connectivity
+VitruvianAvatar vAvatar;// 
 
-//MotionSphere
+//objecct for MotionSphere
 SphereUtility su;
 char* MotionSphere::fileName;
 char* PositionTracking::fileName;
 
-// motionsphere method
+// Renders tracked sensor data on motionsphere.
 void motionSphere()
 {
 	MotionSphere ms(0, 0, 900, 900);
 	ms.setSphereUtility(su);
 	ms.sphereMainLoop(ms, "Sphere 1");
 }
+
+//This holds LiDAR sensor connectivity and computes object (persons) position using LiDAR-data
 
 //Connect and get lidar-1 data
 void getLiDARdata1()
@@ -53,14 +55,14 @@ void poseTracking()
 	poseTrack.positionDetection(vAvatar);
 }
 
-// reading the data from Xsens sensor
+//To connect and start IMU to get data from the sensors
 void XSensDataReader()
 {
 	iaAcquire.startXsensData();
 	poseTrack.saveQautData();
 }
 
-//Initiating the creating the avatar
+//It creates and renders a virtual Vitruvian Avatar. It also simulates the Avatar using sensor data.
 void startAvatar()
 {
 	VitruvianAvatar::humanHeight = 172.0;
