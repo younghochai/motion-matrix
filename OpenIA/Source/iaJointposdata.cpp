@@ -20,6 +20,7 @@ double CalculatePointDistance(const Eigen::Vector3f start, const Eigen::Vector3f
 	//cout<<"dist value : " <<check <<endl;
 	return check;
 }
+
 void DynamicData::removePelvis()
 {
 	int jointnum = 16;
@@ -37,14 +38,10 @@ void DynamicData::removePelvis()
 			this->posData[j].Jointspos[i][1] = this->posData[j].Jointspos[i][1] - Pelvis[1];
 			this->posData[j].Jointspos[i][2] = this->posData[j].Jointspos[i][2] - Pelvis[2];
 			/*jpos.posData[tCount].Jointspos[0][0]*/
-
-
 		}
-
-	}
-	
-	
+	}	
 }
+
 void DynamicData::calDist()
 {
 	int jointnum = 16;
@@ -60,12 +57,6 @@ void DynamicData::calDist()
 		buf += result;
 	}
 	this->tjtrdis = buf;
-
-
-
-
-
-
 }
 
 
@@ -82,13 +73,10 @@ void DynamicData::calvar()
 			sum[1] += this->posData[j].Jointspos[i][1];
 			sum[2] += this->posData[j].Jointspos[i][2];
 			/*jpos.posData[tCount].Jointspos[0][0]*/
-
-
 		}
 		this->avg[i][0] = sum[0] / this->maxframe;
 		this->avg[i][1] = sum[1] / this->maxframe;
 		this->avg[i][2] = sum[2] / this->maxframe;
-
 
 		sum[0] = 0;
 		sum[1] = 0;
@@ -100,7 +88,6 @@ void DynamicData::calvar()
 	sum[1] = 0;
 	sum[2] = 0;
 	
-
 	for (int i = 0; i < jointnum; i++)
 	{
 		for (int j = 0; j < this->maxframe; j++)
@@ -121,12 +108,7 @@ void DynamicData::calvar()
 		sum[1] = 0;
 		sum[2] = 0;
 	}
-
-
-
-
 }
-
 
 void DynamicData::Searchmove()
 {
@@ -167,7 +149,6 @@ void DynamicData::ExtractData()
 		
 		vector<vector<double>>  inputDatajointbuf;
 		
-
 		for (int frame=0; frame <this->keyframecnt; ++frame)
 		{
 			vector<double>  inputDataframebuf;
@@ -179,17 +160,11 @@ void DynamicData::ExtractData()
 			inputDatajointbuf.push_back(inputDataframebuf);
 		}
 
-		
-
 		this->compareData.push_back(inputDatajointbuf);
 
 		k++;
 	}
-
-
-
 }
-
 
 
 void DynamicData::ExtractKeyframe(int keyposenum)
@@ -212,9 +187,7 @@ void DynamicData::ExtractKeyframe(int keyposenum)
 				maxdistframe = i;
 
 				buf = cal;
-
 			}
-
 		}
 		
 		cout <<"max dist idx : "<< maxdistframe <<endl;
@@ -235,9 +208,7 @@ void DynamicData::ExtractKeyframe(int keyposenum)
 
 		this->keyframenum.push_back(keyframe);
 	}
-
 }
-
 
 void JointPosition::calavg()
 {
@@ -253,8 +224,6 @@ void JointPosition::calavg()
 			sum[1] += this->posData[j].Jointspos[i][1];
 			sum[2] += this->posData[j].Jointspos[i][2];
 				/*jpos.posData[tCount].Jointspos[0][0]*/
-
-
 		}
 		this->avg[i][0]= sum[0] / this->maxframe;
 		this->avg[i][1]= sum[1] / this->maxframe;
@@ -265,12 +234,6 @@ void JointPosition::calavg()
 		sum[1] = 0;
 		sum[2] = 0;
 	}
-
-
-
-
-
-
 }
 
 void JointPosition::calloadavg(int maxframe, double data[][3])
@@ -287,8 +250,6 @@ void JointPosition::calloadavg(int maxframe, double data[][3])
 			sum[1] += this->loadData[j].Jointspos[i][1];
 			sum[2] += this->loadData[j].Jointspos[i][2];
 			/*jpos.posData[tCount].Jointspos[0][0]*/
-
-
 		}
 
 		if (i == 0)
@@ -307,9 +268,6 @@ void JointPosition::calloadavg(int maxframe, double data[][3])
 		sum[1] = 0;
 		sum[2] = 0;
 	}
-
-
-
 }
 
 void JointPosition::calvar()
@@ -336,15 +294,11 @@ void JointPosition::calvar()
 		sum[1] = 0;
 		sum[2] = 0;
 	}
-
-
-
 }
 
 
 void JointPosition::loaddataT()
 {
-
 	int count = 0;
 	int tCount = 0;
 
@@ -397,7 +351,6 @@ void JointPosition::loaddataT()
 
 void JointPosition::loaddataB()
 {
-
 	int count = 0;
 	int tCount = 0;
 
@@ -463,7 +416,6 @@ void JointPosition::loadtestdata()
 		{
 			_linestream >> _line >> this->testposeframe; count++; continue;
 		}
-
 			_linestream
 			>> this->loadData[lineCount].Jointspos[0][0] >> this->loadData[lineCount].Jointspos[0][1] >> this->loadData[lineCount].Jointspos[0][2]
 			>> this->loadData[lineCount].Jointspos[1][0] >> this->loadData[lineCount].Jointspos[1][1] >> this->loadData[lineCount].Jointspos[1][2]
@@ -505,7 +457,6 @@ void JointPosition::loadreferencedata()
 		int lineCount = 0;
 		int count = 0;
 		
-	
 		fileName = ".\\GestureData\\reference\\loadfile" + to_string(this->loadingfilecount+1) + ".txt";
 		_filestream.open(fileName);
 		cout << "check" << fileName << endl;
@@ -561,7 +512,6 @@ void JointPosition::loadreferencedata()
 
 		this->loadingfilecount++;
 	}
-
 }
 
 void JointPosition::loadDydata()
@@ -595,12 +545,8 @@ void JointPosition::loadDydata()
 			if (count == 0)
 			{
 				_linestream >> this->Dynamicdatacontrol.back()->posename; count++;
-
 				//cout << "check" << _line << endl;
-
 				continue;
-
-
 			}
 			if (count == 1)
 			{
@@ -647,7 +593,6 @@ void JointPosition::loadDydata()
 
 		this->Dydataloadnum++;
 	}
-
 }
 
 void JointPosition::loadDyreferdata()
@@ -5170,7 +5115,6 @@ void GenData::GenEditSlerp()
 	for (int joint = 0; joint < 10; joint++)
 	{
 
-
 		for (int i = 0; i < maxFRm; i++)
 		{
 
@@ -5179,11 +5123,7 @@ void GenData::GenEditSlerp()
 				Databuf[i].JointsQuat[joint] = Databuf[i - 1].JointsQuat[joint];
 
 			}
-
-
-
 		}
-
 	}
 
 	// save new data set
@@ -5222,15 +5162,9 @@ void GenData::GenEditSlerp()
 			<< Databuf[tCount].JointsQuat[7].mData[3] << "\t" << Databuf[tCount].JointsQuat[7].mData[0] << "\t" << Databuf[tCount].JointsQuat[7].mData[1] << "\t" << Databuf[tCount].JointsQuat[7].mData[2] << "\t"
 			<< Databuf[tCount].JointsQuat[8].mData[3] << "\t" << Databuf[tCount].JointsQuat[8].mData[0] << "\t" << Databuf[tCount].JointsQuat[8].mData[1] << "\t" << Databuf[tCount].JointsQuat[8].mData[2] << "\t"
 			<< Databuf[tCount].JointsQuat[9].mData[3] << "\t" << Databuf[tCount].JointsQuat[9].mData[0] << "\t" << Databuf[tCount].JointsQuat[9].mData[1] << "\t" << Databuf[tCount].JointsQuat[9].mData[2] << "\n";
-
-
 	}
-
-
 	avatarDataFile.close();
 	Databuf.clear();
-
-
 }
 
 void GenData::ExtractSeed()
@@ -5253,8 +5187,6 @@ void GenData::ExtractSeed()
 		Databuf[i].JointsQuat[7] = this->QuatData[j].JointsQuat[7];
 		Databuf[i].JointsQuat[8] = this->QuatData[j].JointsQuat[8];
 		Databuf[i].JointsQuat[9] = this->QuatData[j].JointsQuat[9];		
-
-		
 	}
 
 		// save new data set
@@ -5291,18 +5223,100 @@ void GenData::ExtractSeed()
 				<< Databuf[tCount].JointsQuat[7].mData[3] << "\t" << Databuf[tCount].JointsQuat[7].mData[0] << "\t" << Databuf[tCount].JointsQuat[7].mData[1] << "\t" << Databuf[tCount].JointsQuat[7].mData[2] << "\t"
 				<< Databuf[tCount].JointsQuat[8].mData[3] << "\t" << Databuf[tCount].JointsQuat[8].mData[0] << "\t" << Databuf[tCount].JointsQuat[8].mData[1] << "\t" << Databuf[tCount].JointsQuat[8].mData[2] << "\t"
 				<< Databuf[tCount].JointsQuat[9].mData[3] << "\t" << Databuf[tCount].JointsQuat[9].mData[0] << "\t" << Databuf[tCount].JointsQuat[9].mData[1] << "\t" << Databuf[tCount].JointsQuat[9].mData[2] << "\n";
-
-			
+		
 		}
 
 
 		avatarDataFile.close();
 		Databuf.clear();
+}
 
-	
-
-	
-	
+void JointPosition::loadreferencedatafromfile()
+{
+	int tCount = 0;
+	string fileName;
+	std::ifstream _filestream;
+	std::string _line;
+	int _option;
+	std::string _dummy;
+	for(int i = 0; i < this - > loadingfilenum; i++) {
+		int lineCount = 0;
+		int count = 0;
+		fileName = ".\\GestureData\\reference\\loadfile" + to_string(this - > loadingfilecount + 1) + ".txt";
+		_filestream.open(fileName);
+		cout << "check" << fileName << endl;
+		while(std::getline(_filestream, _line)) {
+			std::stringstream _linestream;
+			_linestream << _line;
+			//cout << "gesture working" << endl;
+			if(count == 0) {
+				_linestream >> this - > posename[this - > loadingfilecount];
+				count++;
+				cout << "check" << _line << endl;
+				continue;
+			}
+			if(count == 1) {
+				_linestream >> _line >> this - > referFramenum[this - > loadingfilecount];
+				count++;
+				cout << "check" << this - > referFramenum[this - > loadingfilecount] << endl;
+				continue;
+			}
+			_linestream >> 
+                                this - > loadData[lineCount].Jointspos[0][0] >> 
+                                this - > loadData[lineCount].Jointspos[0][1] >> 
+                                this - > loadData[lineCount].Jointspos[0][2] >> 
+                                this - > loadData[lineCount].Jointspos[1][0] >> 
+                                this - > loadData[lineCount].Jointspos[1][1] >> 
+                                this - > loadData[lineCount].Jointspos[1][2] >> 
+                                this - > loadData[lineCount].Jointspos[2][0] >> 
+                                this - > loadData[lineCount].Jointspos[2][1] >> 
+                                this - > loadData[lineCount].Jointspos[2][2] >> 
+                                this - > loadData[lineCount].Jointspos[3][0] >> 
+                                this - > loadData[lineCount].Jointspos[3][1] >> 
+                                this - > loadData[lineCount].Jointspos[3][2] >> 
+                                this - > loadData[lineCount].Jointspos[4][0] >> 
+                                this - > loadData[lineCount].Jointspos[4][1] >> 
+                                this - > loadData[lineCount].Jointspos[4][2] >> 
+                                this - > loadData[lineCount].Jointspos[5][0] >> 
+                                this - > loadData[lineCount].Jointspos[5][1] >> 
+                                this - > loadData[lineCount].Jointspos[5][2] >> 
+                                this - > loadData[lineCount].Jointspos[6][0] >> 
+                                this - > loadData[lineCount].Jointspos[6][1] >> 
+                                this - > loadData[lineCount].Jointspos[6][2] >> 
+                                this - > loadData[lineCount].Jointspos[7][0] >> 
+                                this - > loadData[lineCount].Jointspos[7][1] >> 
+                                this - > loadData[lineCount].Jointspos[7][2] >> 
+                                this - > loadData[lineCount].Jointspos[8][0] >> 
+                                this - > loadData[lineCount].Jointspos[8][1] >> 
+                                this - > loadData[lineCount].Jointspos[8][2] >> 
+                                this - > loadData[lineCount].Jointspos[9][0] >> 
+                                this - > loadData[lineCount].Jointspos[9][1] >> 
+                                this - > loadData[lineCount].Jointspos[9][2] >> 
+                                this - > loadData[lineCount].Jointspos[10][0] >> 
+                                this - > loadData[lineCount].Jointspos[10][1] >> 
+                                this - > loadData[lineCount].Jointspos[10][2] >> 
+                                this - > loadData[lineCount].Jointspos[11][0] >> 
+                                this - > loadData[lineCount].Jointspos[11][1] >> 
+                                this - > loadData[lineCount].Jointspos[11][2] >> 
+                                this - > loadData[lineCount].Jointspos[12][0] >> 
+                                this - > loadData[lineCount].Jointspos[12][1] >> 
+                                this - > loadData[lineCount].Jointspos[12][2] >> 
+                                this - > loadData[lineCount].Jointspos[13][0] >> 
+                                this - > loadData[lineCount].Jointspos[13][1] >> 
+                                this - > loadData[lineCount].Jointspos[13][2] >> 
+                                this - > loadData[lineCount].Jointspos[14][0] >> 
+                                this - > loadData[lineCount].Jointspos[14][1] >> 
+                                this - > loadData[lineCount].Jointspos[14][2] >> 
+                                this - > loadData[lineCount].Jointspos[15][0] >> 
+                                this - > loadData[lineCount].Jointspos[15][1] >> 
+                                this - > loadData[lineCount].Jointspos[15][2];
+			lineCount++;
+		}
+		_filestream.close();
+		calloadavg(this - > referFramenum[i], this - > referencepose[i]);
+		memset(this - > loadData, NULL, sizeof(this - > loadData));
+		this - > loadingfilecount++;
+	}
 }
 
 void GenData::genQuaternion() {
@@ -5390,9 +5404,6 @@ void GenData::genQuaternion() {
 
 	}
 
-
-
-
 	// save new data set
 	ofstream avatarDataFile;
 	time_t curr_time;
@@ -5444,8 +5455,6 @@ void GenData::genQuaternion() {
 				Totalcount++;
 			}
 	}
-
-	
 	avatarDataFile.close();
 	Databuf.clear();
 
@@ -5514,11 +5523,9 @@ void GenData::genQuaternion() {
 			<< TotalDatabuf[tCount].JointsQuat[8].mData[3] << "\t" << TotalDatabuf[tCount].JointsQuat[8].mData[0] << "\t" << TotalDatabuf[tCount].JointsQuat[8].mData[1] << "\t" << TotalDatabuf[tCount].JointsQuat[8].mData[2] << "\t"
 			<< TotalDatabuf[tCount].JointsQuat[9].mData[3] << "\t" << TotalDatabuf[tCount].JointsQuat[9].mData[0] << "\t" << TotalDatabuf[tCount].JointsQuat[9].mData[1] << "\t" << TotalDatabuf[tCount].JointsQuat[9].mData[2] << "\n";
 
-
 		//avatarDataFile << "\n";			
 
 	}
 
 	avatarDataFile.close();
-
 }
