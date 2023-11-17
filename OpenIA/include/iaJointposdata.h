@@ -39,7 +39,7 @@ class GenData {
 public:
 
 	//~GenData() {
-	//	//cout << "[��ü�� �Ҹ�˴ϴ�.]\n";
+	//	//cout << "[°´Ã¼°¡ ¼Ò¸êµË´Ï´Ù.]\n";
 	//}
 	JointQuat QuatData[9000];
 	GenData* EditData;
@@ -222,7 +222,7 @@ public:
 
 	}
 	void loadreferencedata();
-	
+	void loadreferencedatafromfile();
 	void calloadavg(int maxframe, double data[][3]);
 
 };

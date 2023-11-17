@@ -77,7 +77,7 @@ int gtFrameIndex = 0;
 bool bSaveKeyFrame = false;
 
 skeleton allBoneJoints[2500];
-
+//Initialize the avatar position for each joints
 Eigen::Vector3f cPlv(822.586, 807.877, 41.1087);
 Eigen::Vector3f cSternum(821.249, 652.163, 41.3504);
 Eigen::Vector3f cTorso(820.336, 548.355, 40.7681);
@@ -116,22 +116,54 @@ void writeJointData(int tIndex)
 	for (int tCount = 0; tCount < tIndex; tCount++)
 	{
 		skelitonDataFile
-			<< allBoneJoints[tCount].BoneJoints[0][0] << "\t" << allBoneJoints[tCount].BoneJoints[0][1] << "\t" << allBoneJoints[tCount].BoneJoints[0][2] << "\t"
-			<< allBoneJoints[tCount].BoneJoints[1][0] << "\t" << allBoneJoints[tCount].BoneJoints[1][1] << "\t" << allBoneJoints[tCount].BoneJoints[1][2] << "\t"
-			<< allBoneJoints[tCount].BoneJoints[2][0] << "\t" << allBoneJoints[tCount].BoneJoints[2][1] << "\t" << allBoneJoints[tCount].BoneJoints[2][2] << "\t"
-			<< allBoneJoints[tCount].BoneJoints[3][0] << "\t" << allBoneJoints[tCount].BoneJoints[3][1] << "\t" << allBoneJoints[tCount].BoneJoints[3][2] << "\t"
-			<< allBoneJoints[tCount].BoneJoints[4][0] << "\t" << allBoneJoints[tCount].BoneJoints[4][1] << "\t" << allBoneJoints[tCount].BoneJoints[4][2] << "\t"
-			<< allBoneJoints[tCount].BoneJoints[5][0] << "\t" << allBoneJoints[tCount].BoneJoints[5][1] << "\t" << allBoneJoints[tCount].BoneJoints[5][2] << "\t"
-			<< allBoneJoints[tCount].BoneJoints[6][0] << "\t" << allBoneJoints[tCount].BoneJoints[6][1] << "\t" << allBoneJoints[tCount].BoneJoints[6][2] << "\t"
-			<< allBoneJoints[tCount].BoneJoints[7][0] << "\t" << allBoneJoints[tCount].BoneJoints[7][1] << "\t" << allBoneJoints[tCount].BoneJoints[7][2] << "\t"
-			<< allBoneJoints[tCount].BoneJoints[8][0] << "\t" << allBoneJoints[tCount].BoneJoints[8][1] << "\t" << allBoneJoints[tCount].BoneJoints[8][2] << "\t"
-			<< allBoneJoints[tCount].BoneJoints[9][0] << "\t" << allBoneJoints[tCount].BoneJoints[9][1] << "\t" << allBoneJoints[tCount].BoneJoints[9][2] << "\t"
-			<< allBoneJoints[tCount].BoneJoints[10][0] << "\t" << allBoneJoints[tCount].BoneJoints[10][1] << "\t" << allBoneJoints[tCount].BoneJoints[10][2] << "\t"
-			<< allBoneJoints[tCount].BoneJoints[11][0] << "\t" << allBoneJoints[tCount].BoneJoints[11][1] << "\t" << allBoneJoints[tCount].BoneJoints[11][2] << "\t"
-			<< allBoneJoints[tCount].BoneJoints[12][0] << "\t" << allBoneJoints[tCount].BoneJoints[12][1] << "\t" << allBoneJoints[tCount].BoneJoints[12][2] << "\t"
-			<< allBoneJoints[tCount].BoneJoints[13][0] << "\t" << allBoneJoints[tCount].BoneJoints[13][1] << "\t" << allBoneJoints[tCount].BoneJoints[13][2] << "\t"
-			<< allBoneJoints[tCount].BoneJoints[14][0] << "\t" << allBoneJoints[tCount].BoneJoints[14][1] << "\t" << allBoneJoints[tCount].BoneJoints[14][2] << "\t"
-			<< allBoneJoints[tCount].BoneJoints[15][0] << "\t" << allBoneJoints[tCount].BoneJoints[15][1] << "\t" << allBoneJoints[tCount].BoneJoints[15][2] << "\n";
+			<< allBoneJoints[tCount].BoneJoints[0][0] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[0][1] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[0][2] << "\t"
+			<< allBoneJoints[tCount].BoneJoints[1][0] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[1][1] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[1][2] << "\t"
+			<< allBoneJoints[tCount].BoneJoints[2][0] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[2][1] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[2][2] << "\t"
+			<< allBoneJoints[tCount].BoneJoints[3][0] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[3][1] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[3][2] << "\t"
+			<< allBoneJoints[tCount].BoneJoints[4][0] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[4][1] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[4][2] << "\t"
+			<< allBoneJoints[tCount].BoneJoints[5][0] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[5][1] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[5][2] << "\t"
+			<< allBoneJoints[tCount].BoneJoints[6][0] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[6][1] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[6][2] << "\t"
+			<< allBoneJoints[tCount].BoneJoints[7][0] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[7][1] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[7][2] << "\t"
+			<< allBoneJoints[tCount].BoneJoints[8][0] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[8][1] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[8][2] << "\t"
+			<< allBoneJoints[tCount].BoneJoints[9][0] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[9][1] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[9][2] << "\t"
+			<< allBoneJoints[tCount].BoneJoints[10][0] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[10][1] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[10][2] << "\t"
+			<< allBoneJoints[tCount].BoneJoints[11][0] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[11][1] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[11][2] << "\t"
+			<< allBoneJoints[tCount].BoneJoints[12][0] << "\t"
+			<< allBoneJoints[tCount].BoneJoints[12][1] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[12][2] << "\t"
+			<< allBoneJoints[tCount].BoneJoints[13][0] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[13][1] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[13][2] << "\t"
+			<< allBoneJoints[tCount].BoneJoints[14][0] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[14][1] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[14][2] << "\t"
+			<< allBoneJoints[tCount].BoneJoints[15][0] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[15][1] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[15][2] << "\n";
 	}
 
 	skelitonDataFile.close();
@@ -156,22 +188,54 @@ void writekeyframeJointData(int tIndex)
 	//for (int tCount = tIndex; tCount < tIndex; tCount++)
 	{
 		skelitonDataFile
-			<< allBoneJoints[tCount].BoneJoints[0][0] << "\t" << allBoneJoints[tCount].BoneJoints[0][1] << "\t" << allBoneJoints[tCount].BoneJoints[0][2] << "\t"
-			<< allBoneJoints[tCount].BoneJoints[1][0] << "\t" << allBoneJoints[tCount].BoneJoints[1][1] << "\t" << allBoneJoints[tCount].BoneJoints[1][2] << "\t"
-			<< allBoneJoints[tCount].BoneJoints[2][0] << "\t" << allBoneJoints[tCount].BoneJoints[2][1] << "\t" << allBoneJoints[tCount].BoneJoints[2][2] << "\t"
-			<< allBoneJoints[tCount].BoneJoints[3][0] << "\t" << allBoneJoints[tCount].BoneJoints[3][1] << "\t" << allBoneJoints[tCount].BoneJoints[3][2] << "\t"
-			<< allBoneJoints[tCount].BoneJoints[4][0] << "\t" << allBoneJoints[tCount].BoneJoints[4][1] << "\t" << allBoneJoints[tCount].BoneJoints[4][2] << "\t"
-			<< allBoneJoints[tCount].BoneJoints[5][0] << "\t" << allBoneJoints[tCount].BoneJoints[5][1] << "\t" << allBoneJoints[tCount].BoneJoints[5][2] << "\t"
-			<< allBoneJoints[tCount].BoneJoints[6][0] << "\t" << allBoneJoints[tCount].BoneJoints[6][1] << "\t" << allBoneJoints[tCount].BoneJoints[6][2] << "\t"
-			<< allBoneJoints[tCount].BoneJoints[7][0] << "\t" << allBoneJoints[tCount].BoneJoints[7][1] << "\t" << allBoneJoints[tCount].BoneJoints[7][2] << "\t"
-			<< allBoneJoints[tCount].BoneJoints[8][0] << "\t" << allBoneJoints[tCount].BoneJoints[8][1] << "\t" << allBoneJoints[tCount].BoneJoints[8][2] << "\t"
-			<< allBoneJoints[tCount].BoneJoints[9][0] << "\t" << allBoneJoints[tCount].BoneJoints[9][1] << "\t" << allBoneJoints[tCount].BoneJoints[9][2] << "\t"
-			<< allBoneJoints[tCount].BoneJoints[10][0] << "\t" << allBoneJoints[tCount].BoneJoints[10][1] << "\t" << allBoneJoints[tCount].BoneJoints[10][2] << "\t"
-			<< allBoneJoints[tCount].BoneJoints[11][0] << "\t" << allBoneJoints[tCount].BoneJoints[11][1] << "\t" << allBoneJoints[tCount].BoneJoints[11][2] << "\t"
-			<< allBoneJoints[tCount].BoneJoints[12][0] << "\t" << allBoneJoints[tCount].BoneJoints[12][1] << "\t" << allBoneJoints[tCount].BoneJoints[12][2] << "\t"
-			<< allBoneJoints[tCount].BoneJoints[13][0] << "\t" << allBoneJoints[tCount].BoneJoints[13][1] << "\t" << allBoneJoints[tCount].BoneJoints[13][2] << "\t"
-			<< allBoneJoints[tCount].BoneJoints[14][0] << "\t" << allBoneJoints[tCount].BoneJoints[14][1] << "\t" << allBoneJoints[tCount].BoneJoints[14][2] << "\t"
-			<< allBoneJoints[tCount].BoneJoints[15][0] << "\t" << allBoneJoints[tCount].BoneJoints[15][1] << "\t" << allBoneJoints[tCount].BoneJoints[15][2] << "\n";
+			<< allBoneJoints[tCount].BoneJoints[0][0] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[0][1] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[0][2] << "\t"
+			<< allBoneJoints[tCount].BoneJoints[1][0] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[1][1] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[1][2] << "\t"
+			<< allBoneJoints[tCount].BoneJoints[2][0] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[2][1] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[2][2] << "\t"
+			<< allBoneJoints[tCount].BoneJoints[3][0] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[3][1] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[3][2] << "\t"
+			<< allBoneJoints[tCount].BoneJoints[4][0] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[4][1] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[4][2] << "\t"
+			<< allBoneJoints[tCount].BoneJoints[5][0] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[5][1] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[5][2] << "\t"
+			<< allBoneJoints[tCount].BoneJoints[6][0] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[6][1] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[6][2] << "\t"
+			<< allBoneJoints[tCount].BoneJoints[7][0] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[7][1] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[7][2] << "\t"
+			<< allBoneJoints[tCount].BoneJoints[8][0] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[8][1] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[8][2] << "\t"
+			<< allBoneJoints[tCount].BoneJoints[9][0] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[9][1] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[9][2] << "\t"
+			<< allBoneJoints[tCount].BoneJoints[10][0] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[10][1] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[10][2] << "\t"
+			<< allBoneJoints[tCount].BoneJoints[11][0] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[11][1] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[11][2] << "\t"
+			<< allBoneJoints[tCount].BoneJoints[12][0] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[12][1] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[12][2] << "\t"
+			<< allBoneJoints[tCount].BoneJoints[13][0] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[13][1] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[13][2] << "\t"
+			<< allBoneJoints[tCount].BoneJoints[14][0] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[14][1] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[14][2] << "\t"
+			<< allBoneJoints[tCount].BoneJoints[15][0] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[15][1] << "\t" 
+			<< allBoneJoints[tCount].BoneJoints[15][2] << "\n";
 	}
 
 	skelitonDataFile.close();
@@ -239,21 +303,6 @@ void keyboardEventOccurred(const pcl::visualization::KeyboardEvent &event,	void*
 
 	if (event.getKeySym() == "u"&& event.keyDown())
 	{
-		//if (writebl)
-		//{
-		//	cb->u = 0;
-		//}
-
-
-		//writebl = !writebl;
-		//cout << "data record" << endl;
-		//writerowbl = !writerowbl;
-
-		////LiDAR position record 
-		//time_t curr_time;
-		//curr_time = time(NULL);
-		//tm *tm_local = localtime(&curr_time);
-
 		PositionTracking::recordData = !PositionTracking::recordData;
 
 		if (PositionTracking::recordData)
@@ -272,20 +321,6 @@ void keyboardEventOccurred(const pcl::visualization::KeyboardEvent &event,	void*
 		}
 	}	
 }
-//
-//void mouseEventOccurred(const pcl::visualization::MouseEvent &event, 	void* viewer_void)
-//{
-//	pcl::visualization::PCLVisualizer *viewer = static_cast<pcl::visualization::PCLVisualizer *> (viewer_void);
-//	if (event.getButton() == pcl::visualization::MouseEvent::LeftButton &&
-//		event.getType() == pcl::visualization::MouseEvent::MouseButtonRelease)
-//	{
-//		std::cout << "Left mouse button released at position (" << event.getX() << ", " << event.getY() << ")" << std::endl;
-//
-//		char str[512];
-//		sprintf(str, "text#%03d", text_id++);
-//		viewer->addText("clicked here", event.getX(), event.getY(), str);
-//	}
-//}
 
 pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloudA(new pcl::PointCloud<pcl::PointXYZRGB>);
 pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloudB(new pcl::PointCloud<pcl::PointXYZRGB>);
@@ -399,58 +434,6 @@ bool poseDetection(const pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr &cloud_A, c
 	sor.filter(*cloudC);
 
 
-
-	//Creating the KdTree object for the search method of the extraction
-	//pcl::search::KdTree<pcl::PointXYZRGB>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZRGB>);
-	//tree->setInputCloud(cloudC);
-
-	//std::vector<pcl::PointIndices> cluster_indices;
-	//pcl::EuclideanClusterExtraction<pcl::PointXYZRGB> ec;
-	//ec.setClusterTolerance(80.0); // 2cm
-	//ec.setMinClusterSize(100);
-	//ec.setMaxClusterSize(100000);
-	//ec.setSearchMethod(tree);
-	//ec.setInputCloud(cloudC);
-	//ec.extract(cluster_indices);
-
-
-	//int j = 0;
-
-	//for (std::vector<pcl::PointIndices>::const_iterator it = cluster_indices.begin(); it != cluster_indices.end(); ++it)
-	//{
-	//	cloud_cluster->clear();
-	//	for (std::vector<int>::const_iterator pit = it->indices.begin(); pit != it->indices.end(); ++pit)
-	//		cloud_cluster->points.push_back(cloudC->points[*pit]); //*
-	//	cloud_cluster->width = cloud_cluster->points.size();
-	//	cloud_cluster->height = 1;
-	//	cloud_cluster->is_dense = true;
-
-	//	//std::cout << "PointCloud representing the Cluster: " << cloud_cluster->points.size() << " data points." << std::endl;
-	//	if (cloud_cluster->points.size() > 0)
-	//	{
-	//		if (j == 0)
-	//		{
-
-	//			pcl::copyPointCloud(*cloud_cluster, *temp_cloud_cluster);
-
-	//			//for (std::vector<int>::const_iterator pit = it->indices.begin(); pit != it->indices.end(); ++pit)
-	//			//	cloudPose->points.push_back(cloudC->points[*pit]); //*
-	//			//cloudPose->width = cloudPose->points.size();
-	//			//cloudPose->height = 1;
-	//			//cloudPose->is_dense = true;
-
-	//			break;
-	//		}
-	//		j++;
-	//	}
-
-	//}
-
-	//pcl::copyPointCloud(*temp_cloud_cluster, *cloudC);
-
-	//cloudC->width = cloudC->points.size();
-	//cloudC->height = 1;
-	//cloudC->is_dense = true;
 
 
 	if (cloudC->size() <= 0)
@@ -1142,31 +1125,6 @@ void PositionTracking::positionDetection(VitruvianAvatar &vAvatar)
 	viewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_COLOR, 1.0, 0.0, 0.0, "bodycenterline");
 	viewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_LINE_WIDTH, 5.0, "bodycenterline");
 
-	//o1.x = 0.0;
-	//o1.y = 0.0;
-	//o1.z = 0.0;
-	//viewer->addSphere(o1, 0.2, "sphereG");
-	//viewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_COLOR, 0.0, 1.0, 0.0, "sphereG");
-
-	//viewer->addSphere(o1, 0.2, "sphereMX");
-	//viewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_COLOR, 0.0, 1.0, 0.0, "sphereMX");
-
-
-	//viewer->addSphere(o1, 0.2, "sphereMI");
-	//viewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_COLOR, 0.0, 1.0, 0.0, "sphereMI");
-
-	//viewer->addSphere(o1, 0.2, "sphereMir");
-	//viewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_COLOR, 0.0, 1.0, 0.0, "sphereMir");
-
-	//viewer->addSphere(o1, 0.4, "sphereMid");
-	//viewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_COLOR, 1.0, 0.0, 1.0, "sphereMid");
-
-	//viewer->addSphere(o1, 25, "spherePelv");
-	//viewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_COLOR, 0.5, 1.0, 0.5, "spherePelv");
-
-	//viewer->addSphere(o1, 25, "spherefinalPelv");
-	//viewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_COLOR, 0.5, 1.0, 0.5, "spherefinalPelv");
-
 	char fileName[1024];
 
 
@@ -1214,55 +1172,6 @@ void PositionTracking::positionDetection(VitruvianAvatar &vAvatar)
 	ofstream FLLboneDataFile;
 
 	ofstream rawDataFile;
-
-	
-	//Draw skeliton Joint and bones
-	//DrawBoneCylinder(viewer, rFoot, rKnee, "RLLeg");//Right Foot to Right Knee joint
-	//DrawJointSphere(viewer, rFoot, "RLLegSphere");//Right Foot
-
-	//DrawBoneCylinder(viewer, lFoot, lKnee, "LLLeg");//Left Foot to Left Knee joint
-	//DrawJointSphere(viewer, lFoot, "LLLegSphere");//Left Foot
-
-	//DrawBoneCylinder(viewer, rKnee, rPlv, "RULeg");//Right Knee to Pelvis 
-	//DrawJointSphere(viewer, rKnee, "RightKneeSphere");//Right Knee
-
-	//DrawBoneCylinder(viewer, lKnee, lPlv, "LULeg");//Left Knee to Pelvis 
-	//DrawJointSphere(viewer, lKnee, "LeftKneeSphere");//Left Knee
-
-	//DrawBoneCylinder(viewer, cPlv, cSternum, "UpperSternum");//Pelvis to sternum
-	//DrawPlvJointSphere(viewer, cPlv, "PelvSphere");//Pelvis
-
-	//DrawBoneCylinder(viewer, cSternum, cTorso, "UpperBody");//Sternum to torso
-	//DrawJointSphere(viewer, cSternum, "sternumSphere");//Sternum
-
-	//DrawBoneCylinder(viewer, cPlv, rPlv, "RPelvis");//Pelvis to right pelvis
-	//DrawJointSphere(viewer, rPlv, "rPelvSphere");//Right Pelvis
-
-	//DrawBoneCylinder(viewer, cPlv, lPlv, "LPelvis");//Pelvis to left pelvis
-	//DrawJointSphere(viewer, lPlv, "lPelvSphere");//Left Pelvis
-
-	//DrawBoneCylinder(viewer, cTorso, cHead, "Neck");//Torso to head
-	//DrawJointSphere(viewer, cTorso, "SholderSphere");//Torso
-	//DrawJointSphere(viewer, cHead, "HeadSphere");//Head
-
-	//DrawBoneCylinder(viewer, cTorso, rShldr, "rightShoulder");//Torso to Right Shoulder
-	//DrawJointSphere(viewer, rShldr, "rightShoulderSphere");//Right Shoulder
-
-	//DrawBoneCylinder(viewer, cTorso, lShldr, "leftShoulder");//Torso to Left Shoulder
-	//DrawJointSphere(viewer, lShldr, "leftShoulderSphere");//Left Shoulder
-
-	//DrawBoneCylinder(viewer, rShldr, rUarm, "rightUpperArm");//Right Shoulder to Right Upper arm
-	//DrawJointSphere(viewer, rUarm, "rightUpperArmSphere");//Right Elbow joint
-
-	//DrawBoneCylinder(viewer, lShldr, lUarm, "leftUpperArm");//Left Shoulder to Left Upper arm
-	//DrawJointSphere(viewer, lUarm, "leftUpperArmSphere");//Left Elbow joint
-
-	//DrawBoneCylinder(viewer, rUarm, rLarm, "rightLowerArm");//Right Upper arm to Right lower arm
-	//DrawJointSphere(viewer, rLarm, "rightLowerArmSphere");//Right lower arm
-
-	//DrawBoneCylinder(viewer, lUarm, lLarm, "leftLowerArm");//Left Upper arm to right lower arm
-	//DrawJointSphere(viewer, lLarm, "leftLowerArmSphere");//right lower arm
-
 
 	while (!viewer->wasStopped())
 	{
@@ -1321,21 +1230,6 @@ void PositionTracking::positionDetection(VitruvianAvatar &vAvatar)
 			//viewer->updatePointCloud(cloudL2, "cloud");
 			//viewer->resetCamera();
 			flag2timeL2 = false;
-
-			//pcl::getMinMax3D(*cloudL2, minPt, maxPt);
-
-			////getGroundPoint(cloudL2, groundPoint2);
-
-			////deltaXY2 = ((maxPt.y ) - groundPoint2[1]) / ((maxPt.x ) - groundPoint2[0]);
-
-			//cout << "Max truth2-> X:" << maxPt.x  << "\t Y:" << maxPt.y  << "\t Z:" << maxPt.z  << endl;
-
-			//cout << "Max truth2-> X:" << minPt.x  << "\t Y:" << minPt.y  << "\t Z:" << minPt.z  << endl;
-
-			////cout << "Ground truth2-> X:" << groundPoint2[0] << "\t Y:" << groundPoint2[1] << "\t Z:" << groundPoint2[2] << "\t Delta:" << deltaXY2 << endl;
-
-			//cout << "Ground truth-> X:" << abs(((maxPt.x ) +65) - groundPoint[0]) << "\t Y:" << abs((maxPt.y )- groundPoint[1]) << "\t Z:" << abs((maxPt.z )- groundPoint[2])  << endl;
-			
 		}
 
 		pcl::removeNaNFromPointCloud(*CloudViewer1, *CloudViewer1, indicies);
@@ -1349,13 +1243,7 @@ void PositionTracking::positionDetection(VitruvianAvatar &vAvatar)
 		viewer->updatePointCloud(real_cloud1, "cloud");
 		viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3.0, "cloud");
 		viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_COLOR, 0.1, 0.1, 0.9, "cloud");
-		/*for (int i = 0; i < CloudViewer2->size(); ++i)
-		{
-			CloudViewer2->points[i].x = CloudViewer2->points[i].x - (65.0);
-			CloudViewer2->points[i].y = CloudViewer2->points[i].y - (100.0);
-			CloudViewer2->points[i].z = CloudViewer2->points[i].z ;
-		}*/
-
+		
 		if (PositionTracking::initCalib)
 		{
 			if (real_cloud1->size() > 5000)
@@ -2007,16 +1895,7 @@ void PositionTracking::positionDetection(VitruvianAvatar &vAvatar)
 				cPlv[2] = lPlv[2] + (-plvQuat.mData[0] * sPlvLength);
 			}
 
-			//Translate upper body to match pelvise height
-			//prevcPelv = cPlv;
-			//cPlv =(rPlv + lPlv) / 2;
-
-			//cPlv[0] = centroidX[0]; //Center of Max-X and Min-X
 			
-			//updateUpperBody(prevcPelv - cPlv);
-
-			//-----------------------------------------------------------------------------------------
-
 			//Right Pelvis <- Pelvis orientation			
 			quaternion rplvQuat1(-vector[2], vector[1], vector[0], 0);
 			rplvQuat1 = currentOri.b0.mutiplication(rplvQuat1.mutiplication(currentOri.b0.Inverse()));
@@ -2160,33 +2039,7 @@ void PositionTracking::positionDetection(VitruvianAvatar &vAvatar)
 			//LAboneDataFile  << lLarmQuat.mData[0] << "\t" << lLarmQuat.mData[1] << "\t" << lLarmQuat.mData[2] << "\t" << lLarmQuat.mData[3] << "\n";
 
 			updateBoneJoints(frameIndex);//Update Bone jounts in array to save to file
-			//
-			//float yGroundDiff = 0;
-			//if (isJointBelowGround(yGroundDiff))
-			//{
-			//	//calcuate and Update bone joints above ground
-			//	rFoot[1] = rFoot[1] - yGroundDiff;
-			//	lFoot[1] = lFoot[1] - yGroundDiff;
-			//	rKnee[1] = rKnee[1] - yGroundDiff;
-			//	lKnee[1] = lKnee[1] - yGroundDiff;
-			//	cPlv[1] = cPlv[1] - yGroundDiff;
-			//	lPlv[1] = lPlv[1] - yGroundDiff;
-			//	rPlv[1] = rPlv[1] - yGroundDiff;
-			//	cTorso[1] = cTorso[1] - yGroundDiff;
-			//	cSternum[1] = cSternum[1] - yGroundDiff;
-			//	cHead[1] = cHead[1] - yGroundDiff;
-			//	rShldr[1] = rShldr[1] - yGroundDiff;
-			//	lShldr[1] = lShldr[1] - yGroundDiff;
-			//	rUarm[1] = rUarm[1] + yGroundDiff;
-			//	lUarm[1] = lUarm[1] + yGroundDiff;
-			//	rLarm[1] = rLarm[1] + yGroundDiff;
-			//	lLarm[1] = lLarm[1] + yGroundDiff;
-			//}
-
-			//updateBoneJoints(frameIndex);//Update Bone jounts in array to save to file
-
-			//cout << currentOri.b2 << "/t" << currentOri.b3 << endl;
-			
+						
 			//Update skeliton Joint and bones
 			DrawBoneCylinder(viewer, rFoot, rKnee, "RLLeg");//Right Foot to Right Knee joint
 			DrawJointSphere(viewer, rFoot, "RLLegSphere");//Right Foot
@@ -2272,21 +2125,7 @@ void PositionTracking::positionDetection(VitruvianAvatar &vAvatar)
 
 			if (quatFrame == 0)
 			{
-				myAcquire.readFileQuatData("TotalCapture.txt");//read Rawquat form file
-			
-				//Save bone vector to a file
-				/*time_t curr_time;
-				curr_time = time(NULL);
-				tm *tm_local = localtime(&curr_time);
-
-				sprintf_s(fileName, ".\\BoneData\\FRAboneData-%d%d%d.txt", tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
-				FRAboneDataFile.open(fileName);
-				sprintf_s(fileName, ".\\BoneData\\FLAboneData-%d%d%d.txt", tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
-				FLAboneDataFile.open(fileName);
-				sprintf_s(fileName, ".\\BoneData\\FRLboneData-%d%d%d.txt", tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
-				FRLboneDataFile.open(fileName);
-				sprintf_s(fileName, ".\\BoneData\\FLLboneData-%d%d%d.txt", tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
-				FLLboneDataFile.open(fileName);*/
+				myAcquire.readFileQuatData("TotalCapture.txt");//read Rawquat form file				
 			}
 
 
