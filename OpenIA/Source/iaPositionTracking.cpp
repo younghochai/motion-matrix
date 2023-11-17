@@ -1895,16 +1895,7 @@ void PositionTracking::positionDetection(VitruvianAvatar &vAvatar)
 				cPlv[2] = lPlv[2] + (-plvQuat.mData[0] * sPlvLength);
 			}
 
-			//Translate upper body to match pelvise height
-			//prevcPelv = cPlv;
-			//cPlv =(rPlv + lPlv) / 2;
-
-			//cPlv[0] = centroidX[0]; //Center of Max-X and Min-X
 			
-			//updateUpperBody(prevcPelv - cPlv);
-
-			//-----------------------------------------------------------------------------------------
-
 			//Right Pelvis <- Pelvis orientation			
 			quaternion rplvQuat1(-vector[2], vector[1], vector[0], 0);
 			rplvQuat1 = currentOri.b0.mutiplication(rplvQuat1.mutiplication(currentOri.b0.Inverse()));
@@ -2048,33 +2039,7 @@ void PositionTracking::positionDetection(VitruvianAvatar &vAvatar)
 			//LAboneDataFile  << lLarmQuat.mData[0] << "\t" << lLarmQuat.mData[1] << "\t" << lLarmQuat.mData[2] << "\t" << lLarmQuat.mData[3] << "\n";
 
 			updateBoneJoints(frameIndex);//Update Bone jounts in array to save to file
-			//
-			//float yGroundDiff = 0;
-			//if (isJointBelowGround(yGroundDiff))
-			//{
-			//	//calcuate and Update bone joints above ground
-			//	rFoot[1] = rFoot[1] - yGroundDiff;
-			//	lFoot[1] = lFoot[1] - yGroundDiff;
-			//	rKnee[1] = rKnee[1] - yGroundDiff;
-			//	lKnee[1] = lKnee[1] - yGroundDiff;
-			//	cPlv[1] = cPlv[1] - yGroundDiff;
-			//	lPlv[1] = lPlv[1] - yGroundDiff;
-			//	rPlv[1] = rPlv[1] - yGroundDiff;
-			//	cTorso[1] = cTorso[1] - yGroundDiff;
-			//	cSternum[1] = cSternum[1] - yGroundDiff;
-			//	cHead[1] = cHead[1] - yGroundDiff;
-			//	rShldr[1] = rShldr[1] - yGroundDiff;
-			//	lShldr[1] = lShldr[1] - yGroundDiff;
-			//	rUarm[1] = rUarm[1] + yGroundDiff;
-			//	lUarm[1] = lUarm[1] + yGroundDiff;
-			//	rLarm[1] = rLarm[1] + yGroundDiff;
-			//	lLarm[1] = lLarm[1] + yGroundDiff;
-			//}
-
-			//updateBoneJoints(frameIndex);//Update Bone jounts in array to save to file
-
-			//cout << currentOri.b2 << "/t" << currentOri.b3 << endl;
-			
+						
 			//Update skeliton Joint and bones
 			DrawBoneCylinder(viewer, rFoot, rKnee, "RLLeg");//Right Foot to Right Knee joint
 			DrawJointSphere(viewer, rFoot, "RLLegSphere");//Right Foot
