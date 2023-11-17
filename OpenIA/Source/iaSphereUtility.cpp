@@ -12,8 +12,6 @@
 #include <math.h>
 #include <iostream>
 
-
-
 void SphereUtility::getAngleAxisBWQuaternions(quaternion q_1, quaternion q_2, char * boneID)
 {
 	quaternion result = q_2.mutiplication(q_1.Inverse());
@@ -73,22 +71,7 @@ void SphereUtility::vectorsToQuat()
 {
 	TVec3 v1 = { 0.0, 0.707106781, -0.707106781 };
 	quaternion quatBody(-1.29947E-16, -0.707106781, 0.707106781, 1.41232E-32);
-	//for (int index = 0; index < 10; index++)
-	//{
-	//	//printf("Bone-%d --- ", index);
-	//	for (int jndex = 0; jndex < this->noOfFrames; jndex++)
-	//	{
-	//		TVec3 v2 = { this->vectors[jndex][index]._x,this->vectors[jndex][index]._y,this->vectors[jndex][index]._z };
-	//		TVec3 cross = vecCrossProduct(v1, v2);
-	//		double w = sqrt(pow(vecLength(v1), 2) * pow(vecLength(v2), 2)) + vecDotProduct(v1, v2);
-	//		quaternion q = { cross._x, cross._y, cross._z, w };
-	//		q.normalize();
-	//		//printf("%f\t%f\t%f\t%f\n",q.mData[3],q.mData[0], q.mData[1], q.mData[2]);
-	//	}
-	//	//printf("----------------------------------\n");
-	//	
-	//}
-
+	
 	for (int index = 0; index < noOfFrames; index++)
 	{
 		//printf("Bone-%d --- ", index);
