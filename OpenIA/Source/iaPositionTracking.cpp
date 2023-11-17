@@ -77,7 +77,7 @@ int gtFrameIndex = 0;
 bool bSaveKeyFrame = false;
 
 skeleton allBoneJoints[2500];
-
+//Initialize the avatar position for each joints
 Eigen::Vector3f cPlv(822.586, 807.877, 41.1087);
 Eigen::Vector3f cSternum(821.249, 652.163, 41.3504);
 Eigen::Vector3f cTorso(820.336, 548.355, 40.7681);
