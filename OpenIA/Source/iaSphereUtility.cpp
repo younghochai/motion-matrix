@@ -98,9 +98,7 @@ void SphereUtility::vectorsToQuat()
 			case 9: this->avatarData[index].b9 = q; break;
 			}
 
-			//printf("%f %f %f %f ", q.mData[3], q.mData[0], q.mData[1], q.mData[2]);
 		}
-		//printf("\n");
 
 	}
 }
@@ -114,12 +112,7 @@ float SphereUtility::getTwistAngle(TVec3 w, quaternion q)
 
 	// Normalize vw
 	vecNormalize(vw);
-	//float vwLength = vecLength(vw);
-	//if (vwLength == 0) return 0;
-	//vw._x = vw._x / vwLength;
-	//vw._y = vw._y / vwLength;
-	//vw._z = vw._z / vwLength;
-
+	
 	//find the dot product dotAngle
 	float dotAngle = acos(vecDotProduct(v, w));
 
@@ -130,13 +123,7 @@ float SphereUtility::getTwistAngle(TVec3 w, quaternion q)
 	quaternion qt = qs.Inverse().mutiplication(q);
 	//quaternion qt = q.mutiplication(qs.Inverse());
 
-	//***** Debugging ******//
-	/*quaternion newQ = qs.mutiplication(qt);
-	std::cout << "q = {" << q.mData[3] << "," << q.mData[0] << "," << q.mData[0] << "," << q.mData[0] << "} <- "
-		"qs*qt = {" << newQ.mData[3] << "," << newQ.mData[0] << "," << newQ.mData[0] << "," << newQ.mData[0] << "} "<< std::endl;*/
-		//***** Debugging ******//
-
-		//return twist angle
+	//return twist angle
 	if (isnan(acos(qt.mData[3])))
 		return (0.000001);
 	else
