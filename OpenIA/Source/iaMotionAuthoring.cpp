@@ -81,16 +81,26 @@ void generateIntermediateFrames(int totalIntermediateFrames, SphereUtility *&su)
 
 		for (float j = 0; j <= 1; j = j + tStep)
 		{
-			GeneratedData[dataCount].b0 = GeneratedData[dataCount].b0.SLERP(from.b0, to.b0, j); if (isnan(GeneratedData[dataCount].b0.mData[3])) GeneratedData[dataCount].b0 = from.b0;
-			GeneratedData[dataCount].b1 = GeneratedData[dataCount].b1.SLERP(from.b1, to.b1, j); if (isnan(GeneratedData[dataCount].b1.mData[3])) GeneratedData[dataCount].b1 = from.b1;
-			GeneratedData[dataCount].b2 = GeneratedData[dataCount].b2.SLERP(from.b2, to.b2, j); if (isnan(GeneratedData[dataCount].b2.mData[3])) GeneratedData[dataCount].b2 = from.b2;
-			GeneratedData[dataCount].b3 = GeneratedData[dataCount].b3.SLERP(from.b3, to.b3, j); if (isnan(GeneratedData[dataCount].b3.mData[3])) GeneratedData[dataCount].b3 = from.b3;
-			GeneratedData[dataCount].b4 = GeneratedData[dataCount].b4.SLERP(from.b4, to.b4, j); if (isnan(GeneratedData[dataCount].b4.mData[3])) GeneratedData[dataCount].b4 = from.b4;
-			GeneratedData[dataCount].b5 = GeneratedData[dataCount].b5.SLERP(from.b5, to.b5, j); if (isnan(GeneratedData[dataCount].b5.mData[3])) GeneratedData[dataCount].b5 = from.b5;
-			GeneratedData[dataCount].b6 = GeneratedData[dataCount].b6.SLERP(from.b6, to.b6, j); if (isnan(GeneratedData[dataCount].b6.mData[3])) GeneratedData[dataCount].b6 = from.b6;
-			GeneratedData[dataCount].b7 = GeneratedData[dataCount].b7.SLERP(from.b7, to.b7, j); if (isnan(GeneratedData[dataCount].b7.mData[3])) GeneratedData[dataCount].b7 = from.b7;
-			GeneratedData[dataCount].b8 = GeneratedData[dataCount].b8.SLERP(from.b8, to.b8, j); if (isnan(GeneratedData[dataCount].b8.mData[3])) GeneratedData[dataCount].b8 = from.b8;
-			GeneratedData[dataCount].b9 = GeneratedData[dataCount].b9.SLERP(from.b9, to.b9, j); if (isnan(GeneratedData[dataCount].b9.mData[3])) GeneratedData[dataCount].b9 = from.b9;
+			GeneratedData[dataCount].b0 = GeneratedData[dataCount].b0.SLERP(from.b0, to.b0, j); 
+				if (isnan(GeneratedData[dataCount].b0.mData[3])) GeneratedData[dataCount].b0 = from.b0;
+			GeneratedData[dataCount].b1 = GeneratedData[dataCount].b1.SLERP(from.b1, to.b1, j); 
+				if (isnan(GeneratedData[dataCount].b1.mData[3])) GeneratedData[dataCount].b1 = from.b1;
+			GeneratedData[dataCount].b2 = GeneratedData[dataCount].b2.SLERP(from.b2, to.b2, j); 
+				if (isnan(GeneratedData[dataCount].b2.mData[3])) GeneratedData[dataCount].b2 = from.b2;
+			GeneratedData[dataCount].b3 = GeneratedData[dataCount].b3.SLERP(from.b3, to.b3, j); 
+				if (isnan(GeneratedData[dataCount].b3.mData[3])) GeneratedData[dataCount].b3 = from.b3;
+			GeneratedData[dataCount].b4 = GeneratedData[dataCount].b4.SLERP(from.b4, to.b4, j); 
+				if (isnan(GeneratedData[dataCount].b4.mData[3])) GeneratedData[dataCount].b4 = from.b4;
+			GeneratedData[dataCount].b5 = GeneratedData[dataCount].b5.SLERP(from.b5, to.b5, j); 
+				if (isnan(GeneratedData[dataCount].b5.mData[3])) GeneratedData[dataCount].b5 = from.b5;
+			GeneratedData[dataCount].b6 = GeneratedData[dataCount].b6.SLERP(from.b6, to.b6, j); 
+				if (isnan(GeneratedData[dataCount].b6.mData[3])) GeneratedData[dataCount].b6 = from.b6;
+			GeneratedData[dataCount].b7 = GeneratedData[dataCount].b7.SLERP(from.b7, to.b7, j); 
+				if (isnan(GeneratedData[dataCount].b7.mData[3])) GeneratedData[dataCount].b7 = from.b7;
+			GeneratedData[dataCount].b8 = GeneratedData[dataCount].b8.SLERP(from.b8, to.b8, j); 
+				if (isnan(GeneratedData[dataCount].b8.mData[3])) GeneratedData[dataCount].b8 = from.b8;
+			GeneratedData[dataCount].b9 = GeneratedData[dataCount].b9.SLERP(from.b9, to.b9, j); 
+				if (isnan(GeneratedData[dataCount].b9.mData[3])) GeneratedData[dataCount].b9 = from.b9;
 			dataCount++;
 		}
 	}
