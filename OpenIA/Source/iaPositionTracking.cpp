@@ -1125,31 +1125,6 @@ void PositionTracking::positionDetection(VitruvianAvatar &vAvatar)
 	viewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_COLOR, 1.0, 0.0, 0.0, "bodycenterline");
 	viewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_LINE_WIDTH, 5.0, "bodycenterline");
 
-	//o1.x = 0.0;
-	//o1.y = 0.0;
-	//o1.z = 0.0;
-	//viewer->addSphere(o1, 0.2, "sphereG");
-	//viewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_COLOR, 0.0, 1.0, 0.0, "sphereG");
-
-	//viewer->addSphere(o1, 0.2, "sphereMX");
-	//viewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_COLOR, 0.0, 1.0, 0.0, "sphereMX");
-
-
-	//viewer->addSphere(o1, 0.2, "sphereMI");
-	//viewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_COLOR, 0.0, 1.0, 0.0, "sphereMI");
-
-	//viewer->addSphere(o1, 0.2, "sphereMir");
-	//viewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_COLOR, 0.0, 1.0, 0.0, "sphereMir");
-
-	//viewer->addSphere(o1, 0.4, "sphereMid");
-	//viewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_COLOR, 1.0, 0.0, 1.0, "sphereMid");
-
-	//viewer->addSphere(o1, 25, "spherePelv");
-	//viewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_COLOR, 0.5, 1.0, 0.5, "spherePelv");
-
-	//viewer->addSphere(o1, 25, "spherefinalPelv");
-	//viewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_COLOR, 0.5, 1.0, 0.5, "spherefinalPelv");
-
 	char fileName[1024];
 
 
@@ -1197,55 +1172,6 @@ void PositionTracking::positionDetection(VitruvianAvatar &vAvatar)
 	ofstream FLLboneDataFile;
 
 	ofstream rawDataFile;
-
-	
-	//Draw skeliton Joint and bones
-	//DrawBoneCylinder(viewer, rFoot, rKnee, "RLLeg");//Right Foot to Right Knee joint
-	//DrawJointSphere(viewer, rFoot, "RLLegSphere");//Right Foot
-
-	//DrawBoneCylinder(viewer, lFoot, lKnee, "LLLeg");//Left Foot to Left Knee joint
-	//DrawJointSphere(viewer, lFoot, "LLLegSphere");//Left Foot
-
-	//DrawBoneCylinder(viewer, rKnee, rPlv, "RULeg");//Right Knee to Pelvis 
-	//DrawJointSphere(viewer, rKnee, "RightKneeSphere");//Right Knee
-
-	//DrawBoneCylinder(viewer, lKnee, lPlv, "LULeg");//Left Knee to Pelvis 
-	//DrawJointSphere(viewer, lKnee, "LeftKneeSphere");//Left Knee
-
-	//DrawBoneCylinder(viewer, cPlv, cSternum, "UpperSternum");//Pelvis to sternum
-	//DrawPlvJointSphere(viewer, cPlv, "PelvSphere");//Pelvis
-
-	//DrawBoneCylinder(viewer, cSternum, cTorso, "UpperBody");//Sternum to torso
-	//DrawJointSphere(viewer, cSternum, "sternumSphere");//Sternum
-
-	//DrawBoneCylinder(viewer, cPlv, rPlv, "RPelvis");//Pelvis to right pelvis
-	//DrawJointSphere(viewer, rPlv, "rPelvSphere");//Right Pelvis
-
-	//DrawBoneCylinder(viewer, cPlv, lPlv, "LPelvis");//Pelvis to left pelvis
-	//DrawJointSphere(viewer, lPlv, "lPelvSphere");//Left Pelvis
-
-	//DrawBoneCylinder(viewer, cTorso, cHead, "Neck");//Torso to head
-	//DrawJointSphere(viewer, cTorso, "SholderSphere");//Torso
-	//DrawJointSphere(viewer, cHead, "HeadSphere");//Head
-
-	//DrawBoneCylinder(viewer, cTorso, rShldr, "rightShoulder");//Torso to Right Shoulder
-	//DrawJointSphere(viewer, rShldr, "rightShoulderSphere");//Right Shoulder
-
-	//DrawBoneCylinder(viewer, cTorso, lShldr, "leftShoulder");//Torso to Left Shoulder
-	//DrawJointSphere(viewer, lShldr, "leftShoulderSphere");//Left Shoulder
-
-	//DrawBoneCylinder(viewer, rShldr, rUarm, "rightUpperArm");//Right Shoulder to Right Upper arm
-	//DrawJointSphere(viewer, rUarm, "rightUpperArmSphere");//Right Elbow joint
-
-	//DrawBoneCylinder(viewer, lShldr, lUarm, "leftUpperArm");//Left Shoulder to Left Upper arm
-	//DrawJointSphere(viewer, lUarm, "leftUpperArmSphere");//Left Elbow joint
-
-	//DrawBoneCylinder(viewer, rUarm, rLarm, "rightLowerArm");//Right Upper arm to Right lower arm
-	//DrawJointSphere(viewer, rLarm, "rightLowerArmSphere");//Right lower arm
-
-	//DrawBoneCylinder(viewer, lUarm, lLarm, "leftLowerArm");//Left Upper arm to right lower arm
-	//DrawJointSphere(viewer, lLarm, "leftLowerArmSphere");//right lower arm
-
 
 	while (!viewer->wasStopped())
 	{
@@ -1304,21 +1230,6 @@ void PositionTracking::positionDetection(VitruvianAvatar &vAvatar)
 			//viewer->updatePointCloud(cloudL2, "cloud");
 			//viewer->resetCamera();
 			flag2timeL2 = false;
-
-			//pcl::getMinMax3D(*cloudL2, minPt, maxPt);
-
-			////getGroundPoint(cloudL2, groundPoint2);
-
-			////deltaXY2 = ((maxPt.y ) - groundPoint2[1]) / ((maxPt.x ) - groundPoint2[0]);
-
-			//cout << "Max truth2-> X:" << maxPt.x  << "\t Y:" << maxPt.y  << "\t Z:" << maxPt.z  << endl;
-
-			//cout << "Max truth2-> X:" << minPt.x  << "\t Y:" << minPt.y  << "\t Z:" << minPt.z  << endl;
-
-			////cout << "Ground truth2-> X:" << groundPoint2[0] << "\t Y:" << groundPoint2[1] << "\t Z:" << groundPoint2[2] << "\t Delta:" << deltaXY2 << endl;
-
-			//cout << "Ground truth-> X:" << abs(((maxPt.x ) +65) - groundPoint[0]) << "\t Y:" << abs((maxPt.y )- groundPoint[1]) << "\t Z:" << abs((maxPt.z )- groundPoint[2])  << endl;
-			
 		}
 
 		pcl::removeNaNFromPointCloud(*CloudViewer1, *CloudViewer1, indicies);
@@ -1332,13 +1243,7 @@ void PositionTracking::positionDetection(VitruvianAvatar &vAvatar)
 		viewer->updatePointCloud(real_cloud1, "cloud");
 		viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3.0, "cloud");
 		viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_COLOR, 0.1, 0.1, 0.9, "cloud");
-		/*for (int i = 0; i < CloudViewer2->size(); ++i)
-		{
-			CloudViewer2->points[i].x = CloudViewer2->points[i].x - (65.0);
-			CloudViewer2->points[i].y = CloudViewer2->points[i].y - (100.0);
-			CloudViewer2->points[i].z = CloudViewer2->points[i].z ;
-		}*/
-
+		
 		if (PositionTracking::initCalib)
 		{
 			if (real_cloud1->size() > 5000)
