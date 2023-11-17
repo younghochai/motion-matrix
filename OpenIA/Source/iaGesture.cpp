@@ -53,61 +53,6 @@ void GestureRecognition::gesturerecog(JointPosition &jpos)
 			referdata.GenDatacontrol[4]->data_sample();
 		
 
-
-////int correct_num = 0;
-////vector<int> missidx;
-////int testnum = 1;
-//////jpos.calavg();
-////for (int testdata = 0; testdata < referdata.Dycompdataloadnum; testdata++) {
-////
-////	double result[14] = { 10000,10000,10000,10000,10000,10000,10000,10000,10000,1000,10000,10000,10000,1000 };
-////	//cout << result[4] << endl;
-////	cout << "\n\n New     " << testnum << "   test \n" << endl;
-////
-////	cout << "    [Reference Data] \t [DTW Result]" << endl;
-////	for (int refdata = 0; refdata < referdata.Dyreferdataloadtotnum; refdata++)
-////	{
-////
-////
-////		if (referdata.Dynamicreferdatacontrol[refdata]->movingjoint == referdata.Dynamicdatacontrol[testdata]->movingjoint) {
-////			result[refdata] = CalDynamicdataDynamicTimeWarpedDistance(referdata.Dynamicreferdatacontrol[refdata]->compareData,
-////				referdata.Dynamicdatacontrol[testdata]->compareData,
-////				referdata.Dynamicreferdatacontrol[refdata]->movingjoint.size(),
-////				referdata.Dynamicreferdatacontrol[refdata]->keyframecnt);
-////			cout.width(20);
-////			cout << referdata.Dynamicreferdatacontrol[refdata]->posename << "\t :  " << result[refdata] << " \n";
-////		}
-////		else
-////		{
-////			cout.width(20);
-////			cout << referdata.Dynamicreferdatacontrol[refdata]->posename << "\t  ,  " << referdata.Dynamicdatacontrol[testdata]->posename << " different moving joint \n";
-////		}
-////	}
-////
-////
-////	int p = 0;
-////
-////	p = findminresult(result, sizeof(result) / sizeof(double));
-////
-////	cout << "\n\n" << referdata.Dynamicdatacontrol[testdata]->posename << "\t  testing  \t  Result:   " << referdata.Dynamicreferdatacontrol[p]->posename << endl;
-////	cout << "moving joint number:   " << referdata.Dynamicdatacontrol[testdata]->movingjoint.size() << endl;
-////
-////	if (strncmp(referdata.Dynamicreferdatacontrol[p]->posename.c_str(), referdata.Dynamicdatacontrol[testdata]->posename.c_str(), referdata.Dynamicreferdatacontrol[p]->posename.size()) == 0)
-////	{
-////		correct_num++;
-////
-////	}
-////	else {
-////		miss++;
-////		missidx.push_back(testnum);
-////	}
-////	testnum++;
-////}
-////cout << "total correct number:   " << correct_num << "miss number : " << miss << " [ ";
-////for (int i = 0; i < missidx.size(); i++)
-////	cout << missidx[i] << " ,";
-////cout << " ] " << "accuracy : " << (double)correct_num / (testnum-1) * 100 << endl;
-////cout <<"check test num :  "<< testnum<< endl;
 //			///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 //
