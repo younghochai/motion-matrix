@@ -435,58 +435,6 @@ bool poseDetection(const pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr &cloud_A, c
 
 
 
-	//Creating the KdTree object for the search method of the extraction
-	//pcl::search::KdTree<pcl::PointXYZRGB>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZRGB>);
-	//tree->setInputCloud(cloudC);
-
-	//std::vector<pcl::PointIndices> cluster_indices;
-	//pcl::EuclideanClusterExtraction<pcl::PointXYZRGB> ec;
-	//ec.setClusterTolerance(80.0); // 2cm
-	//ec.setMinClusterSize(100);
-	//ec.setMaxClusterSize(100000);
-	//ec.setSearchMethod(tree);
-	//ec.setInputCloud(cloudC);
-	//ec.extract(cluster_indices);
-
-
-	//int j = 0;
-
-	//for (std::vector<pcl::PointIndices>::const_iterator it = cluster_indices.begin(); it != cluster_indices.end(); ++it)
-	//{
-	//	cloud_cluster->clear();
-	//	for (std::vector<int>::const_iterator pit = it->indices.begin(); pit != it->indices.end(); ++pit)
-	//		cloud_cluster->points.push_back(cloudC->points[*pit]); //*
-	//	cloud_cluster->width = cloud_cluster->points.size();
-	//	cloud_cluster->height = 1;
-	//	cloud_cluster->is_dense = true;
-
-	//	//std::cout << "PointCloud representing the Cluster: " << cloud_cluster->points.size() << " data points." << std::endl;
-	//	if (cloud_cluster->points.size() > 0)
-	//	{
-	//		if (j == 0)
-	//		{
-
-	//			pcl::copyPointCloud(*cloud_cluster, *temp_cloud_cluster);
-
-	//			//for (std::vector<int>::const_iterator pit = it->indices.begin(); pit != it->indices.end(); ++pit)
-	//			//	cloudPose->points.push_back(cloudC->points[*pit]); //*
-	//			//cloudPose->width = cloudPose->points.size();
-	//			//cloudPose->height = 1;
-	//			//cloudPose->is_dense = true;
-
-	//			break;
-	//		}
-	//		j++;
-	//	}
-
-	//}
-
-	//pcl::copyPointCloud(*temp_cloud_cluster, *cloudC);
-
-	//cloudC->width = cloudC->points.size();
-	//cloudC->height = 1;
-	//cloudC->is_dense = true;
-
 
 	if (cloudC->size() <= 0)
 	{
