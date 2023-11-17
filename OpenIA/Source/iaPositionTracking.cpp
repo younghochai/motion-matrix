@@ -303,21 +303,6 @@ void keyboardEventOccurred(const pcl::visualization::KeyboardEvent &event,	void*
 
 	if (event.getKeySym() == "u"&& event.keyDown())
 	{
-		//if (writebl)
-		//{
-		//	cb->u = 0;
-		//}
-
-
-		//writebl = !writebl;
-		//cout << "data record" << endl;
-		//writerowbl = !writerowbl;
-
-		////LiDAR position record 
-		//time_t curr_time;
-		//curr_time = time(NULL);
-		//tm *tm_local = localtime(&curr_time);
-
 		PositionTracking::recordData = !PositionTracking::recordData;
 
 		if (PositionTracking::recordData)
@@ -336,20 +321,6 @@ void keyboardEventOccurred(const pcl::visualization::KeyboardEvent &event,	void*
 		}
 	}	
 }
-//
-//void mouseEventOccurred(const pcl::visualization::MouseEvent &event, 	void* viewer_void)
-//{
-//	pcl::visualization::PCLVisualizer *viewer = static_cast<pcl::visualization::PCLVisualizer *> (viewer_void);
-//	if (event.getButton() == pcl::visualization::MouseEvent::LeftButton &&
-//		event.getType() == pcl::visualization::MouseEvent::MouseButtonRelease)
-//	{
-//		std::cout << "Left mouse button released at position (" << event.getX() << ", " << event.getY() << ")" << std::endl;
-//
-//		char str[512];
-//		sprintf(str, "text#%03d", text_id++);
-//		viewer->addText("clicked here", event.getX(), event.getY(), str);
-//	}
-//}
 
 pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloudA(new pcl::PointCloud<pcl::PointXYZRGB>);
 pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloudB(new pcl::PointCloud<pcl::PointXYZRGB>);
