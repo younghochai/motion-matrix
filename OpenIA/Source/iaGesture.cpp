@@ -51,18 +51,7 @@ void GestureRecognition::gesturerecog(JointPosition &jpos)
 			referdata.GenDatacontrol[2]->data_sample();
 			referdata.GenDatacontrol[3]->data_sample();
 			referdata.GenDatacontrol[4]->data_sample();
-			//referdata.GenDatacontrol[]->data_sample();
-			//referdata.GenDatacontrol[4]->FindInitEpt();
-			//referdata.GenDatacontrol[4]->FindthrePoint();
-			//referdata.GenDatacontrol[4]->data_save();
-			//referdata.GenDatacontrol[0]->euler_toquat();
-			//
-
-			//referdata.GenDatacontrol[4]->GenEditSlerp();
-			//referdata.GenDatacontrol[3]->genQuaternion();
-			//referdata.GenDatacontrol[4]->ExtractSeed();
-			//referdata.GenDatacontrol[2]->ExtractSeed();
-			//vector<int> missidx;
+		
 //			//2021.01.20 test
 //			int testnum = 0;
 //			int correct_num = 0;
