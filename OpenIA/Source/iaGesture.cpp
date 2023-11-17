@@ -52,80 +52,8 @@ void GestureRecognition::gesturerecog(JointPosition &jpos)
 			referdata.GenDatacontrol[3]->data_sample();
 			referdata.GenDatacontrol[4]->data_sample();
 		
-
-//			///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-//
-//				//jpos.calavg();
-//				//double result[10];
-//				////////////////////////////////static pose test
-//				//for (int k = 0; k < 10; k++)
-//				//{
-//				//	//result[k] = CalculateDynamicTimeWarpedDistance(referdata.referencepose[r], referdata.referencepose[k]);
-//				//	result[k] = CalculateDynamicTimeWarpedDistance(jpos.avg, referdata.referencepose[k]);
-//
-//
-//				//	// Dynamic
-//
-//				//
-//				//
-//				//
-//				////result[1]=CalculateDynamicTimeWarpedDistance(jpos.avg, referdata.Bothhandup);
-//
-//				////result[0] = CalculateDynamicTimeWarpedDistance(referdata.Test, referdata.Tposdata);
-//				////result[1] = CalculateDynamicTimeWarpedDistance(referdata.Test, referdata.Bothhandup);
-//
-//				////cout << "gesture dis - similarity T-pose :  " << result[0] << "    gesture di s- similarity Both-pose :  " << result[1] << endl;
-//				//	cout << referdata.posename[k] <<"\t :  " <<result[k] <<" \n";
-//				//}
-//				//int p = 0;
-//
-//				//p = findminresult(result, sizeof(result) / sizeof(double));
-//
-//				////cout << "\n\n"<<referdata.posename[r] << " testing   \t  Result:   " << referdata.posename[p]<<endl;
-//				//cout << "\n\n testing   \t  Result:   " << referdata.posename[p] << endl;
-//				////////////////////////////////////////////////////static pose test
-//
-//
-//				/*
-//				testnum++;
-//				}*/
-//
-//				//GesreferdataDycheck(referdata);
-//			//	GestureposdataSave(jpos);
-//				//GesturCovdatacheck(referdata);
-//				//GesturAvgdataSave(referdata);
-//
-//				//cout << sizeof(referdata.Tposdata)/sizeof(double) << endl;
-//
-//			/*	jpos.calavg();
-//				jpos.calvar();
-//				sprintf_s(fileName, ".\\GestureData\\jointsVarData-00%d-%d%d%d.txt", jpos.maxframe, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
-//				skelitonDataFile.open(fileName);
-//
-//
-//				skelitonDataFile << "Frames:" << "\t" << jpos.maxframe << "\n";
-//
-//				for (int tCount = 0; tCount < 16; tCount++)
-//				{
-//					skelitonDataFile
-//						<< jpos.variance[tCount][0] << "\t" << jpos.variance[tCount][1] << "\t" << jpos.variance[tCount][2] << "\n";
-//
-//
-//
-//				}*/
-//
-//
-
-				jpos.dataGet = false;
-
-			
-
-
+			jpos.dataGet = false;
 		}
-
-
-
 	}
 }
 double CalculateEuclideanDistance(double x, double y) {
