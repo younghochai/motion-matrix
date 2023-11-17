@@ -38,42 +38,8 @@ int CalDynamicMHADdataLDT(const std::vector < std::vector<gst::Bodypos>> userdat
 void GestureRecognition::gesturerecog(JointPosition &jpos)
 {
 
-	//referdata.setloadingfilenum(19);
-
-	/*referdata.loaddataB();
-	referdata.loaddataT();
-	referdata.loadtestdata();*/
-	//referdata.loadtestdata();
-//	referdata.loadreferencedata();
-	//referdata.checkposename();
-	
-	
-	//referdata.loadDydata();
-	//referdata.loadDyreferdata();
-	//referdata.loadMSdata();
-	//referdata.loadMSreferdata();
-
-	//referdata.loadMHADdata();
-	//referdata.loadMHADreferdata();
-	//referdata.trainingReferData();
-	//referdata.detectMovingjoint();
-	//referdata.detecttestMovingjoint();
-	//referdata.Calvecangle();
-	//referdata.referCalvecangle();
-
 	referdata.loadGeNQuatdata();
-	//referdata.loadbvhdata();
-	/*cout << VitruvianAvatar::model_length[0] << endl;
-	cout << VitruvianAvatar::model_length[1] << endl;
-
-	cout << VitruvianAvatar::model_length[2] << endl;
-	cout << VitruvianAvatar::model_length[3] << endl;
-	cout << VitruvianAvatar::model_length[4] << endl;
-	cout << VitruvianAvatar::model_length[5] << endl;
-	cout << VitruvianAvatar::model_length[6] << endl;
-	cout << VitruvianAvatar::model_length[7] << endl;
-	cout << VitruvianAvatar::model_length[8] << endl;*/
-	//const int referfilenum = referdata.loadingfilenum;
+	
 	while (1) {
 		if (jpos.dataGet)
 		{
