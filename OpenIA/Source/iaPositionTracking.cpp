@@ -2125,21 +2125,7 @@ void PositionTracking::positionDetection(VitruvianAvatar &vAvatar)
 
 			if (quatFrame == 0)
 			{
-				myAcquire.readFileQuatData("TotalCapture.txt");//read Rawquat form file
-			
-				//Save bone vector to a file
-				/*time_t curr_time;
-				curr_time = time(NULL);
-				tm *tm_local = localtime(&curr_time);
-
-				sprintf_s(fileName, ".\\BoneData\\FRAboneData-%d%d%d.txt", tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
-				FRAboneDataFile.open(fileName);
-				sprintf_s(fileName, ".\\BoneData\\FLAboneData-%d%d%d.txt", tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
-				FLAboneDataFile.open(fileName);
-				sprintf_s(fileName, ".\\BoneData\\FRLboneData-%d%d%d.txt", tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
-				FRLboneDataFile.open(fileName);
-				sprintf_s(fileName, ".\\BoneData\\FLLboneData-%d%d%d.txt", tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
-				FLLboneDataFile.open(fileName);*/
+				myAcquire.readFileQuatData("TotalCapture.txt");//read Rawquat form file				
 			}
 
 
