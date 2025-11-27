@@ -27,7 +27,6 @@ void FATAL(const char* msg) {
 	std::exit(EXIT_FAILURE);
 }
 
-
 iaAcquireGesture myAcquire;
 iaAcquireGesture AcquireSFQ;
 //OSLidar osData;
@@ -77,7 +76,6 @@ extern MotionSphere ms;
 //float imuLeg = 0.0;
 
 float avatarHeight = 88.0;
-
 
 bool flag2timeL1 = false;
 bool flag1timeL1 = true;
@@ -134,6 +132,8 @@ Eigen::Vector3f lPlv(822.586, 807.877, -30.485);
 Eigen::Vector3f lKnee(821.921, 1040.56, -31.250);
 Eigen::Vector3f lFoot(822.244, 1268.80, -31.923);
 
+std::vector<Eigen::Vector3f> dataBuffer;
+
 skeleton bonePose;
 
 double groundPointY = 0;
@@ -153,7 +153,6 @@ void writeJointData(int tIndex)
 
 
 	skelitonDataFile << "Frames:" << "\t" << tIndex << "\n" << "Height:" << "\t" << avatarHeight / 10.0 << "\n";
-
 
 	for (int tCount = 0; tCount < tIndex; tCount++)
 	{
@@ -218,7 +217,7 @@ void writekeyframeJointData(int tIndex)
 			<< allBoneJoints[tCount].BoneJoints[14][0] << "\t" << allBoneJoints[tCount].BoneJoints[14][1] << "\t" << allBoneJoints[tCount].BoneJoints[14][2] << "\t"
 			<< allBoneJoints[tCount].BoneJoints[15][0] << "\t" << allBoneJoints[tCount].BoneJoints[15][1] << "\t" << allBoneJoints[tCount].BoneJoints[15][2] << "\n";
 	}
-	
+
 	skelitonDataFile.close();
 
 	fileIndex++;
@@ -275,7 +274,6 @@ void keyboardEventOccurred(const pcl::visualization::KeyboardEvent& event, void*
 		cout << "v Key pressed" << endl;
 
 		iaAcquireGesture::calibIMU = true;
-
 	}
 
 	if (event.getKeySym() == "b" && event.keyDown())//Reset IMU sensor
@@ -315,6 +313,7 @@ void keyboardEventOccurred(const pcl::visualization::KeyboardEvent& event, void*
 		{
 			cout << "Record..." << endl;
 			PositionTracking::resetParameters();
+
 		}
 		else
 		{
@@ -322,10 +321,32 @@ void keyboardEventOccurred(const pcl::visualization::KeyboardEvent& event, void*
 			writeJointData(PositionTracking::tFrameIndex);
 			//PositionTracking::saveSFQData();
 			PositionTracking::saveSFQuatData(PositionTracking::tFrameIndex);
+
+			// Data extraction
+			std::cout << "Data buffer size: " << dataBuffer.size() << std::endl;
+
+			std::ofstream file("D:\\PoseTrack19\\src\\out\\build\\SkeletonData\\test\\output.csv");
+
+			if (!file.is_open()) {
+				std::cerr << "Error: Unable to open file " << "output.csv" << std::endl;
+				return;
+			}
+
+			// Write data to CSV
+			for (const auto& vec : dataBuffer) {
+				//file << vec[0] << "," << vec[2] << "," << -vec[1] << ", " << vec[3] << ", " << vec[5] << ", " << -vec[4] << ", " << vec[6] << ", " << vec[8] << ", " << -vec[7] << "\n";
+				file << vec[0] << "," << vec[1] << "," << vec[2] << ", " << vec[3] << ", " << vec[4] << ", " << vec[5] << ", " << vec[6] << ", " << vec[7] << ", " << vec[8] << "\n";
+				//file << vec[0] << "," << vec[1] << "," << vec[2] << "\n";
+			}
+
+			file.close();
+			std::cout << "Data saved to " << "D:\\PoseTrack19\\src\\out\\build\\SkeletonData\\test\\output.csv" << std::endl;
+
+			dataBuffer.clear(); // 벡터 초기화
+			std::cout << "Data buffer has been cleared." << std::endl;
+			
 		}
-
 		XsensConnection::ukeyPressed = !XsensConnection::ukeyPressed;
-
 	}
 
 
@@ -452,7 +473,6 @@ void keyboardEventOccurred(const pcl::visualization::KeyboardEvent& event, void*
 //		viewer->addText("clicked here", event.getX(), event.getY(), str);
 //	}
 //}
-
 
 pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloudA(new pcl::PointCloud<pcl::PointXYZRGB>);
 pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloudB(new pcl::PointCloud<pcl::PointXYZRGB>);
@@ -713,8 +733,7 @@ centroid[0] = centroid[0] - (5.0 - (bodyLength_X / 2));*/
 
 void PositionTracking::OSlidar()
 {
-	std::cerr << "Ouster client example " << ouster::CLIENT_VERSION
-		<< std::endl;
+	std::cerr << "Ouster client example " << ouster::CLIENT_VERSION << std::endl;
 	/*
 	 * The sensor client consists of the network client and a library for
 	 * reading and working with data.
@@ -728,7 +747,7 @@ void PositionTracking::OSlidar()
 	 /* const std::string sensor_hostname = argv[1];
 	  const std::string data_destination = argv[2];*/
 
-	//const std::string sensor_hostname = "os-992037000174"; //OS-0 [32]
+	  //const std::string sensor_hostname = "os-992037000174"; //OS-0 [32]
 	const std::string sensor_hostname = "os-122105000172"; //OS-1 [32] // new lidar
 	//const std::string sensor_hostname = "os-122106000321"; //OS-1 [32]
 	const std::string data_destination = "192.168.1.27"; //"165.254.219.210"
@@ -736,10 +755,10 @@ void PositionTracking::OSlidar()
 	//const std::string sensor_hostname = "os-992037000174"; //OS-0 [32]
 	//const std::string data_destination = "192.168.1.27";//"192.168.+1.20"
 
-	std::cerr << "Connecting to \"" << sensor_hostname << "\"... " << std::endl;
+	std::cerr << "Connecting to \"" << sensor_hostname << "\"... " << data_destination << std::endl;
 
-	auto handle = sensor::init_client(sensor_hostname, data_destination); 
-	//std::cout << "handle : " << handle << std::endl; // return shared pointer address
+	auto handle = sensor::init_client(sensor_hostname, data_destination);
+	std::cout << "handle : " << handle << std::endl; // return shared pointer address
 
 	if (!handle) FATAL("Failed to connect");
 	std::cerr << "ok" << std::endl;
@@ -880,7 +899,7 @@ void PositionTracking::OSlidar()
 						basic_point.b = 0.1;
 
 						if (basic_point.x < 6500 && basic_point.y > -2750 && basic_point.y < 600)
-						//if (basic_point.x < 6500 && basic_point.y < 2750 && basic_point.y > -600)
+							//if (basic_point.x < 6500 && basic_point.y < 2750 && basic_point.y > -600)
 							point_cloud_ptr->points.push_back(basic_point);
 					}
 				}
@@ -892,11 +911,10 @@ void PositionTracking::OSlidar()
 				pcl::copyPointCloud(*CloudViewer1, *cloudA);
 				cloudA->width = cloudA->size();
 				cloudA->height = 1;
-		
+
 				//cout << "No. of points" << cloudA->size() << endl;
 				if (PositionTracking::_initLidar)
 				{
-
 					std::stringstream s;
 					s << ".\\Target\\Calib.pcd";
 
@@ -980,7 +998,7 @@ void PositionTracking::LiDARDataReader2()
 {
 
 	// Open VelodyneCapture that retrieve from Sensor
-	
+
 	const boost::asio::ip::address address = boost::asio::ip::address::from_string("192.168.1.202");
 	const unsigned short port = 2468;
 	velodyne::VLP16Capture capture(address, port);
@@ -1043,7 +1061,7 @@ void PositionTracking::LiDARDataReader2()
 				float x = static_cast<float>((distance * std::cos(vertical)) * std::sin(azimuth));
 				float y = static_cast<float>((distance * std::cos(vertical)) * std::cos(azimuth));
 				float z = static_cast<float>((distance * std::sin(vertical)));
-				//std::cerr << "Point distance:" << distance << std::endl;
+				std::cerr << "Point distance:" << distance << std::endl;
 
 				if (x == 0.0f && y == 0.0f && z == 0.0f)
 				{
@@ -1129,8 +1147,6 @@ void PositionTracking::LiDARDataReader2()
 					flag2timeL2 = false;
 				}
 			}
-
-
 		}
 		else
 		{
@@ -1917,7 +1933,7 @@ void PositionTracking::positionDetection(VitruvianAvatar& vAvatar)
 				groundPointY = iFootPose + 20;//Fixed ground 
 
 				cout << "\t pHeight:" << acctHeight / 10.0 << "\t iHeadHeight:" << iHeadHeight / 10.0 << "\t iShldHeight:" << iShldHeight / 10.0 << "\t iPelvHeight:" << iPelvHeight / 10.0 << "\t iKneeHeight:" << iKneeHeight / 10.0 << endl;
-				
+
 
 				VitruvianAvatar::humanHeight = (acctHeight / 10.0);
 				vAvatar.initializeVetruvianVtkAvatar();
@@ -2007,8 +2023,6 @@ void PositionTracking::positionDetection(VitruvianAvatar& vAvatar)
 				rKnee[1] = iKneeHeight;
 				rKnee[2] = maxPt.z;
 
-
-
 				float xplv = maxPt.x - maxPt.x;
 				float yplv = lPlv[1] - lKnee[1];
 				float zplv = minPt.z - minPt.z;
@@ -2041,6 +2055,7 @@ void PositionTracking::positionDetection(VitruvianAvatar& vAvatar)
 				cPlv[2] = cHead[2];
 
 				cout << "Pelvis-> X:" << cPlv[0] << "\t Y:" << cPlv[1] << "\t Z:" << cPlv[2] << endl;
+
 				zDiff = cPlv[2];// to adjust intial position drift
 
 				////Left Pelvise Position/////
@@ -2240,6 +2255,7 @@ void PositionTracking::positionDetection(VitruvianAvatar& vAvatar)
 				rLarm[2] = zRhand;
 				lArmLength = (headlength * 1.3);
 
+				cout << "Right Arm-> X:" << rLarm[0] << "\t Y:" << rLarm[1] << "\t Z:" << rLarm[2] << endl;
 
 				DrawJointSphere(viewer, { xRhand, yRhand, zRhand }, "rightLowerArmSphere");
 
@@ -2328,6 +2344,8 @@ void PositionTracking::positionDetection(VitruvianAvatar& vAvatar)
 				lLarm[0] = xLhand;
 				lLarm[1] = yLhand;
 				lLarm[2] = zLhand;
+
+				cout << "Left Arm-> X:" << lLarm[0] << "\t Y:" << lLarm[1] << "\t Z:" << lLarm[2] << endl;
 
 				DrawJointSphere(viewer, { xLhand, yLhand, zLhand }, "leftLowerArmSphere");
 
@@ -2552,7 +2570,6 @@ void PositionTracking::positionDetection(VitruvianAvatar& vAvatar)
 				cPlv[0] = (rPlv[0] + (plvQuat.mData[1] * sPlvLength));
 				cPlv[1] = rPlv[1] + (-plvQuat.mData[2] * sPlvLength);
 				cPlv[2] = rPlv[2] + (-plvQuat.mData[0] * sPlvLength);
-
 			}
 
 			if (rPlv[1] >= lPlv[1])//Considering leg leg 
@@ -2574,20 +2591,22 @@ void PositionTracking::positionDetection(VitruvianAvatar& vAvatar)
 				bOnetime = false;
 			}
 
-			 //to adjust intial drift position
+			//cout<< one_line_data <<endl;
 
-			//Translate upper body to match pelvise height
-			//prevcPelv = cPlv;
-			//cPlv =(rPlv + lPlv) / 2;
+			//to adjust intial drift position
 
-			//cPlv[0] = centroidX[0]; //Center of Max-X and Min-X
+		   //Translate upper body to match pelvise height
+		   //prevcPelv = cPlv;
+		   //cPlv =(rPlv + lPlv) / 2;
 
-			//updateUpperBody(prevcPelv - cPlv);
+		   //cPlv[0] = centroidX[0]; //Center of Max-X and Min-X
 
-			//-----------------------------------------------------------------------------------------
-			//cPlv[0] = -cPlv[0];
+		   //updateUpperBody(prevcPelv - cPlv);
 
-			//Right Pelvis <- Pelvis orientation			
+		   //-----------------------------------------------------------------------------------------
+		   //cPlv[0] = -cPlv[0];
+
+		   //Right Pelvis <- Pelvis orientation			
 			quaternion rplvQuat1(-vector[2], vector[1], vector[0], 0);
 			//quaternion rplvQuat1(0, 0, -1, 0);
 			rplvQuat1 = currentOri.b0.mutiplication(rplvQuat1.mutiplication(currentOri.b0.Inverse()));
@@ -2741,6 +2760,16 @@ void PositionTracking::positionDetection(VitruvianAvatar& vAvatar)
 			//LAboneDataFile  << lLarmQuat.mData[0] << "\t" << lLarmQuat.mData[1] << "\t" << lLarmQuat.mData[2] << "\t" << lLarmQuat.mData[3] << "\n";
 
 			updateBoneJoints(frameIndex);//Update Bone jounts in array to save to file
+
+			cout << "center_X: " << cPlv[0] << "\tcenter_Y: " << cPlv[1] << "\tcenter_Z: " << cPlv[2] << endl;
+			cout << "Right Arm_X:" << rLarm[0] << "\t Right Arm_Y:" << rLarm[1] << "\t Right Arm_Z:" << rLarm[2] << endl;
+			cout << "Left Arm_X:" << lLarm[0] << "\t Left Arm_Y:" << lLarm[1] << "\t Left Arm_Z:" << lLarm[2] << endl;
+
+			// 파일로 저장
+			dataBuffer.push_back(cPlv);
+			dataBuffer.push_back(rLarm);
+			dataBuffer.push_back(lLarm);
+
 			//
 			//float yGroundDiff = 0;
 			//if (isJointBelowGround(yGroundDiff))
@@ -2820,6 +2849,7 @@ void PositionTracking::positionDetection(VitruvianAvatar& vAvatar)
 
 		tFrameIndex = frameIndex;
 		gtFrameIndex = frameIndex;
+
 
 		if (!PositionTracking::recordData)
 		{
@@ -3336,7 +3366,6 @@ void PositionTracking::saveFullBodySFQ(int noOfFrames)
 
 	char fileName[1024];
 
-
 	sprintf_s(fileName, ".\\SkeletonData\\FB-SFQ-Data-00%d-%d%d%d.txt", 0, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
 	avatarDataFile.open(fileName);
 
@@ -3362,7 +3391,7 @@ void PositionTracking::saveFullBodySFQ(int noOfFrames)
 	}
 
 
-	//�ǽð� ������ -
+	//실시간 진행중 -
 	for (int tCount = 0; tCount < noOfFrames; tCount++)
 	{
 		ms.su->avatarData[tCount].b0 = sfqData[tCount][0];
