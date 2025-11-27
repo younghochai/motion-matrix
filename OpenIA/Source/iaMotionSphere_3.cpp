@@ -2176,3 +2176,4 @@ int MotionSphere::sphereMainLoop(MotionSphere newms, char* windowName)
 
 	return 0;
 }
+
